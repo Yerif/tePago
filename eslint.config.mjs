@@ -14,6 +14,8 @@ const config = [
       "react/no-danger": "error",
     },
   },
+  // Única excepción a no-console (CLAUDE.md §12).
+  { files: ["src/lib/logger.ts"], rules: { "no-console": "off" } },
 ];
 
 export default config;
