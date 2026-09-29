@@ -6,11 +6,13 @@ import { GrassDivider } from "@/components/cozy/GrassDivider";
 import { Pill } from "@/components/cozy/Pill";
 import { ThemeToggle } from "@/components/cozy/ThemeToggle";
 import { XPBar } from "@/components/cozy/XPBar";
+import { DebugDatos } from "@/components/dev/DebugDatos";
 import { ExpenseCard } from "@/components/features/ExpenseCard";
 import { FriendRow } from "@/components/features/FriendRow";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
+import { xpAcumuladaParaNivel } from "@/lib/game/levels";
 import { balancesNetos } from "@/lib/splits/balances";
 import { formatoMXN } from "@/lib/splits/formato";
 
@@ -34,6 +36,18 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
 
   return (
     <main data-component="HomeGrupoDemoPage" className="mx-auto flex max-w-md flex-col gap-5 pb-10">
+      <DebugDatos
+        usuario={`${yo.nombre} (demo)`}
+        grupo={grupo.nombre}
+        estadoAvatar={yo.estado}
+        xp={{ total: xpAcumuladaParaNivel(yo.nivel) + yo.xp, nivel: yo.nivel }}
+        ia={{
+          prompt: "B1@v1 (ejemplo)",
+          latenciaMs: 812,
+          respuesta: '{"descripcion":"Tacos","total":"850","pagado_por":"m2"}',
+          ts: ahora.toISOString(),
+        }}
+      />
       <header className="overflow-hidden bg-water-soft">
         <div className="flex items-start justify-between px-6 pt-5">
           <div>
