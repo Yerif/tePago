@@ -1,4 +1,5 @@
 import type { Categoria } from "@/lib/categorias";
+import { BADGE_SLUGS, BADGES, type BadgeSlug } from "@/lib/game/badges";
 import { estadoAvatar, situacionEnGrupo, type EstadoAvatar, type SituacionGrupo } from "@/lib/game/avatar";
 import { progresoNivel } from "@/lib/game/levels";
 import { repartirIgual } from "@/lib/splits/igual";
@@ -7,13 +8,19 @@ import type { GastoDemo, GrupoDemo, MiembroDemo } from "./tipos";
 /** Datos de ejemplo para probar la UI sin Supabase. NUNCA se usan en producción. */
 export const YO = "ana";
 
-export const BADGES_DEMO: Record<string, { nombre: string; variant: "lemon" | "mint" | "rose" | "grass" | "lavender" }> = {
-  rayo: { nombre: "Rayo ⚡", variant: "lemon" },
-  generoso: { nombre: "El Generoso 🌻", variant: "mint" },
-  fantasma: { nombre: "El Fantasma 👻", variant: "rose" },
-  jardinero: { nombre: "Jardinero 🌱", variant: "grass" },
-  alcalde: { nombre: "Alcalde 🏅", variant: "lavender" },
+/** Los nombres salen del catálogo real (`lib/game/badges`); aquí solo se agrega el color de la pill. */
+const VARIANTE_BADGE: Record<BadgeSlug, "lemon" | "mint" | "rose" | "grass" | "lavender"> = {
+  rayo: "lemon",
+  generoso: "mint",
+  fantasma: "rose",
+  jardinero: "grass",
+  alcalde: "lavender",
+  mecenas: "lavender",
 };
+
+export const BADGES_DEMO: Record<string, { nombre: string; variant: (typeof VARIANTE_BADGE)[BadgeSlug] }> = Object.fromEntries(
+  BADGE_SLUGS.map((slug) => [slug, { nombre: BADGES[slug].nombre, variant: VARIANTE_BADGE[slug] }]),
+);
 
 type BaseMiembro = Pick<MiembroDemo, "id" | "nombre" | "usuario" | "emoji" | "badges"> & { xpTotal: number };
 
