@@ -39,11 +39,11 @@ Estos no los puede hacer Claude Code porque requieren tus cuentas:
 |---|---|---|---|---|---|---|---|---|
 | 1 | Crear repo + proyecto Vercel + proyecto Supabase | 0 | P0 | S | L0 | — (Yerif) | — | Repo listo; resto pendiente |
 | 2 | Scaffold Next.js 15 + TS estricto + Tailwind + estructura | 0 | P0 | M | L0 | A1 | — | ✅ Hecho |
-| 3 | `lib/logger.ts` con namespaces + regla ESLint no-console | 0 | P0 | S | L0 | A3 | 2 | |
-| 4 | `lib/errors.ts` con códigos tipados + requestId | 0 | P0 | S | L0 | A3 | 3 | |
-| 5 | CI en GitHub Actions: lint + test + build por PR | 0 | P1 | S | L0 | A4 | 2 | |
-| 6 | shadcn/ui con tokens cozy como CSS variables (dark default) | 0 | P0 | M | L0 | A2 | 2 | |
-| 7 | Toggle dark/light persistente (dark por default) | 8 | P0 | S | L1 | A2 | 6 | |
+| 3 | `lib/logger.ts` con namespaces + regla ESLint no-console | 0 | P0 | S | L0 | A3 | 2 | ✅ PR #3 |
+| 4 | `lib/errors.ts` con códigos tipados + requestId | 0 | P0 | S | L0 | A3 | 3 | ✅ PR #4 |
+| 5 | CI en GitHub Actions: lint + test + build por PR | 0 | P1 | S | L0 | A4 | 2 | PR #5 (falta verlo correr en GitHub) |
+| 6 | shadcn/ui con tokens cozy como CSS variables (dark default) | 0 | P0 | M | L0 | A2 | 2 | ✅ PR #6 |
+| 7 | Toggle dark/light persistente (dark por default) | 8 | P0 | S | L1 | A2 | 6 | ✅ PR #6 |
 | 8 | Migración inicial: tablas de dominio con `group_id` + índices | 1 | P0 | L | L4, L9 | A13 → A5 | 1 | |
 | 9 | Script npm de generación de tipos desde Supabase | 1 | P0 | S | L0 | A5 | 8 | |
 | 10 | RLS por membresía en todas las tablas + tests A/B | 1 | P0 | L | L4, L9 | A6 | 8 | |
@@ -55,6 +55,8 @@ Estos no los puede hacer Claude Code porque requieren tus cuentas:
 | 16 | Crear docs/SECURITY.md y docs/FEEDBACK.md | 9 | P2 | S | L8, L6 | — | — | ✅ Hecho |
 
 Carga: 5 × S + 4 × M + 2 × L (sin contar los ya hechos). Si el sprint se aprieta, lo primero que sale es el #15 y después el #14 (P1, no bloquean al Sprint 2).
+
+Extra adelantado (rama `feat/demo-mock`): demo con datos de ejemplo para probar la UI sin Supabase (`/dev/demo`, ver `docs/MOVIL.md`) y `lib/splits` modo igual, formato y balances con cobertura 100 % (ticket del Sprint 3).
 
 Fuera del Sprint 1 a propósito: Storage multitenant (va con el modo foto en el Sprint 4) y borrar cuenta (P2).
 

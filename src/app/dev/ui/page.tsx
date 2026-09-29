@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { Pill } from "@/components/cozy/Pill";
 import { ThemeToggle } from "@/components/cozy/ThemeToggle";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { esEntornoDev } from "@/lib/entorno";
 
-export const metadata: Metadata = { title: "UI · Cuentas Conmigo", robots: { index: false } };
+export const metadata: Metadata = { title: "UI · Cuentas Conmigo" };
 
 const ACENTOS = ["grass", "peach", "rose", "lemon", "mint", "lavender", "water"] as const;
 const SWATCH = {
@@ -20,8 +18,6 @@ const SWATCH = {
 } as const;
 
 export default function DevUiPage() {
-  if (!esEntornoDev()) notFound();
-
   return (
     <main data-component="DevUiPage" className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
       <header className="flex items-center justify-between">

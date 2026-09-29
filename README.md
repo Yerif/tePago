@@ -11,6 +11,7 @@ Cada quien tiene un personaje que evoluciona según qué tan rápido paga.
 |---|---|
 | [`CLAUDE.md`](./CLAUDE.md) | Fuente de verdad: producto, arquitectura, reglas |
 | [`docs/SPRINTS.md`](./docs/SPRINTS.md) | Plan de sprints y sprint actual |
+| [`docs/MOVIL.md`](./docs/MOVIL.md) | Cómo ver la app y avanzar desde el celular |
 | [`docs/LOOPS.md`](./docs/LOOPS.md) | Workflows por tipo de tarea (L0–L9) |
 | [`docs/PROMPTS.md`](./docs/PROMPTS.md) | Prompts de desarrollo (A) y de runtime de IA (B) |
 | [`docs/SECURITY.md`](./docs/SECURITY.md) | Hallazgos, threat models y controles |
