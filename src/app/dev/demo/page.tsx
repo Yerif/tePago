@@ -49,6 +49,19 @@ export default function DemoIndexPage() {
         </Card>
       </Link>
 
+      <h2 className="mt-2 font-display text-xl font-bold">Confirmar un gasto</h2>
+      <Link href="/dev/demo/ia" data-testid="demo-ia">
+        <Card size="sm" className="flex items-center gap-3">
+          <span aria-hidden className="text-3xl">
+            ✅
+          </span>
+          <div>
+            <p className="font-semibold">Revisar lo que se entendió</p>
+            <p className="text-sm text-muted-foreground">Corrige monto, quién pagó y entre quiénes antes de guardar.</p>
+          </div>
+        </Card>
+      </Link>
+
       <h2 className="mt-2 font-display text-xl font-bold">Perfil</h2>
       <Link href="/dev/demo/yo" data-testid="demo-yo">
         <Card size="sm" className="flex items-center gap-3">
