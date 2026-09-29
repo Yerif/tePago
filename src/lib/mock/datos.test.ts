@@ -33,31 +33,36 @@ describe("datos de ejemplo", () => {
     }
   });
 
-  it("XP dentro del nivel y badges existentes", () => {
+  it("nivel y XP derivados de la XP total (calculados a mano)", () => {
+    const ana = grupos[0]?.miembros.find((m) => m.id === "ana");
+    const ferni = grupos[0]?.miembros.find((m) => m.id === "ferni");
+    expect(ana).toMatchObject({ nivel: 3, xp: 120, xpSiguiente: 250 }); // 395 = 100 + 175 + 120
+    expect(ferni).toMatchObject({ nivel: 5, xp: 90, xpSiguiente: 400 }); // 940 = 850 + 90
+  });
+
+  it("todos los badges existen en el catálogo de la demo", () => {
     for (const m of grupos.flatMap((g) => g.miembros)) {
-      expect(m.xp).toBeGreaterThanOrEqual(0);
-      expect(m.xp).toBeLessThan(m.xpSiguiente);
-      // Fórmula de CLAUDE.md §7: el nivel n requiere 100 + (n-1)*75 XP.
-      expect(m.xpSiguiente).toBe(100 + (m.nivel - 1) * 75);
       for (const b of m.badges) expect(BADGES_DEMO[b], b).toBeDefined();
     }
   });
 
-  it("el estado de cada persona coincide con lo que derivan las reglas de CLAUDE.md §7", () => {
-    // clean: sin deudas · rekt: debe ≥ $500 en total o alguna deuda > 72 h · mild: cualquier otra deuda.
-    const derivar = (userId: string) => {
-      const deudas = grupos.flatMap((g) =>
-        g.gastos.flatMap((e) =>
-          e.partes
-            .filter((p) => p.userId === userId && p.userId !== e.pagadoPor && !p.saldado)
-            .map((p) => ({ centavos: p.centavos, horas: (ahora.getTime() - new Date(e.fecha).getTime()) / 3_600_000 })),
-        ),
-      );
-      if (deudas.length === 0) return "clean";
-      const total = deudas.reduce((s, d) => s + d.centavos, 0);
-      return total >= 50_000 || deudas.some((d) => d.horas > 72) ? "rekt" : "mild";
-    };
-    for (const m of grupos.flatMap((g) => g.miembros)) expect(m.estado, m.id).toBe(derivar(m.id));
+  it("estado del avatar derivado de las deudas (esperado a mano, CLAUDE.md §7)", () => {
+    // ana y ferni: sin deudas. caro: debe $94.88 hace 20 h. beto: debe $1,725.12 (y una deuda de 120 h).
+    // luis: sin deudas. mari: debe $3,381.96 → rekt.
+    const estado = (id: string) => grupos.flatMap((g) => g.miembros).find((m) => m.id === id)?.estado;
+    expect(["ana", "ferni", "caro", "beto", "luis", "mari"].map(estado)).toEqual([
+      "clean",
+      "clean",
+      "mild",
+      "rekt",
+      "clean",
+      "rekt",
+    ]);
+  });
+
+  it("una persona tiene el mismo estado en todos sus grupos", () => {
+    const anas = grupos.flatMap((g) => g.miembros).filter((m) => m.id === "ana");
+    expect(new Set(anas.map((m) => m.estado)).size).toBe(1);
   });
 
   it("cubre los 3 estados del avatar", () => {

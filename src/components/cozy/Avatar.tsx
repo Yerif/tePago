@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import type { EstadoAvatar } from "@/lib/mock/tipos";
+import type { EstadoAvatar } from "@/lib/game/avatar";
 import { cn } from "@/lib/utils";
 
 export const ETIQUETA_ESTADO: Record<EstadoAvatar, string> = {

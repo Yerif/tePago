@@ -11,8 +11,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       exclude: ["**/*.test.ts", "src/lib/splits/tipos.ts"],
-      // 100 % obligatorio en lo que maneja dinero (CLAUDE.md §7); el resto solo se reporta.
-      thresholds: { "src/lib/splits/**": CIEN, "src/lib/tiempo.ts": CIEN },
+      // 100 % obligatorio en dinero y juego (CLAUDE.md §7 y §11); el resto solo se reporta.
+      thresholds: { "src/lib/splits/**": CIEN, "src/lib/game/**": CIEN, "src/lib/tiempo.ts": CIEN },
     },
   },
 });
