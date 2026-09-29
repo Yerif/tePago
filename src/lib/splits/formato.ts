@@ -20,3 +20,15 @@ export function parsearMonto(texto: string): number | null {
   const [entero = "0", decimales = ""] = limpio.split(".");
   return Number(entero) * 100 + Number(decimales.padEnd(2, "0"));
 }
+
+/**
+ * "10", "10.5" o "10%" → puntos base (1000 = 10.00 %), sin `parseFloat`.
+ * Acepta de 0 a 100 con hasta 2 decimales; null si no es válido.
+ */
+export function parsearPorcentaje(texto: string): number | null {
+  const limpio = texto.trim().replace(/%$/, "").trim();
+  if (!/^\d{1,3}(\.\d{1,2})?$/.test(limpio)) return null;
+  const [entero = "0", decimales = ""] = limpio.split(".");
+  const puntos = Number(entero) * 100 + Number(decimales.padEnd(2, "0"));
+  return puntos <= 10_000 ? puntos : null;
+}
