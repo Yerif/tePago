@@ -1,0 +1,689 @@
+[
+  {
+    "id": "b5-01-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Tacos al pastor",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-02-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Cena en Casa Oaxaca",
+      "items": [
+        "Pozole",
+        "Mezcal"
+      ]
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-03-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Café con leche",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-04-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Sushi",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-05-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Desayuno en Sanborns",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-06-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Comida corrida",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-07-comida",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "comida"
+    ],
+    "entrada": {
+      "descripcion": "Cena con chelas",
+      "items": [
+        "Arrachera",
+        "Cervezas"
+      ]
+    },
+    "esperado": {
+      "categoria": "comida"
+    }
+  },
+  {
+    "id": "b5-08-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "OXXO",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-09-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "Walmart despensa",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-10-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "Soriana",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-11-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "Costco",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-12-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "Frutas del mercado de Coyoacán",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-13-super",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "super"
+    ],
+    "entrada": {
+      "descripcion": "7-Eleven",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "super"
+    }
+  },
+  {
+    "id": "b5-14-fiesta",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "fiesta"
+    ],
+    "entrada": {
+      "descripcion": "Chelas y mezcal",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "fiesta"
+    }
+  },
+  {
+    "id": "b5-15-fiesta",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "fiesta"
+    ],
+    "entrada": {
+      "descripcion": "Cover del antro",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "fiesta"
+    }
+  },
+  {
+    "id": "b5-16-fiesta",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "fiesta"
+    ],
+    "entrada": {
+      "descripcion": "Botella de tequila",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "fiesta"
+    }
+  },
+  {
+    "id": "b5-17-fiesta",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "fiesta"
+    ],
+    "entrada": {
+      "descripcion": "Chelas para la fiesta",
+      "items": [
+        "Caguamas",
+        "Hielo"
+      ]
+    },
+    "esperado": {
+      "categoria": "fiesta"
+    }
+  },
+  {
+    "id": "b5-18-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Uber al aeropuerto",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-19-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "DiDi",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-20-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Gasolina",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-21-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Caseta a Cuernavaca",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-22-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Estacionamiento",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-23-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Boleto de ADO",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-24-transporte",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "transporte"
+    ],
+    "entrada": {
+      "descripcion": "Vuelo Volaris",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "transporte"
+    }
+  },
+  {
+    "id": "b5-25-hospedaje",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hospedaje"
+    ],
+    "entrada": {
+      "descripcion": "Airbnb en Tulum",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hospedaje"
+    }
+  },
+  {
+    "id": "b5-26-hospedaje",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hospedaje"
+    ],
+    "entrada": {
+      "descripcion": "Hotel en Puebla",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hospedaje"
+    }
+  },
+  {
+    "id": "b5-27-hospedaje",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hospedaje"
+    ],
+    "entrada": {
+      "descripcion": "Hostal en Oaxaca",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hospedaje"
+    }
+  },
+  {
+    "id": "b5-28-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Boletos de Cinépolis",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-29-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Netflix",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-30-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Concierto en el Zócalo",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-31-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Museo Frida Kahlo",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-32-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Tour a Teotihuacán",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-33-entretenimiento",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "entretenimiento"
+    ],
+    "entrada": {
+      "descripcion": "Spotify familiar",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "entretenimiento"
+    }
+  },
+  {
+    "id": "b5-34-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Renta de octubre",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-35-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Luz CFE",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-36-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Recibo del agua",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-37-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Internet Telmex",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-38-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Gas estacionario",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-39-hogar",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "hogar"
+    ],
+    "entrada": {
+      "descripcion": "Productos de limpieza",
+      "items": [
+        "Cloro",
+        "Fabuloso"
+      ]
+    },
+    "esperado": {
+      "categoria": "hogar"
+    }
+  },
+  {
+    "id": "b5-40-regalos",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "regalos"
+    ],
+    "entrada": {
+      "descripcion": "Regalo de cumpleaños de Beto",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "regalos"
+    }
+  },
+  {
+    "id": "b5-41-regalos",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "regalos"
+    ],
+    "entrada": {
+      "descripcion": "Cooperación para el regalo de boda",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "regalos"
+    }
+  },
+  {
+    "id": "b5-42-regalos",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "regalos"
+    ],
+    "entrada": {
+      "descripcion": "Flores para mamá",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "regalos"
+    }
+  },
+  {
+    "id": "b5-43-otros",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "otros"
+    ],
+    "entrada": {
+      "descripcion": "Cosas",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "otros"
+    }
+  },
+  {
+    "id": "b5-44-otros",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "otros"
+    ],
+    "entrada": {
+      "descripcion": "Gasto varios",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "otros"
+    }
+  },
+  {
+    "id": "b5-45-otros",
+    "origen": "sintetico",
+    "tipo": "normal",
+    "tags": [
+      "otros"
+    ],
+    "entrada": {
+      "descripcion": "Préstamo",
+      "items": []
+    },
+    "esperado": {
+      "categoria": "otros"
+    }
+  }
+]
