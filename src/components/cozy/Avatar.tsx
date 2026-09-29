@@ -29,14 +29,21 @@ export const avatarVariants = cva("relative inline-flex shrink-0 select-none ite
 
 export interface AvatarProps extends VariantProps<typeof avatarVariants> {
   emoji: string;
+  /** Accesorio de la skin activa (emoji); se coloca sobre la cabeza. */
+  accesorio?: string;
   estado: EstadoAvatar;
   className?: string;
 }
 
-export function Avatar({ emoji, estado, size, className }: AvatarProps) {
+export function Avatar({ emoji, accesorio, estado, size, className }: AvatarProps) {
   return (
     <span className={cn(avatarVariants({ estado, size }), className)} data-testid="avatar" role="img" aria-label={`Personaje ${ETIQUETA_ESTADO[estado].toLowerCase()}`}>
       <span aria-hidden>{emoji}</span>
+      {accesorio ? (
+        <span aria-hidden data-testid="avatar-accesorio" className="absolute -top-[0.3em] left-1/2 -translate-x-1/2 text-[0.5em] leading-none">
+          {accesorio}
+        </span>
+      ) : null}
       <span aria-hidden className="absolute -right-1 -bottom-1 text-base leading-none">
         {STICKER[estado]}
       </span>

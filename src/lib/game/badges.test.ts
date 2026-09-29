@@ -81,6 +81,17 @@ describe("jardinero (5) y alcalde (10): pagos a tiempo (≤ 72 h)", () => {
   });
 });
 
+describe("jerarquía entre badges", () => {
+  it("quien tiene Rayo o Alcalde siempre cumple también Jardinero", () => {
+    const rayo = evaluar([], varias(5, "ana", 100, 23.99));
+    expect(rayo.rayo).toEqual(["ana"]);
+    expect(rayo.jardinero).toEqual(["ana"]);
+    const alcalde = evaluar([], varias(10, "beto", 200, 72));
+    expect(alcalde.alcalde).toEqual(["beto"]);
+    expect(alcalde.jardinero).toEqual(["beto"]);
+  });
+});
+
 describe("fantasma: deuda activa de más de 7 días", () => {
   it("más de 168 h activa sí; exactamente 168 h no; saldada no", () => {
     expect(evaluar([], [deuda("beto", 200, null)]).fantasma).toEqual(["beto"]);

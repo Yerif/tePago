@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { badgesValidos, estaDesbloqueada } from "@/lib/game/skins";
 import { balancesNetos } from "@/lib/splits/balances";
 import { BADGES_DEMO, crearGrupos, YO } from "./datos";
 
@@ -63,6 +64,20 @@ describe("datos de ejemplo", () => {
   it("una persona tiene el mismo estado en todos sus grupos", () => {
     const anas = grupos.flatMap((g) => g.miembros).filter((m) => m.id === "ana");
     expect(new Set(anas.map((m) => m.estado)).size).toBe(1);
+  });
+
+  it("los badges de la demo respetan la jerarquía real: Rayo y Alcalde implican Jardinero", () => {
+    for (const m of grupos.flatMap((g) => g.miembros)) {
+      if (m.badges.includes("rayo") || m.badges.includes("alcalde")) expect(m.badges, m.id).toContain("jardinero");
+    }
+  });
+
+  it("la skin activa de cada persona está desbloqueada por su nivel y sus badges", () => {
+    for (const m of grupos.flatMap((g) => g.miembros)) {
+      expect(estaDesbloqueada(m.skinActivo, { nivel: m.nivel, badges: badgesValidos(m.badges) }), m.id).toBe(true);
+    }
+    const skin = (id: string) => grupos.flatMap((g) => g.miembros).find((m) => m.id === id)?.skinActivo;
+    expect(["ana", "ferni", "caro", "luis"].map(skin)).toEqual(["jardinero", "explorador", "clasico", "alcalde"]);
   });
 
   it("cubre los 3 estados del avatar", () => {

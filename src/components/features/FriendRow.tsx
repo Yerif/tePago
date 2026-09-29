@@ -1,5 +1,6 @@
 import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
+import { SKINS } from "@/lib/game/skins";
 import { BADGES_DEMO } from "@/lib/mock/datos";
 import type { MiembroDemo } from "@/lib/mock/tipos";
 import { formatoMXN } from "@/lib/splits/formato";
@@ -18,7 +19,7 @@ export function FriendRow({ miembro, balanceCentavos, esYo = false }: FriendRowP
   const alCorriente = balanceCentavos === 0;
   return (
     <li data-component="FriendRow" data-testid={`friend-${miembro.id}`} className="flex items-center gap-3 py-3">
-      <Avatar emoji={miembro.emoji} estado={miembro.estado} size="sm" />
+      <Avatar emoji={miembro.emoji} accesorio={SKINS[miembro.skinActivo].accesorio} estado={miembro.estado} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate font-semibold">
           {miembro.nombre}
