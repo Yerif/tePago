@@ -24,6 +24,7 @@ Abre `/dev/demo` y recorre:
 |---|---|
 | Home de grupo (Oaxaca y Roomies) | Personaje con XP, estado del avatar, badges, saldos de la banda y gastos. Cambia de grupo con las pills de arriba. |
 | Dividir ⚡ | Escribe solo el monto y toca Confirmar: ¿se siente más rápido que la calculadora? (meta ≤ 3 interacciones). Prueba quitar personas, cambiar quién pagó, `1000.01` entre 3 (el residuo lo absorbe el pagador) y un monto inválido como `12.345`. |
+| Detalle del grupo | Desde el home, "Ver quién le debe a quién": deudas entre personas (¿se entienden?), balances y cada gasto desplegable con quién ya saldó. |
 | Confirmar gasto ✅ | Elige uno de los 20 mensajes de ejemplo y revisa lo que se "entendió": corrige monto, quién pagó, entre quiénes y propina, y mira cómo cambia el reparto en vivo. Los avisos deben sonar cálidos, no regañones. |
 | Yo 🐻 (perfil y skins) | Cambia de persona con "Probar como…" y mira qué skins se desbloquean (Explorador en nivel 5, Alcalde con su badge…). |
 | `?debug=1` en cualquier ruta | Botón 🐞 con usuario, grupo, avatar, XP y última llamada a la IA; "Copiar reporte" para pegármelo. |
