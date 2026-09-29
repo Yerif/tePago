@@ -1,5 +1,6 @@
 import type { Categoria } from "@/lib/categorias";
 import type { EstadoAvatar } from "@/lib/game/avatar";
+import type { SkinSlug } from "@/lib/game/skins";
 import type { GastoCalculable } from "@/lib/splits/tipos";
 
 export interface MiembroDemo {
@@ -15,6 +16,8 @@ export interface MiembroDemo {
   /** Derivado de las deudas con `lib/game` (estadoAvatar). */
   estado: EstadoAvatar;
   badges: string[];
+  /** Skin efectiva: la elegida si está desbloqueada, si no la clásica (`skinEfectiva`). */
+  skinActivo: SkinSlug;
 }
 
 export interface GastoDemo extends GastoCalculable {

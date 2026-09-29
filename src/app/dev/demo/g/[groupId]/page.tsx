@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
 import { xpAcumuladaParaNivel } from "@/lib/game/levels";
+import { SKINS } from "@/lib/game/skins";
 import { balancesNetos } from "@/lib/splits/balances";
 import { formatoMXN } from "@/lib/splits/formato";
 
@@ -79,7 +80,7 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
         </Pill>
 
         <Card className="flex flex-col items-center gap-4 text-center" data-testid="mi-personaje">
-          <Avatar emoji={yo.emoji} estado={yo.estado} size="lg" />
+          <Avatar emoji={yo.emoji} accesorio={SKINS[yo.skinActivo].accesorio} estado={yo.estado} size="lg" />
           <div>
             <p className="font-display text-2xl font-bold">{yo.nombre}</p>
             <Pill variant={VARIANT_ESTADO[yo.estado]} className="mt-1">

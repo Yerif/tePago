@@ -49,6 +49,19 @@ export default function DemoIndexPage() {
         </Card>
       </Link>
 
+      <h2 className="mt-2 font-display text-xl font-bold">Perfil</h2>
+      <Link href="/dev/demo/yo" data-testid="demo-yo">
+        <Card size="sm" className="flex items-center gap-3">
+          <span aria-hidden className="text-3xl">
+            🐻
+          </span>
+          <div>
+            <p className="font-semibold">Yo: personaje, badges y skins</p>
+            <p className="text-sm text-muted-foreground">Cambia de persona para ver qué skins se desbloquean.</p>
+          </div>
+        </Card>
+      </Link>
+
       <h2 className="mt-2 font-display text-xl font-bold">Sistema de diseño</h2>
       <Link href="/dev/ui" data-testid="demo-ui">
         <Card size="sm" className="flex items-center gap-3">
