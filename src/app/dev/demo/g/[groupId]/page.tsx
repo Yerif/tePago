@@ -121,6 +121,10 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
           </Card>
         </section>
 
+        <Link href={`/dev/demo/g/${grupo.id}/detalle`} data-testid="ver-detalle" className="text-center font-semibold underline">
+          Ver quién le debe a quién →
+        </Link>
+
         <section>
           <h2 className="font-display text-xl font-bold">Gastos recientes</h2>
           <div className="mt-2 flex flex-col gap-3">
