@@ -364,7 +364,7 @@ Prepara el release a producción (Loop 6).
 | B2 | Foto de ticket → renglones | `POST /api/smart-split` (foto) | La persona toma o sube la foto | 1024 | 0 | Compartido B1–B3 | ~$0.005 |
 | B3 | Renglones + texto → quién consumió qué | `POST /api/smart-split` (asignación) | Después de B2 | 1024 | 0 | Compartido B1–B3 | ~$0.003 |
 | B4 | Resumen semanal cozy | `GET /api/cron/resumen-semanal` | Cron de Vercel los lunes | 300 | default | 1 por usuario por semana | ~$0.002 |
-| B5 | Categoría de un gasto | `POST /api/categorizar` | Al guardar un gasto sin categoría | 50 | 0 | 60/h por usuario (propuesta) | ~$0.0005 |
+| B5 | Categoría de un gasto | `POST /api/categorizar` | Al guardar un gasto sin categoría | 50 | 0 | 60/h por usuario | ~$0.0005 |
 
 Costos estimados con Haiku 4.5 ($1 entrada / $5 salida por millón de tokens) y tamaños típicos. Los reales salen de los logs `ai`.
 
@@ -476,7 +476,7 @@ const bloques = new Map(
 
 #### Tipos compartidos
 
-Categorías (propuesta v1). Son la fuente única para la UI, la DB y la IA. Cambiarlas implica versión nueva de B1, B2 y B5.
+Categorías (aprobadas, CLAUDE.md §7). Son la fuente única para la UI, la DB y la IA. Cambiarlas implica versión nueva de B1, B2 y B5.
 
 | Categoría | Emoji | Qué cubre |
 |---|---|---|
@@ -648,13 +648,13 @@ export const B1Salida = z.object({
 | Campo | Valor |
 |---|---|
 | Ruta | `POST /api/smart-split`, modo foto |
-| Entrada | Imagen WebP comprimida en el cliente (~200 KB; la ruta rechaza lo que no venga comprimido, propuesta > 1 MB) y `groupId`. |
+| Entrada | Imagen WebP comprimida en el cliente (~200 KB; la ruta rechaza más de 1 MB) y `groupId`. |
 | Mensaje | Bloque de imagen (base64, `image/webp`) **antes** del texto de B2/user. |
 | Almacenamiento | La foto no se guarda en esta llamada. Se sube a `tickets/{group_id}/{expense_id}.webp` solo cuando la persona guarda el gasto (sin archivos huérfanos). |
 
 Tamaño de imagen. Haiku 4.5 reescala las imágenes que pasan de 1568 px en el lado largo o de ~1,600 tokens (tokens ≈ ancho × alto / 750). Lo ideal es lado largo ≤ 1568 px y ≤ ~1.2 megapíxeles: por ejemplo 784 × 1568 para un ticket alargado o 1092 × 1092 para uno cuadrado. Con eso, una foto cuesta ≤ ~1,600 tokens (≈ $0.0016).
 
-> ⚠️ **Pendiente de decisión:** CLAUDE.md §8 dice "≤ 1600 px lado largo". Todo lo que pase de 1568 px lo reescala la API, así que conviene ajustar ese número en CLAUDE.md. Además, los tickets muy largos pierden legibilidad al reescalar; si los evals lo muestran, la opción es partir la foto en dos (a costa del doble de tokens de imagen).
+> Los tickets muy largos pierden legibilidad al reescalar; si los evals lo muestran, la opción es partir la foto en dos (a costa del doble de tokens de imagen).
 
 ```text B2/system@v1
 Eres el lector de tickets de Cuentas Conmigo, una app mexicana para dividir gastos entre amigos. Recibes la foto de un ticket o una cuenta, casi siempre de un restaurante o bar en México, y transcribes sus renglones. Otra etapa decide quién consumió qué: tú solo lees y copias.

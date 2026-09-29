@@ -99,7 +99,7 @@ CRON_SECRET=                       # Vercel lo manda en Authorization a las ruta
 
 ```
 CLAUDE.md                     # este archivo (raíz)
-docs/                         # PROMPTS.md · LOOPS.md · SECURITY.md · FEEDBACK.md
+docs/                         # PROMPTS.md · LOOPS.md · SPRINTS.md · SECURITY.md · FEEDBACK.md
 src/
   app/
     (auth)/                   # login, callback
@@ -130,6 +130,7 @@ src/
     ai/                       # prompts/ (versionados), schemas/ (Zod), client.ts
     game/                     # XP, niveles, badges, estados — TS PURO
     splits/                   # cálculo en centavos — TS PURO, 100% testeado
+    categorias.ts             # catálogo único de categorías (UI, DB, IA)
     logger.ts
     errors.ts
   types/database.ts           # generado por Supabase, no editar a mano
@@ -209,6 +210,10 @@ Nivel n requiere `100 + (n-1) * 75` XP. Fórmula única en `lib/game/levels.ts`.
 | `alcalde` | Alcalde 🏅 | 10 pagos a tiempo (desbloquea skin) |
 | `mecenas` | El Mecenas 🎩 | Pagó la cuenta más grande del grupo |
 
+### Categorías de gasto
+
+`comida` 🌮 · `super` 🛒 · `fiesta` 🍻 · `transporte` 🚗 · `hospedaje` 🏡 · `entretenimiento` 🎟️ · `hogar` 🧺 · `regalos` 🎁 · `otros` 📦. Fuente única en `lib/categorias.ts`; qué cubre cada una en `docs/PROMPTS.md` (B0). Cambiarlas implica nueva versión de los prompts B1, B2 y B5.
+
 ### Skins
 
 Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencias a Nintendo. El deterioro visual aplica sobre cualquier skin activo.
@@ -231,10 +236,10 @@ Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 
 - **Split igualitario = JavaScript puro, nunca IA.** La IA solo entra donde agrega valor (texto libre, foto de ticket, categorización, resumen semanal).
 - Prompts versionados en `lib/ai/prompts/` (fuente: `docs/PROMPTS.md` Parte B). Ningún cambio de prompt sin correr sus evals (Loop 3).
-- Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual.
+- Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual. Si el modelo se niega (`refusal`) o se corta (`max_tokens`), fallback directo sin retry: se repetiría igual.
 - `max_tokens`: smart-split ≤ 1024 · resumen ≤ 300 · categorización ≤ 50.
-- Prompt caching en system prompts (input cacheado ≈ 10% del precio).
-- Fotos: comprimir en el cliente a WebP, ≤ 1600 px lado largo, ~200 KB, antes de subir.
+- Prompt caching: `cache_control` en los system prompts, pero en Haiku 4.5 solo cachea desde 4,096 tokens y los prompts actuales no llegan (sin costo extra). No inflar prompts para alcanzarlo: con tráfico bajo la escritura (1.25×) casi nunca se reutiliza.
+- Fotos: comprimir en el cliente a WebP, ≤ 1568 px lado largo y ≤ ~1.2 MP (arriba de eso Haiku 4.5 reescala), ~200 KB, antes de subir.
 - Log por llamada (namespace `ai`): requestId, modelo, tokens in/out, latencia, costo estimado. **Nunca** loguear la imagen ni el texto completo del usuario.
 
 ---
@@ -245,7 +250,7 @@ Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 |---|---|---|
 | Ver datos de otro grupo (IDOR) | Cambiar ids en requests | RLS con `is_group_member` + tests cruzados pgTAP |
 | Cheating de XP/badges | Escribir desde el cliente | Solo funciones `security definer` |
-| Abuso de costo de IA | Spam a `/api/smart-split` | Rate limit 10/h/usuario + tamaño máx. de imagen + `max_tokens` |
+| Abuso de costo de IA | Spam a `/api/smart-split` o `/api/categorizar` | Rate limit 10/h/usuario en smart-split y 60/h/usuario en categorizar + tamaño máx. de imagen + `max_tokens` |
 | Prompt injection | Texto o ticket con instrucciones | Salida solo JSON validado; la salida de la IA es dato, no instrucción |
 | Entrar a grupos ajenos | Adivinar invite codes | nanoid ≥ 12 chars + rate limit 5/h/IP + códigos revocables |
 | Fuga de secretos | Bundle del cliente / repo | Keys solo server + `npm run check:secrets` |
