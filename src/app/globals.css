@@ -1,2 +1,138 @@
 @import "tailwindcss";
-/* Tokens cozy y dark mode por default: ticket "shadcn/ui + tokens" */
+
+/* Dark es el default (CLAUDE.md §10): `.dark` en <html> lo maneja next-themes. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Tokens: LIGHT ───────────────────────────────────────── */
+:root {
+  --background: #fffbf0;
+  --foreground: #3d2b1f;
+  --card: #ffffff;
+  --card-foreground: #3d2b1f;
+  --border: #e8cf99;
+  --muted: #fff3d6; /* superficie suave */
+  --muted-foreground: #7a5c44; /* texto secundario */
+  --subtle: #b89880; /* SOLO decorativo: no alcanza AA ni 3:1 */
+  --ring: #3d2b1f;
+  --on-accent: #1a1f2e; /* texto sobre rellenos de acento */
+
+  --grass: #7dc67e;
+  --peach: #ffb085;
+  --rose: #ff8fab;
+  --lemon: #ffe566;
+  --mint: #7ddec8;
+  --lavender: #c4a8e8;
+  --water: #74c2e8;
+
+  --grass-soft: #ddf3dc;
+  --peach-soft: #ffe6d6;
+  --rose-soft: #ffd6e0;
+  --lemon-soft: #fff6b8;
+  --mint-soft: #d3f5ee;
+  --lavender-soft: #eadff7;
+  --water-soft: #d5eef9;
+
+  /* Texto de acento sobre fondo suave: en light usa el color del texto normal. */
+  --grass-text: var(--foreground);
+  --peach-text: var(--foreground);
+  --rose-text: var(--foreground);
+  --lemon-text: var(--foreground);
+  --mint-text: var(--foreground);
+  --lavender-text: var(--foreground);
+  --water-text: var(--foreground);
+}
+
+/* ── Tokens: DARK (default) ──────────────────────────────── */
+.dark {
+  --background: #1a1f2e;
+  --foreground: #e8eaf2;
+  --card: #242b3d;
+  --card-foreground: #e8eaf2;
+  --border: #3a4460;
+  --muted: #2c3448;
+  --muted-foreground: #a0a8c8;
+  --subtle: #606880;
+  --ring: #e8eaf2;
+
+  --grass: #4a9e6a;
+
+  --grass-soft: #17301f;
+  --peach-soft: #3d2618;
+  --rose-soft: #3d1828;
+  --lemon-soft: #3a3414;
+  --mint-soft: #163530;
+  --lavender-soft: #2c2340;
+  --water-soft: #16303f;
+
+  /* En dark, el texto de acento usa el color vivo (CLAUDE.md §10). */
+  --grass-text: #7dc67e;
+  --peach-text: #ffb085;
+  --rose-text: #ff8fab;
+  --lemon-text: #ffe566;
+  --mint-text: #7ddec8;
+  --lavender-text: #c4a8e8;
+  --water-text: #74c2e8;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle: var(--subtle);
+  --color-ring: var(--ring);
+  --color-on-accent: var(--on-accent);
+
+  --color-grass: var(--grass);
+  --color-peach: var(--peach);
+  --color-rose: var(--rose);
+  --color-lemon: var(--lemon);
+  --color-mint: var(--mint);
+  --color-lavender: var(--lavender);
+  --color-water: var(--water);
+
+  --color-grass-soft: var(--grass-soft);
+  --color-peach-soft: var(--peach-soft);
+  --color-rose-soft: var(--rose-soft);
+  --color-lemon-soft: var(--lemon-soft);
+  --color-mint-soft: var(--mint-soft);
+  --color-lavender-soft: var(--lavender-soft);
+  --color-water-soft: var(--water-soft);
+
+  --color-grass-text: var(--grass-text);
+  --color-peach-text: var(--peach-text);
+  --color-rose-text: var(--rose-text);
+  --color-lemon-text: var(--lemon-text);
+  --color-mint-text: var(--mint-text);
+  --color-lavender-text: var(--lavender-text);
+  --color-water-text: var(--water-text);
+
+  /* Radios del lenguaje visual: cards 24 px, elementos chicos 16 px. */
+  --radius-card: 24px;
+  --radius-card-sm: 16px;
+
+  /* Sin fuentes remotas: la CSP no las permite (CLAUDE.md §9). */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
