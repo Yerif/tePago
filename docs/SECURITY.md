@@ -20,6 +20,7 @@
 | 2026-09-29 | Info | Repo inicial: `.env*` ignorados por `.gitignore`; solo `.env.example` versionado. | Hecho |
 | 2026-09-29 | Moderada/Alta (build-time) | `npm audit`: `postcss <=8.5.22` anidado en `next@15`. El fix forzado sube a Next 16 (breaking). Solo procesa CSS propio en build, sin input de usuarios. Se mantiene Next 15 y se reevalúa al migrar a Next 16 o cuando Next 15 publique parche. | Aceptado, revisar |
 | 2026-09-29 | Info | Prompts de runtime (`docs/PROMPTS.md` Parte B): datos del usuario solo en el turno user dentro de etiquetas y sanitizados; salida con structured outputs + validación en código; advertencias como códigos cerrados; B4 sin texto libre de usuarios. A Anthropic no se envían emails ni ids. | Diseño aprobado |
+| 2026-09-29 | Info | `lib/ai` (base, sin llamadas a la API): `limpiarParaPrompt` (NFC, sin control ni caracteres invisibles/tag, sin `<` `>`, recorte), plantillas de una sola pasada, validadores por prompt (alias, formato de monto, longitudes, sin enlaces, cifras de B4 presentes en los datos) y flujo 1 retry + fallback; los problemas de validación nombran campo y regla, nunca valores. Cobertura 100 % exigida. Dependencia nueva: `zod` (MIT, sin costo). | Hecho |
 
 ## Threat models (L9)
 

@@ -181,7 +181,7 @@ export function validarB3(s: B3SalidaT, ctx: ContextoB3): Problema[] {
   return c.problemas;
 }
 
-const NUMERO_RE = /\d[\d,]*(?:\.\d+)?/g;
+const NUMERO_RE = /\d+(?:,\d{3})*(?:\.\d+)?/g;
 const MARKDOWN_RE = /[*`[\]#_~]/;
 
 /** Los números de un texto, como tokens completos ("1,240.50", "3"). */
