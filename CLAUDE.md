@@ -184,7 +184,7 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 | Estado | Condición | Visual |
 |---|---|---|
 | `clean` | balance ≥ 0 en todos sus grupos | Radiante |
-| `mild` | debe > 0 y (< $500 MXN y < 72 h) | Apagado, preocupado |
+| `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | Apagado, preocupado |
 | `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | Deteriorado |
 
 ### XP (solo server-side)

@@ -1,8 +1,6 @@
 import type { Categoria } from "@/lib/categorias";
+import type { EstadoAvatar } from "@/lib/game/avatar";
 import type { GastoCalculable } from "@/lib/splits/tipos";
-
-/** Estado del avatar. En producción se DERIVA de las deudas (CLAUDE.md §7); aquí es un valor fijo de ejemplo. */
-export type EstadoAvatar = "clean" | "mild" | "rekt";
 
 export interface MiembroDemo {
   id: string;
@@ -11,9 +9,10 @@ export interface MiembroDemo {
   /** Personaje base (emoji propio, sin IP de terceros). */
   emoji: string;
   nivel: number;
-  /** XP dentro del nivel actual y lo que falta para el siguiente (fórmula de CLAUDE.md §7). */
+  /** Derivados de la XP total con `lib/game` (progresoNivel). */
   xp: number;
   xpSiguiente: number;
+  /** Derivado de las deudas con `lib/game` (estadoAvatar). */
   estado: EstadoAvatar;
   badges: string[];
 }

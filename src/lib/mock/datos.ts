@@ -1,4 +1,6 @@
 import type { Categoria } from "@/lib/categorias";
+import { estadoAvatar, situacionEnGrupo, type EstadoAvatar, type SituacionGrupo } from "@/lib/game/avatar";
+import { progresoNivel } from "@/lib/game/levels";
 import { repartirIgual } from "@/lib/splits/igual";
 import type { GastoDemo, GrupoDemo, MiembroDemo } from "./tipos";
 
@@ -13,17 +15,22 @@ export const BADGES_DEMO: Record<string, { nombre: string; variant: "lemon" | "m
   alcalde: { nombre: "Alcalde 🏅", variant: "lavender" },
 };
 
-const MIEMBROS: Record<string, MiembroDemo> = {
-  ana: { id: "ana", nombre: "Ana", usuario: "ana", emoji: "🐻", nivel: 3, xp: 120, xpSiguiente: 250, estado: "clean", badges: ["jardinero"] },
-  ferni: { id: "ferni", nombre: "Ferni", usuario: "ferni", emoji: "🦊", nivel: 5, xp: 90, xpSiguiente: 400, estado: "clean", badges: ["rayo", "generoso"] },
-  caro: { id: "caro", nombre: "Caro", usuario: "caro", emoji: "🐰", nivel: 2, xp: 60, xpSiguiente: 175, estado: "mild", badges: [] },
-  beto: { id: "beto", nombre: "Beto", usuario: "beto", emoji: "🐸", nivel: 1, xp: 30, xpSiguiente: 100, estado: "rekt", badges: ["fantasma"] },
-  luis: { id: "luis", nombre: "Luis", usuario: "luis", emoji: "🦉", nivel: 4, xp: 200, xpSiguiente: 325, estado: "clean", badges: ["alcalde"] },
-  mari: { id: "mari", nombre: "Mari", usuario: "mari", emoji: "🐱", nivel: 2, xp: 140, xpSiguiente: 175, estado: "rekt", badges: [] },
+type BaseMiembro = Pick<MiembroDemo, "id" | "nombre" | "usuario" | "emoji" | "badges"> & { xpTotal: number };
+
+const BASE: Record<string, BaseMiembro> = {
+  ana: { id: "ana", nombre: "Ana", usuario: "ana", emoji: "🐻", badges: ["jardinero"], xpTotal: 395 },
+  ferni: { id: "ferni", nombre: "Ferni", usuario: "ferni", emoji: "🦊", badges: ["rayo", "generoso"], xpTotal: 940 },
+  caro: { id: "caro", nombre: "Caro", usuario: "caro", emoji: "🐰", badges: [], xpTotal: 160 },
+  beto: { id: "beto", nombre: "Beto", usuario: "beto", emoji: "🐸", badges: ["fantasma"], xpTotal: 30 },
+  luis: { id: "luis", nombre: "Luis", usuario: "luis", emoji: "🦉", badges: ["alcalde"], xpTotal: 725 },
+  mari: { id: "mari", nombre: "Mari", usuario: "mari", emoji: "🐱", badges: [], xpTotal: 240 },
 };
 
-function miembros(...ids: string[]): MiembroDemo[] {
-  return ids.map((id) => ({ ...(MIEMBROS[id] as MiembroDemo) }));
+/** Nivel y XP salen de la XP total; el estado, de las deudas: nada de esto está escrito a mano. */
+function miembro(id: string, estado: EstadoAvatar): MiembroDemo {
+  const { xpTotal, ...base } = BASE[id] as BaseMiembro;
+  const p = progresoNivel(xpTotal);
+  return { ...base, nivel: p.nivel, xp: p.xpEnNivel, xpSiguiente: p.xpSiguiente, estado };
 }
 
 interface EntradaGasto {
@@ -59,12 +66,12 @@ function gasto(e: EntradaGasto, ahora: Date): GastoDemo {
 export function crearGrupos(ahora: Date): GrupoDemo[] {
   const oaxaca = ["ana", "ferni", "caro", "beto"];
   const roomies = ["ana", "luis", "mari"];
-  return [
+  const definiciones = [
     {
       id: "oaxaca",
       nombre: "Viaje a Oaxaca",
       icono: "🌮",
-      miembros: miembros(...oaxaca),
+      ids: oaxaca,
       gastos: [
         gasto({ id: "e1", descripcion: "Cena en Casa Oaxaca", categoria: "comida", totalCentavos: 124000, pagadoPor: "ferni", participantes: oaxaca, saldados: ["ana"], haceHoras: 20 }, ahora),
         gasto({ id: "e2", descripcion: "Mezcal y chelas", categoria: "fiesta", totalCentavos: 86050, pagadoPor: "caro", participantes: oaxaca, saldados: ["ferni", "ana"], haceHoras: 44 }, ahora),
@@ -76,7 +83,7 @@ export function crearGrupos(ahora: Date): GrupoDemo[] {
       id: "roomies",
       nombre: "Roomies",
       icono: "🏠",
-      miembros: miembros(...roomies),
+      ids: roomies,
       gastos: [
         gasto({ id: "r1", descripcion: "Renta de octubre", categoria: "hogar", totalCentavos: 900000, pagadoPor: "luis", participantes: roomies, saldados: ["ana"], haceHoras: 60 }, ahora),
         gasto({ id: "r2", descripcion: "Súper de la semana", categoria: "super", totalCentavos: 114590, pagadoPor: "ana", participantes: roomies, saldados: ["luis"], haceHoras: 30 }, ahora),
@@ -84,4 +91,18 @@ export function crearGrupos(ahora: Date): GrupoDemo[] {
       ],
     },
   ];
+
+  // El avatar es global: mira la situación de cada persona en TODOS sus grupos.
+  const situaciones: Record<string, SituacionGrupo[]> = {};
+  for (const d of definiciones) {
+    for (const id of d.ids) (situaciones[id] ??= []).push(situacionEnGrupo(d.gastos, id, ahora));
+  }
+
+  return definiciones.map((d) => ({
+    id: d.id,
+    nombre: d.nombre,
+    icono: d.icono,
+    gastos: d.gastos,
+    miembros: d.ids.map((id) => miembro(id, estadoAvatar(situaciones[id] ?? []))),
+  }));
 }
