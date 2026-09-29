@@ -5,6 +5,17 @@ Cada quien tiene un personaje que evoluciona según qué tan rápido paga.
 
 > Contexto completo de producto, arquitectura y reglas: [`CLAUDE.md`](./CLAUDE.md).
 
+## Documentación
+
+| Archivo | Para qué |
+|---|---|
+| [`CLAUDE.md`](./CLAUDE.md) | Fuente de verdad: producto, arquitectura, reglas |
+| [`docs/SPRINTS.md`](./docs/SPRINTS.md) | Plan de sprints y sprint actual |
+| [`docs/LOOPS.md`](./docs/LOOPS.md) | Workflows por tipo de tarea (L0–L9) |
+| [`docs/PROMPTS.md`](./docs/PROMPTS.md) | Prompts de desarrollo (A) y de runtime de IA (B) |
+| [`docs/SECURITY.md`](./docs/SECURITY.md) | Hallazgos, threat models y controles |
+| [`docs/FEEDBACK.md`](./docs/FEEDBACK.md) | Feedback de la banda y pruebas manuales |
+
 ## Stack
 
 Next.js (App Router) + TypeScript · Tailwind + shadcn/ui · Supabase (Postgres + RLS, Auth, Storage) · Anthropic API (Claude Haiku 4.5, solo servidor) · Vercel Hobby.
@@ -23,7 +34,7 @@ npm run dev
 |---|---|
 | `main` | Producción. Solo recibe merges desde `develop` vía PR. |
 | `develop` | Integración. Base de todas las ramas de trabajo. |
-| `feat/*`, `fix/*`, `chore/*` | Trabajo puntual; se abren desde `develop` y vuelven por PR. |
+| `feat/*`, `fix/*`, `chore/*`, `docs/*` | Trabajo puntual; se abren desde `develop` y vuelven por PR. |
 
 Commits en [Conventional Commits](https://www.conventionalcommits.org/es/) en español: `feat: split por voz`, `fix: redondeo en itemizado`.
 
