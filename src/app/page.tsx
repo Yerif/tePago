@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/cozy/ThemeToggle";
-import { Button } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { esEntornoDev } from "@/lib/entorno";
 
 export default function HomePage() {
@@ -11,9 +11,9 @@ export default function HomePage() {
         <ThemeToggle />
       </div>
       {esEntornoDev() && (
-        <Button asChild variant="peach" data-testid="ir-demo">
-          <Link href="/dev/demo">Ver demo con datos de ejemplo</Link>
-        </Button>
+        <Link href="/dev/demo" data-testid="ir-demo" className={buttonVariants({ variant: "peach" })}>
+          Ver demo con datos de ejemplo
+        </Link>
       )}
     </main>
   );

@@ -9,7 +9,7 @@ import { XPBar } from "@/components/cozy/XPBar";
 import { DebugDatos } from "@/components/dev/DebugDatos";
 import { ExpenseCard } from "@/components/features/ExpenseCard";
 import { FriendRow } from "@/components/features/FriendRow";
-import { Button } from "@/components/ui/Button";
+import { buttonVariants } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
 import { xpAcumuladaParaNivel } from "@/lib/game/levels";
@@ -106,9 +106,9 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
           </p>
         </Card>
 
-        <Button asChild size="lg" data-testid="ir-dividir">
-          <Link href={`/dev/demo/dividir?g=${grupo.id}`}>Dividir un gasto ⚡</Link>
-        </Button>
+        <Link href={`/dev/demo/dividir?g=${grupo.id}`} data-testid="ir-dividir" className={buttonVariants({ size: "lg" })}>
+          Dividir un gasto ⚡
+        </Link>
 
         <section>
           <h2 className="font-display text-xl font-bold">La banda</h2>
