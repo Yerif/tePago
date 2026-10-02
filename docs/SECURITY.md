@@ -22,6 +22,12 @@
 | 2026-09-29 | Info | Prompts de runtime (`docs/PROMPTS.md` Parte B): datos del usuario solo en el turno user dentro de etiquetas y sanitizados; salida con structured outputs + validación en código; advertencias como códigos cerrados; B4 sin texto libre de usuarios. A Anthropic no se envían emails ni ids. | Diseño aprobado |
 | 2026-09-29 | Info | `lib/ai` (base, sin llamadas a la API): `limpiarParaPrompt` (NFC, sin control ni caracteres invisibles/tag, sin `<` `>`, recorte), plantillas de una sola pasada, validadores por prompt (alias, formato de monto, longitudes, sin enlaces, cifras de B4 presentes en los datos) y flujo 1 retry + fallback; los problemas de validación nombran campo y regla, nunca valores. Cobertura 100 % exigida. Dependencia nueva: `zod` (MIT, sin costo). | Hecho |
 | 2026-09-29 | Info | `lib/api/guard.ts` (política de toda API route, con dependencias inyectadas): sesión → Zod → pertenencia → rate limit → handler. Threat model en la sección siguiente. Falta conectar las dependencias reales (Supabase y tabla `rate_limits`). | Lógica hecha; conexión pendiente |
+| 2026-10-02 | Alta/Moderada (solo build) | `npm audit`: 1 alta + 1 moderada, 4 avisos de `postcss` anidado en `next@15` (XSS por `</style>` al serializar y lectura de `.map` por `sourceMappingURL`). Solo procesa CSS propio en build, sin input de usuarios. El fix fuerza Next 16 (`middleware.ts` pasa a `proxy.ts`). | Aceptado hasta después de UAT; ticket P2 |
+| 2026-10-02 | Moderada | SEC-02: las previews de Vercel muestran `/dev/*` y el DebugPanel (incluye la última respuesta cruda de la IA). Si una preview recibe llaves reales, cualquiera con la URL las usa. Regla nueva: llaves reales solo en el scope Production (CLAUDE.md §9.7). | Regla documentada; Yerif verifica en Vercel antes de cada ronda (A18) |
+| 2026-10-02 | Moderada | SEC-01: la CSP permite `'unsafe-inline'` en scripts (Next sin nonce). | Aceptado para UAT-1 (sin datos reales); revisar en L8 |
+| 2026-10-02 | Moderada | SEC-03: UAT-2 maneja datos reales (nombre, email, avatar) sin aviso de privacidad. | Ticket; antes de invitar a la banda |
+| 2026-10-02 | Moderada (diseño) | D7: `on delete cascade` al borrar una cuenta borraría gastos y deudas de otras personas. | Decisión pendiente antes de A5 (propuesta: anonimizar) |
+| 2026-10-02 | Baja | CI-01: el CI no exige la cobertura 100 % de `lib/api`, `lib/game`, `lib/splits` y `lib/ai`; una regresión en dinero o en el guard podría pasar en verde. | Ticket P0 (S) |
 
 ## Threat models (L9)
 
@@ -57,12 +63,23 @@ Uno por feature sensible, con este formato:
   3. **Body leído completo antes de medir** si `content-length` miente: acotado por el límite de la plataforma (~4.5 MB en Vercel).
   4. **Sin probar contra Supabase real:** las dependencias (`obtenerSesion`, `esMiembro`, `consumirLimite`) son las de las pruebas; los tests A/B de RLS (Épica 1) siguen siendo la frontera real de datos.
 
+### Entornos y previews (UAT) — 2026-10-02
+- **Activos:** llaves de producción (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `CRON_SECRET`), datos de la banda y el costo de la IA.
+- **Actores:** cualquiera con la URL de una preview; persona probando en UAT-1; miembro curioso en UAT-2.
+- **Superficies:** `/dev/*`, DebugPanel, variables de entorno por scope de Vercel, Deployment Protection.
+- **Amenazas → control → test:**
+  - Preview con llaves reales usada por un desconocido → llaves reales solo en Production → revisión manual del scope en Vercel (A18, punto 3).
+  - `/dev/*` accesible en producción → `esEntornoDev()` + `notFound()` en el layout → `src/lib/entorno.test.ts` y `curl` a producción esperando 404 (A18).
+  - DebugPanel filtra datos → solo fuera de producción, y en preview no hay datos reales → mismo chequeo.
+  - Gasto de IA desde una preview → la preview no tiene `ANTHROPIC_API_KEY` → A18.
+- **Riesgos aceptados:** en UAT-1 la preview puede ser pública (sin login de Vercel) porque solo contiene datos de ejemplo. En cuanto una preview reciba cualquier llave, se vuelve a activar la protección.
 
 ## Auditorías (L8)
 
 | Fecha | Alcance | Hallazgos (C/A/M/B) | Resultado |
 |---|---|---|---|
-| — | Primera auditoría completa, antes de invitar a la banda | — | Pendiente |
+| 2026-10-02 | Auditoría de proyecto y preparación de UAT (`docs/AUDITORIA.md`); **no** es la L8 completa: sin base de datos, sin RLS ni IDOR reales | 0 / 0 / 4 / 1 (SEC-01, SEC-02, SEC-03, D7 · CI-01) | Registrada; nada bloquea UAT-1 |
+| — | Primera auditoría completa (L8), antes de invitar a la banda a UAT-2 | — | Pendiente |
 
 ## Controles vigentes
 

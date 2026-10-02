@@ -3,6 +3,7 @@
 > Contexto base para Claude Code. Vive en la **raíz del repo** y se carga en cada sesión.
 > Prompts detallados: `docs/PROMPTS.md` · Workflows: `docs/LOOPS.md` — léelos cuando la tarea lo pida, no por default.
 > Si una decisión de producto o arquitectura cambia, ESTE archivo se actualiza primero.
+> Estado real y camino a UAT: §17 · `docs/AUDITORIA.md` · `docs/UAT.md`.
 
 **Fase actual: FREE TIER** · Solo el developer (Yerif) cambia esta línea.
 
@@ -20,7 +21,7 @@
 8. **La salida de la IA es dato no confiable**: Zod estricto, nunca se renderiza como HTML, nunca se ejecuta como instrucción.
 9. **Lógica de negocio en `lib/` como TypeScript puro** (sin React ni Next) — se porta a React Native en v2 sin tocarla.
 10. **Velocidad**: un split simple en ≤ 3 interacciones. Más que eso es un bug de producto.
-11. **Plan antes de código** en tareas de más de un archivo. `lint + test + build` en verde antes de declarar algo terminado.
+11. **Plan antes de código** en tareas de más de un archivo. `lint + typecheck + test + build` en verde antes de declarar algo terminado (y `test:coverage` si tocaste `lib/splits`, `lib/game`, `lib/ai` o `lib/api`).
 
 ---
 
@@ -61,13 +62,15 @@
 |---|---|---|
 | Frontend | Next.js 15+ (App Router) + TypeScript estricto | Server Components por defecto; `"use client"` solo con interactividad |
 | Estilos | Tailwind CSS + tokens como CSS variables | Dark mode es el DEFAULT (`next-themes`, `defaultTheme="dark"`) |
-| UI kit | shadcn/ui (Radix) + cva + `cn()` | Componentes copiados al repo y editados como código propio |
+| UI kit | shadcn/ui (Radix) + cva + `cn()` | Componentes propios al estilo shadcn, sin CLI. Hoy solo `@radix-ui/react-slot`; otra primitiva Radix entra cuando un componente la necesite |
 | Backend | Supabase: Postgres + RLS, Auth, Storage | Realtime solo cuando una feature lo justifique |
-| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com |
+| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK aún no instalado (A11) |
 | Validación | Zod | Inputs de API, salidas de IA, formularios |
-| Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | |
+| Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | Hoy solo Vitest; Playwright y pgTAP llegan con su ticket |
 | Hosting | Vercel Hobby | Preview deploy por PR |
 | v2 | React Native (Expo) | Reutiliza `lib/game`, `lib/splits`, tipos y queries |
+
+**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`. **Pendientes** (cada una se justifica en el PR que la trae): `@anthropic-ai/sdk`, `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Playwright, Promptfoo.
 
 ### Variables de entorno
 
@@ -77,6 +80,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=     # o publishable key si el proyecto usa las ll
 SUPABASE_SERVICE_ROLE_KEY=         # o secret key — SOLO server
 ANTHROPIC_API_KEY=                 # SOLO server
 CRON_SECRET=                       # Vercel lo manda en Authorization a las rutas de cron
+DEBUG=                             # opcional: namespaces con logs de debug en el servidor
 ```
 
 ---
@@ -90,7 +94,7 @@ CRON_SECRET=                       # Vercel lo manda en Authorization a las ruta
 - **Un solo helper para RLS**: `is_group_member(gid uuid)` (`security definer`, `stable`, `search_path = ''`). Todas las políticas lo usan. En políticas, `auth.uid()` va envuelto en `(select auth.uid())` por rendimiento.
 - **Índices** `(group_id, created_at desc)` en toda tabla de tenant; `group_members(user_id)` para listar mis grupos.
 - **Storage por tenant**: `tickets/{group_id}/{expense_id}.webp`; la política valida el primer segmento de la ruta contra la membresía.
-- **Rate limits** con llave por usuario y por tenant.
+- **Rate limits** con llave por usuario, por tenant y por IP (invite codes).
 - **Crecimiento futuro sin re-arquitectura**: una tabla `orgs` encima de `groups` para espacios/white-label; particionar por `group_id` si un tenant crece mucho.
 
 ---
@@ -99,11 +103,13 @@ CRON_SECRET=                       # Vercel lo manda en Authorization a las ruta
 
 ```
 CLAUDE.md                     # este archivo (raíz)
-docs/                         # PROMPTS.md · LOOPS.md · SPRINTS.md · SECURITY.md · FEEDBACK.md
-src/
+docs/                         # PROMPTS · LOOPS · SPRINTS · SECURITY · FEEDBACK · MOVIL · AUDITORIA · UAT
+src/                          # "· pendiente" = aún no existe
   app/
-    (auth)/                   # login, callback
-    (app)/
+    page.tsx                  # HOY: portada mínima (título + toggle; en dev/preview, botón al demo)
+    dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock) y ui/ (sistema de diseño)
+    (auth)/                   # login, callback · pendiente
+    (app)/                    # pendiente (necesita Supabase)
       page.tsx                # redirige al último grupo o a onboarding
       g/[groupId]/            # TODO lo de un tenant vive aquí
         page.tsx              # Home del grupo: tu personaje + la banda
@@ -112,34 +118,37 @@ src/
       grupos/                 # lista, crear, unirse
       unirse/[code]/
       yo/                     # personaje, skins, badges (global)
-    api/
+    api/                      # pendiente
       smart-split/route.ts
       categorizar/route.ts
       cron/resumen-semanal/route.ts
       cron/retencion-tickets/route.ts
-  middleware.ts               # sesión de Supabase (en Next 16+ se llama proxy.ts)
+  middleware.ts               # sesión de Supabase (en Next 16+ se llama proxy.ts) · pendiente
   components/
-    ui/                       # shadcn personalizados (Button, Card, Dialog...)
-    cozy/                     # primitivas propias (XPBar, GrassDivider, Pill...)
-    features/                 # por dominio (ExpenseCard, FriendRow...)
+    ui/                       # Button, Card (más Dialog… cuando se necesiten)
+    cozy/                     # Avatar, XPBar, GrassDivider, Pill, ThemeToggle
+    features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
+    theme/                    # ThemeProvider (next-themes)
     dev/                      # DebugPanel (solo dev/preview)
   lib/
-    supabase/                 # clients: browser, server, middleware
-    api/guard.ts              # plantilla obligatoria de API routes
-    tenant.ts                 # getActiveGroup, assertMember
-    ai/                       # prompts/ (versionados), schemas/ (Zod), client.ts
-    game/                     # XP, niveles, badges, estados — TS PURO
+    supabase/                 # clients: browser, server, middleware · pendiente
+    api/                      # guard.ts (plantilla obligatoria de API routes) + limitador.ts
+    tenant.ts                 # getActiveGroup, assertMember · pendiente
+    ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, evals. client.ts pendiente
+    game/                     # XP, niveles, badges, skins, estados — TS PURO
     splits/                   # cálculo en centavos — TS PURO, 100% testeado
+    mock/                     # datos de ejemplo del demo; solo dev/preview
     categorias.ts             # catálogo único de categorías (UI, DB, IA)
+    entorno.ts debug.ts tiempo.ts contraste.ts utils.ts
     logger.ts
     errors.ts
-  types/database.ts           # generado por Supabase, no editar a mano
+  types/database.ts           # generado por Supabase, no editar a mano · pendiente
 supabase/
-  migrations/                 # SQL versionado; nunca editar una migración aplicada
-  tests/                      # pgTAP: tests RLS cruzados
+  migrations/                 # SQL versionado; nunca editar una migración aplicada (vacío hoy)
+  tests/                      # pgTAP: tests RLS cruzados (vacío hoy)
   seed.sql
-tests/e2e/                    # Playwright + selectors.ts
-evals/                        # datasets y config de Promptfoo
+tests/e2e/                    # Playwright + selectors.ts (vacío hoy)
+evals/                        # datasets (b1, b3, b4, b5; b2 espera fotos) y README; runner Promptfoo pendiente
 ```
 
 ---
@@ -173,7 +182,8 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
-- Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial.
+- Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Decisión (D7, Yerif 2026-10-02):** al borrar una cuenta desaparecen sus deudas (y las que otros tenían con ella); los balances del resto se recalculan. La UI de borrar cuenta debe avisarlo con claridad antes de confirmar.
+- **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, saldado parcial con `settlements` como fuente de verdad, idempotencia de XP, `created_at` e índices). Las cascadas ya están decididas (D7).
 
 ---
 
@@ -187,6 +197,8 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 | `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | Apagado, preocupado |
 | `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | Deteriorado |
 
+Lo que debes se suma **entre grupos**; lo que te deben en un grupo no compensa lo que debes en otro. $500 exactos es `rekt`; 72 h exactas sigue siendo `mild`. Persona nueva (sin grupos) = `clean`. Implementado en `lib/game/avatar.ts`.
+
 ### XP (solo server-side)
 
 | Evento | XP |
@@ -197,7 +209,9 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 | Saldar deuda en < 7 días | +10 |
 | Semana completa sin deudas | +25 |
 
-Nivel n requiere `100 + (n-1) * 75` XP. Fórmula única en `lib/game/levels.ts`.
+La antigüedad de una deuda cuenta desde la fecha del gasto. Pasados 7 días, saldar da 0 XP. Nivel n requiere `100 + (n-1) * 75` XP (se guarda la XP total y el nivel se deriva). Fórmula única en `lib/game/levels.ts`.
+
+**Anti-farming (D5, aprobado por Yerif 2026-10-02):** +10 por gasto solo si participan ≥ 2 personas y máximo 5 gastos con XP por día; +25 por "semana sin deudas" solo si hubo al menos un gasto o pago esa semana. Aún por implementar en `lib/game/xp.ts` y en `otorgar_xp`.
 
 ### Badges (públicos en el grupo)
 
@@ -210,21 +224,45 @@ Nivel n requiere `100 + (n-1) * 75` XP. Fórmula única en `lib/game/levels.ts`.
 | `alcalde` | Alcalde 🏅 | 10 pagos a tiempo (desbloquea skin) |
 | `mecenas` | El Mecenas 🎩 | Pagó la cuenta más grande del grupo |
 
+Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas derivadas" abajo): "a tiempo" = saldada en ≤ 72 h; el mes de Generoso es el de `America/Mexico_City`; Rayo, Jardinero y Alcalde son permanentes; Fantasma, Generoso y Mecenas se pueden perder.
+
 ### Categorías de gasto
 
 `comida` 🌮 · `super` 🛒 · `fiesta` 🍻 · `transporte` 🚗 · `hospedaje` 🏡 · `entretenimiento` 🎟️ · `hogar` 🧺 · `regalos` 🎁 · `otros` 📦. Fuente única en `lib/categorias.ts`; qué cubre cada una en `docs/PROMPTS.md` (B0). Cambiarlas implica nueva versión de los prompts B1, B2 y B5.
 
 ### Skins
 
-Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencias a Nintendo. El deterioro visual aplica sobre cualquier skin activo.
+Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencias a Nintendo. El deterioro visual aplica sobre cualquier skin activo. Las skins son globales (cuentan los badges y el nivel de cualquier grupo).
+
+| Skin | Cómo se gana |
+|---|---|
+| Clásico | Viene con el personaje (sin accesorio) |
+| Jardinero 👒 | Badge Jardinero |
+| Alcalde 🎖️ | Badge Alcalde |
+| Explorador 🧭 | Nivel 5 |
+| Leyenda 👑 | Nivel 10 |
 
 ### Cálculo de splits (`lib/splits/`, 100% testeado)
 
 - Todo en **centavos enteros**. Conversión a pesos solo al mostrar (`formatoMXN`).
 - **Igual**: `total / n`; el residuo de redondeo lo absorbe el pagador.
-- **Itemizado**: subtotal por persona = Σ(precio × cantidad × fracción). Impuestos y propina se reparten **proporcionalmente al subtotal** de cada quien, nunca en partes iguales. Residuo al pagador.
+- **Itemizado**: cada renglón (precio × cantidad) se reparte por **partes enteras** (`partes / Σ partes`, nunca decimales): "3 chelas mías y 1 de Ferni" = partes 3 y 1. El residuo de cada renglón lo absorbe el pagador. Impuestos y propina se reparten **proporcionalmente al consumo** de cada quien, nunca en partes iguales; su residuo también es del pagador.
+- **Propina e impuestos se suman encima del total capturado**; "IVA incluido" no genera ajuste.
+- **Saldado parcial (D6, aprobado 2026-10-02):** se puede pagar una parte de una deuda. El XP por saldar se calcula sobre la antigüedad de la deuda y se otorga al quedar saldada por completo (regla por definir con el ticket de saldar: no dar XP por cada abono para evitar farming).
+- **Deudas entre personas**: se netean de dos en dos (A↔B). La simplificación en cadena (A→B→C) sigue siendo post-MVP.
 - **Invariante con test obligatorio**: Σ partes = total, en cada modo, con casos de borde (1 persona, fracciones de 1/3, propina 0, montos de 1 centavo).
-- Simplificación de deudas entre varios miembros: post-MVP.
+
+### Reglas derivadas (implementadas; D1–D4 confirmadas por Yerif el 2026-10-02)
+
+El código tuvo que decidir esto; si alguna deja de convencer, se cambia **primero aquí** y luego en el código. Detalle en `docs/AUDITORIA.md` §3.
+
+| # | Regla | Estado |
+|---|---|---|
+| D1 | "A tiempo" = saldada en ≤ 72 h (igual que el umbral de `rekt`) | Implementada y confirmada |
+| D2 | Skins Explorador (nivel 5) y Leyenda (nivel 10) | Implementada y confirmada |
+| D3 | Generoso: más gastos pagados en el mes; empate → más dinero; empate → comparten. Mecenas: el gasto más grande de todo el historial del grupo | Implementada y confirmada |
+| D4 | Propina e impuestos encima del total; "IVA incluido" sin ajuste | Implementada y confirmada |
+| D5 | Anti-farming de XP | Aprobada; por implementar |
 
 ---
 
@@ -234,6 +272,7 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
 Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 ```
 
+- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). Faltan `client.ts` (SDK) y las rutas: ticket A11. Al instalar el SDK, verificar que `zodOutputFormat` acepta Zod 4; plan B: `z.toJSONSchema()` y `output_config.format` a mano.
 - **Split igualitario = JavaScript puro, nunca IA.** La IA solo entra donde agrega valor (texto libre, foto de ticket, categorización, resumen semanal).
 - Prompts versionados en `lib/ai/prompts/` (fuente: `docs/PROMPTS.md` Parte B). Ningún cambio de prompt sin correr sus evals (Loop 3).
 - Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual. Si el modelo se niega (`refusal`) o se corta (`max_tokens`), fallback directo sin retry: se repetiría igual.
@@ -264,6 +303,9 @@ Reglas:
 4. `npm audit` en cada Loop 1; Dependabot activo; toda dependencia nueva se justifica en el PR.
 5. PII mínima: nombre, email, avatar. Nada de datos bancarios reales en el MVP.
 6. Hallazgos y decisiones en `docs/SECURITY.md` con fecha y severidad.
+7. **Llaves reales solo en el scope Production de Vercel.** Preview y desarrollo: sin llaves, o las de un proyecto de desarrollo. Las previews muestran `/dev/*` y el DebugPanel; nada sensible debe vivir ahí.
+8. CSP: hoy permite `'unsafe-inline'` en scripts (Next sin nonce). Aceptado hasta la auditoría L8; el nonce exige middleware y páginas dinámicas.
+9. Datos reales de personas (UAT-2 en adelante) requieren un aviso de privacidad mínimo antes de invitar a la banda.
 
 ---
 
@@ -284,7 +326,7 @@ FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #
                 en dark, el texto de acento usa el color vivo
 ```
 
-`subtle` no alcanza contraste AA para texto normal: úsalo solo en texto decorativo o ≥ 18 px.
+`subtle` no llega ni a 3:1 (≈ 3.0:1 en dark y ≈ 2.6:1 en light): solo elementos decorativos, **nunca** texto con información, ni siquiera grande.
 
 ### Lenguaje visual
 
@@ -308,9 +350,10 @@ FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #
 - TypeScript estricto; prohibido `any` (usar `unknown` + narrowing).
 - Un componente por archivo, PascalCase, props con interface local. Export default solo en `page.tsx`/`layout.tsx`.
 - Los componentes orquestan, no calculan: lógica → `lib/`.
-- Tests: Vitest obligatorio en `lib/splits` y `lib/game`; Playwright para flujos críticos (registrar gasto, smart split, saldar).
+- Tests: Vitest obligatorio en `lib/splits` y `lib/game`; Playwright para flujos críticos (registrar gasto, smart split, saldar). Playwright aún no está instalado.
+- Cobertura: 100 % de líneas, ramas y funciones en `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` (umbrales en `vitest.config.mts`). Solo se evalúan con `npm run test:coverage`: córrelo antes de cerrar. Nunca se baja un umbral para pasar.
 - Commits: Conventional Commits en español (`feat: split por voz`, `fix: redondeo en itemizado`).
-- Accesibilidad mínima: focus visible, labels en inputs, contraste AA en ambos temas.
+- Accesibilidad mínima: focus visible, labels en inputs, contraste AA en ambos temas, objetivos táctiles ≥ 44×44 px en móvil (nunca < 24 px, WCAG 2.5.8).
 
 ### Estilos ≠ identificación ≠ selectores
 
@@ -334,7 +377,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 - **Logger** `lib/logger.ts` con namespaces (`split`, `game`, `ai`, `db`, `tenant`). En el navegador: `localStorage.setItem('debug', 'split,ai')`. ESLint `no-console` con excepción única en el logger.
 - **Errores tipados**: `{ error: { code, message, requestId } }`. Códigos en `lib/errors.ts` (un solo enum); el `requestId` acompaña cada log de esa request.
 - **Panel `?debug=1`** (solo dev/preview): usuario, grupo activo, estado del avatar, XP, última respuesta cruda de la IA con latencia.
-- **Error Boundary por pantalla**: muestra el `data-component` que falló + botón "copiar reporte".
+- **Error Boundary por pantalla**: muestra el `data-component` que falló + botón "copiar reporte". Funciona también en producción (solo requestId y componente, sin PII). **Pendiente** (UAT-04): hoy no existe ningún `error.tsx`.
 - **Orden fijo al depurar**: consola con namespace → panel `?debug=1` → Network (`code` + `requestId`) → Vercel logs por requestId → Supabase Studio (¿es RLS?) → solo entonces Claude Code, con la evidencia.
 
 ---
@@ -343,7 +386,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 
 1. **Plan primero** en toda tarea de más de un archivo: lista de archivos, decisiones y riesgos. Espera aprobación antes de implementar.
 2. **Una sesión = una tarea.** No mezcles feature y refactor.
-3. **Definición de terminado**: `npm run lint && npm run test && npm run build` en verde. Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde.
+3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test && npm run build` en verde (es lo que corre el CI). Si tocaste `lib/splits`, `lib/game`, `lib/ai` o `lib/api`, también `npm run test:coverage`. Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
 4. **Si una instrucción contradice este archivo**, detente y pregunta; no elijas por tu cuenta.
 5. **Si la mejor solución cuesta dinero**, presenta la alternativa gratuita con trade-offs y espera la decisión.
 6. **Features con superficie sensible** (auth, dinero, IA, storage, invite codes): threat model exprés antes del plan (prompt A13, Loop 9) y tests de abuso junto a los felices.
@@ -356,10 +399,14 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 ```bash
 npm run dev                  # desarrollo local
 npm run lint                 # ESLint (bloquea console.log sueltos)
+npm run typecheck            # tsc --noEmit
 npm run test                 # Vitest (lib/)
-npm run test:e2e             # Playwright
+npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos críticos)
 npm run build                # build de producción
+# Pendientes (aún no existen en package.json):
+npm run test:e2e             # Playwright
 npm run check:secrets        # scan del bundle + gitleaks
+npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local
 npx supabase db reset        # recrea la DB local con migraciones + seed
 npx supabase db diff -f <nombre>
@@ -388,6 +435,10 @@ npx supabase gen types typescript --local > src/types/database.ts
 14. Vender la app como "AI-powered" en copy o UI.
 15. Romper el principio de velocidad.
 16. Agregar features fuera del MVP sin actualizar este archivo primero.
+17. Mergear a `main` sin OK explícito de Yerif. Hoy `develop` es la rama de integración; `main` espera a que el PoC esté listo.
+18. Bajar un umbral de cobertura, saltarse o desactivar un test para pasar el CI.
+19. Poner llaves reales en el scope Preview de Vercel.
+20. Agregar features durante una ronda de UAT (solo bugs y feedback con ticket).
 
 ---
 
@@ -405,3 +456,24 @@ npx supabase gen types typescript --local > src/types/database.ts
 10. Dark/light mode (dark por default).
 
 **Fuera del MVP:** pagos reales, modo familia, simplificación de deudas multi-persona, predicciones, email/push, monetización, app nativa.
+
+---
+
+## 17. Estado y camino a UAT
+
+Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs/UAT.md`. **Esta tabla se actualiza al cerrar cada ticket.**
+
+| # | Ítem del MVP (§16) | Hecho (prototipo, sin Supabase) | Falta |
+|---|---|---|---|
+| 1 | Auth y perfil | Perfil con personaje, skins y badges en el demo | Supabase Auth |
+| 2 | Grupos | Home y detalle del grupo en el demo | Invite codes, selector, onboarding |
+| 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | **Saldar en el demo (UAT-02)**; persistencia |
+| 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
+| 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
+| 6 | XP, badges, skins, estados | `lib/game` completo y UI (Avatar, XPBar, SkinSelector) | Funciones `security definer`; D5 |
+| 7 | Home del grupo | En el demo | Datos reales |
+| 8 | Resumen semanal | Prompt B4 y evals | Cron y almacenamiento |
+| 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |
+| 10 | Dark/light | Toggle persistente, dark por default | — |
+
+**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.

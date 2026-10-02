@@ -10,7 +10,7 @@
 | L2 | Pase cozy | Pulir UI sin tocar lógica | A15 |
 | L3 | Evals | Crear o cambiar un prompt de runtime | A12 |
 | L4 | Base de datos | Migraciones, RLS, funciones SQL | A5, A6, A7 |
-| L6 | Release | Deploy a producción y feedback | A17 |
+| L6 | Release y UAT | Rondas de pruebas con la banda, deploy a producción y feedback | A17, A18, A19 |
 | L8 | Auditoría | Revisión de seguridad completa | A14 |
 | L9 | Secure by design | Antes del plan de algo sensible | A13 |
 
@@ -23,7 +23,7 @@ Un ticket puede tener varios loops (p. ej. `L1 + L9`): se corren en el orden L9 
 1. **Ticket** a "En progreso" en Notion; rama `tipo/slug` desde `develop` actualizado.
 2. **Plan** (si toca más de un archivo): archivos, decisiones, riesgos y cómo se prueba. Espera OK de Yerif.
 3. **Implementación** con commits pequeños en Conventional Commits en español.
-4. **Verificación**: `npm run lint && npm run test && npm run build` en verde, más lo específico del loop.
+4. **Verificación**: `npm run lint && npm run typecheck && npm run test && npm run build` en verde (es lo que corre el CI), más lo específico del loop. Si tocaste `lib/splits`, `lib/game`, `lib/ai` o `lib/api`: `npm run test:coverage`.
 5. **Cierre**: resumen (qué cambió, qué probar a mano en dark/light y móvil, si CLAUDE.md cambia), push, PR a `develop` cuando Yerif lo pida, ticket a "Hecho".
 
 ---
@@ -90,10 +90,11 @@ Un ticket puede tener varios loops (p. ej. `L1 + L9`): se corren en el orden L9 
 **Terminado:** ciclo común + `supabase test db` en verde + tipos regenerados.
 **Bloqueo conocido:** sin Docker no corre `supabase start`; en ese caso el ticket no se marca como hecho.
 
-## L6 · Release
+## L6 · Release y UAT
 
-**Objetivo:** llevar `main` a producción sin sorpresas y aprender de la banda.
+**Objetivo:** probar con personas reales, llevar `main` a producción sin sorpresas y aprender de la banda.
 
+0. **Ronda de UAT** (`docs/UAT.md`): A18 verifica los criterios de entrada y el entorno; durante la ronda no se agregan features; cada viernes A19 hace el triage. UAT-1 (prototipo) no exige L8; UAT-2 (datos reales) sí.
 1. Precondiciones: L8 sin hallazgos altos abiertos, CI en verde en `main`.
 2. Yerif aplica migraciones (`npx supabase db push`), revisa variables en Vercel, crons en `vercel.json` y el límite de gasto de Anthropic.
 3. Smoke test en producción: registrar gasto, smart split, saldar.
