@@ -87,7 +87,9 @@ El código tuvo que decidir estas cosas; CLAUDE.md §7 ahora las lista como **"i
 
 Otras decisiones implícitas ya verificadas contra el código: el avatar suma lo que debes **entre grupos** (≥ $500 total = `rekt`); lo que te deben en un grupo no compensa lo que debes en otro; $500 exactos es `rekt` y 72 h exactas sigue siendo `mild`; el Fantasma exige una deuda activa de más de 7 días; pasados 7 días saldar da 0 XP.
 
-## 4. Decisiones que necesito de Yerif
+## 4. Decisiones de Yerif
+
+> **Resueltas el 2026-10-02:** D8 preview de `develop`; D1–D4 aceptadas; D5 propuesta aprobada; D6 se puede saldar **parcialmente**; D7 al borrar una cuenta **desaparecen sus deudas**; D9 mergear los PRs. D10 sigue igual (sin merge a `main`). Consecuencias: el saldado parcial vuelve a `settlements` la fuente de verdad (DB-01) y UAT-02 debe permitir abonos; con D7 los balances de los demás cambian al borrar una cuenta, y la UI debe avisarlo antes de confirmar.
 
 | # | Decisión | Recomendación |
 |---|---|---|

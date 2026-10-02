@@ -66,7 +66,7 @@ Cosas a mirar con ojo humano (lo que los tests no ven): tamaño de los botones a
 - [x] Probada la demo (Home, Dividir, tema)
 - [x] Todo lo anterior mergeado en `develop`
 - [ ] PRs #18, #19, #20 y el de la auditoría revisados y mergeados a `develop`
-- [ ] Decididas D1–D10 de `docs/AUDITORIA.md` (sobre todo D8: entorno de UAT-1)
+- [x] Decididas D1–D9 de `docs/AUDITORIA.md` (UAT-1 corre en la preview de `develop`)
 - [ ] Proyecto de Supabase creado (quiniela pausada)
 - [ ] API key de Anthropic con límite de gasto
 - [ ] Llaves en Vercel solo en Production (sin compartirlas en el chat)

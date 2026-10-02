@@ -182,8 +182,8 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
-- Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Ojo:** borrar los gastos de quien se va borraría deudas de otros; decisión pendiente (D7 en `docs/AUDITORIA.md`).
-- **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, fuente de verdad del saldado, idempotencia de XP, `created_at` e índices, cascadas).
+- Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Decisión (D7, Yerif 2026-10-02):** al borrar una cuenta desaparecen sus deudas (y las que otros tenían con ella); los balances del resto se recalculan. La UI de borrar cuenta debe avisarlo con claridad antes de confirmar.
+- **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, saldado parcial con `settlements` como fuente de verdad, idempotencia de XP, `created_at` e índices). Las cascadas ya están decididas (D7).
 
 ---
 
@@ -211,7 +211,7 @@ Lo que debes se suma **entre grupos**; lo que te deben en un grupo no compensa l
 
 La antigüedad de una deuda cuenta desde la fecha del gasto. Pasados 7 días, saldar da 0 XP. Nivel n requiere `100 + (n-1) * 75` XP (se guarda la XP total y el nivel se deriva). Fórmula única en `lib/game/levels.ts`.
 
-**Pendiente de decisión (D5):** anti-farming. Propuesta: +10 por gasto solo si participan ≥ 2 personas y máximo 5 gastos con XP por día; +25 por "semana sin deudas" solo si hubo al menos un gasto o pago esa semana. Hasta que Yerif la apruebe, no se implementa `otorgar_xp`.
+**Anti-farming (D5, aprobado por Yerif 2026-10-02):** +10 por gasto solo si participan ≥ 2 personas y máximo 5 gastos con XP por día; +25 por "semana sin deudas" solo si hubo al menos un gasto o pago esa semana. Aún por implementar en `lib/game/xp.ts` y en `otorgar_xp`.
 
 ### Badges (públicos en el grupo)
 
@@ -224,7 +224,7 @@ La antigüedad de una deuda cuenta desde la fecha del gasto. Pasados 7 días, sa
 | `alcalde` | Alcalde 🏅 | 10 pagos a tiempo (desbloquea skin) |
 | `mecenas` | El Mecenas 🎩 | Pagó la cuenta más grande del grupo |
 
-Definiciones (implementadas en `lib/game/badges.ts`, **por confirmar**, ver "Reglas derivadas" abajo): "a tiempo" = saldada en ≤ 72 h; el mes de Generoso es el de `America/Mexico_City`; Rayo, Jardinero y Alcalde son permanentes; Fantasma, Generoso y Mecenas se pueden perder.
+Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas derivadas" abajo): "a tiempo" = saldada en ≤ 72 h; el mes de Generoso es el de `America/Mexico_City`; Rayo, Jardinero y Alcalde son permanentes; Fantasma, Generoso y Mecenas se pueden perder.
 
 ### Categorías de gasto
 
@@ -239,8 +239,8 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
 | Clásico | Viene con el personaje (sin accesorio) |
 | Jardinero 👒 | Badge Jardinero |
 | Alcalde 🎖️ | Badge Alcalde |
-| Explorador 🧭 | Nivel 5 (propuesta) |
-| Leyenda 👑 | Nivel 10 (propuesta) |
+| Explorador 🧭 | Nivel 5 |
+| Leyenda 👑 | Nivel 10 |
 
 ### Cálculo de splits (`lib/splits/`, 100% testeado)
 
@@ -248,20 +248,21 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
 - **Igual**: `total / n`; el residuo de redondeo lo absorbe el pagador.
 - **Itemizado**: cada renglón (precio × cantidad) se reparte por **partes enteras** (`partes / Σ partes`, nunca decimales): "3 chelas mías y 1 de Ferni" = partes 3 y 1. El residuo de cada renglón lo absorbe el pagador. Impuestos y propina se reparten **proporcionalmente al consumo** de cada quien, nunca en partes iguales; su residuo también es del pagador.
 - **Propina e impuestos se suman encima del total capturado**; "IVA incluido" no genera ajuste.
+- **Saldado parcial (D6, aprobado 2026-10-02):** se puede pagar una parte de una deuda. El XP por saldar se calcula sobre la antigüedad de la deuda y se otorga al quedar saldada por completo (regla por definir con el ticket de saldar: no dar XP por cada abono para evitar farming).
 - **Deudas entre personas**: se netean de dos en dos (A↔B). La simplificación en cadena (A→B→C) sigue siendo post-MVP.
 - **Invariante con test obligatorio**: Σ partes = total, en cada modo, con casos de borde (1 persona, fracciones de 1/3, propina 0, montos de 1 centavo).
 
-### Reglas derivadas (implementadas, por confirmar por Yerif)
+### Reglas derivadas (implementadas; D1–D4 confirmadas por Yerif el 2026-10-02)
 
-El código tuvo que decidir esto; si alguna no convence, se cambia **primero aquí** y luego en el código. Detalle y recomendación en `docs/AUDITORIA.md` §3.
+El código tuvo que decidir esto; si alguna deja de convencer, se cambia **primero aquí** y luego en el código. Detalle en `docs/AUDITORIA.md` §3.
 
 | # | Regla | Estado |
 |---|---|---|
-| D1 | "A tiempo" = saldada en ≤ 72 h (igual que el umbral de `rekt`) | Implementada |
-| D2 | Skins Explorador (nivel 5) y Leyenda (nivel 10) | Implementada (propuesta) |
-| D3 | Generoso: más gastos pagados en el mes; empate → más dinero; empate → comparten. Mecenas: el gasto más grande de todo el historial del grupo | Implementada |
-| D4 | Propina e impuestos encima del total; "IVA incluido" sin ajuste | Implementada |
-| D5 | Anti-farming de XP | **Sin definir** (propuesta arriba) |
+| D1 | "A tiempo" = saldada en ≤ 72 h (igual que el umbral de `rekt`) | Implementada y confirmada |
+| D2 | Skins Explorador (nivel 5) y Leyenda (nivel 10) | Implementada y confirmada |
+| D3 | Generoso: más gastos pagados en el mes; empate → más dinero; empate → comparten. Mecenas: el gasto más grande de todo el historial del grupo | Implementada y confirmada |
+| D4 | Propina e impuestos encima del total; "IVA incluido" sin ajuste | Implementada y confirmada |
+| D5 | Anti-farming de XP | Aprobada; por implementar |
 
 ---
 
@@ -475,4 +476,4 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |
 | 10 | Dark/light | Toggle persistente, dark por default | — |
 
-**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en una preview estable de `develop`) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.
+**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.

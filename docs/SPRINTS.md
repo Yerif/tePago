@@ -37,7 +37,7 @@ Estos no los puede hacer Claude Code porque requieren tus cuentas:
 - [ ] Llaves en Vercel **solo en el scope Production** (nunca en Preview, ver CLAUDE.md §9) y en `.env.local`; nunca pegarlas en el chat.
 - [ ] GitHub: proteger `main` y `develop` (PR obligatorio; CI requerido) y activar "Automatically delete head branches" (hay ~21 ramas remotas ya mergeadas).
 - [x] Mergeadas a `develop` las ramas `chore/scaffold-nextjs` y `docs/prompts`.
-- [ ] Decidir D1–D10 de `docs/AUDITORIA.md` §3–§4 (D8, el entorno de UAT-1, es la que desbloquea todo).
+- [x] Decididas D1–D9 de `docs/AUDITORIA.md` el 2026-10-02 (D10: `main` sigue sin merge hasta el PoC).
 
 ### Tickets, en orden
 
@@ -73,7 +73,7 @@ Meta: una ronda de pruebas con 3–5 personas sobre el prototipo antes de termin
 | Orden | ID | Ticket | Prio | Est. | Loop | Prompt |
 |---|---|---|---|---|---|---|
 | 1 | CI-01 | El CI corre `test:coverage` (exige el 100 %) | P0 | S | L0 | A4 |
-| 2 | UAT-02 | Demo: saldar una deuda con XP, nivel y estado del avatar | P0 | M | L1 | A10 |
+| 2 | UAT-02 | Demo: saldar una deuda (total o por abonos) con XP, nivel y estado del avatar | P0 | M | L1 | A10 |
 | 3 | UAT-06 | Objetivos táctiles ≥ 44 px | P0 | S | L2 | A15 |
 | 4 | UAT-01 | Entorno de UAT-1: preview estable, protección y llaves por scope | P0 | S | L6 | A18 |
 | 5 | UAT-04 | Error Boundary, `not-found` y `loading` con "copiar reporte" | P1 | M | L1 | A10 |
