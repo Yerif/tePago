@@ -12,13 +12,14 @@
 5. Abre la URL de la rama `feat/demo-mock` (o del PR correspondiente) y toca **"Ver demo con datos de ejemplo"**. Si la preview te pide iniciar sesión, usa tu cuenta de Vercel.
 
 Notas:
-- La rama de producción es `main`, que hoy solo tiene el commit inicial: su deploy de producción fallará o quedará vacío hasta que mergeemos `develop` → `main`. **No afecta a los previews.**
+- La rama de producción es `main`, que hoy solo tiene el commit inicial: su deploy de producción fallará o quedará vacío hasta que mergeemos `develop` → `main` (decisión de Yerif: solo cuando el PoC esté listo). **No afecta a los previews.**
+- Para mandarle la app a alguien, usa la URL **estable de la rama** `develop` (Vercel → Deployments → rama `develop` → Domains), no la de un commit. Cómo preparar una ronda de pruebas con la banda: `docs/UAT.md`.
 - `/dev/*` (demo y sistema de diseño) existe solo en previews y desarrollo. En producción da 404.
 - Cada push a una rama genera un preview nuevo en ~1 minuto.
 
 ## 2. Qué probar en la demo
 
-Abre `/dev/demo` y recorre:
+Abre `/dev/demo` y recorre (el guion para probar con otras personas, con tareas y criterios, está en `docs/UAT.md` §4):
 
 | Pantalla | Qué revisar |
 |---|---|
@@ -45,12 +46,13 @@ Cosas a mirar con ojo humano (lo que los tests no ven): tamaño de los botones a
 2. En **Limits** (o Billing) fija un **límite de gasto mensual** (sugerido $10 USD). Es el freno de emergencia del único costo variable.
 
 **Dónde poner las llaves**
-- Vercel → tu proyecto → Settings → **Environment Variables**: agrega las 5 de `.env.example` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `CRON_SECRET`). Solo las dos `NEXT_PUBLIC_*` pueden ser visibles al cliente.
+- Vercel → tu proyecto → Settings → **Environment Variables**: agrega las 5 de `.env.example` (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `CRON_SECRET`); `DEBUG` es opcional. Solo las dos `NEXT_PUBLIC_*` pueden ser visibles al cliente.
+- **Marca solo el entorno "Production"** en las llaves reales (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `CRON_SECRET`). Las previews muestran `/dev/*` y el panel de debug: no deben tener llaves reales (CLAUDE.md §9, regla 7).
 - **Nunca me pegues una llave en el chat.** Dime "ya están" y yo trabajo sin verlas. `CRON_SECRET` la inventas tú: 32+ caracteres aleatorios.
 
 ## 4. GitHub desde el celular
 
-- **App de GitHub** o el navegador: revisar y **mergear PRs** (orden en `docs/SPRINTS.md`).
+- **App de GitHub** o el navegador: revisar y **mergear PRs a `develop`** (nunca a `main` hasta que el PoC esté listo).
 - **Ajustes de repo** (proteger `main`/`develop`, "Automatically delete head branches"): la app móvil no los tiene; usa el navegador con "sitio de escritorio" en Settings → Branches y Settings → General.
 
 ## 5. Qué no se puede desde el celular (ni desde aquí)
@@ -60,10 +62,13 @@ Cosas a mirar con ojo humano (lo que los tests no ven): tamaño de los botones a
 
 ## Checklist rápido
 
-- [ ] Vercel conectado y URL de preview abierta en el celular
-- [ ] Probada la demo (Home, Dividir, tema) y feedback anotado
-- [ ] PRs mergeados en orden (#1 → #2 → #3 → #4 → #5 → #6 → demo)
+- [x] Vercel conectado y URL de preview abierta en el celular
+- [x] Probada la demo (Home, Dividir, tema)
+- [x] Todo lo anterior mergeado en `develop`
+- [ ] PRs #18, #19, #20 y el de la auditoría revisados y mergeados a `develop`
+- [ ] Decididas D1–D10 de `docs/AUDITORIA.md` (sobre todo D8: entorno de UAT-1)
 - [ ] Proyecto de Supabase creado (quiniela pausada)
 - [ ] API key de Anthropic con límite de gasto
-- [ ] Llaves en Vercel (sin compartirlas en el chat)
-- [ ] `main` y `develop` protegidas
+- [ ] Llaves en Vercel solo en Production (sin compartirlas en el chat)
+- [ ] `main` y `develop` protegidas; "Automatically delete head branches" activado
+- [ ] Revisados los golden de `evals/` y reunidos ≥ 5 mensajes reales y ≥ 15 fotos de tickets (sin tarjetas ni caras)

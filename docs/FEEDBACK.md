@@ -2,6 +2,7 @@
 
 > Lo que dicen los usuarios y lo que encontramos probando a mano. Se llena desde el primer release (L6 en `docs/LOOPS.md`).
 > Regla: el feedback se registra tal cual; la interpretación y los tickets van aparte.
+> Para las rondas de pruebas (guion de tareas, métricas y criterios de salida) ver [`docs/UAT.md`](./UAT.md). El triage del viernes se hace con el prompt A19 de `docs/PROMPTS.md`.
 
 ## Cómo recogerlo
 
@@ -28,6 +29,7 @@
 | ¿La reputación social es divertida, no incómoda? | Nadie reporta sentirse exhibido por el Fantasma 👻 |
 | ¿El smart split se siente confiable? | Pocas correcciones en la pantalla de confirmación |
 | ¿Vuelven cada semana? | Uso semanal sostenido tras el primer plan |
+| ¿Entienden qué cambió en su personaje al pagar? | En UAT-1 (tarea T5), ≥ 4 de 5 lo explican con sus palabras |
 
 ## Registro
 
