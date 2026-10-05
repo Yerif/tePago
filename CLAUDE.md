@@ -62,6 +62,7 @@
 |---|---|---|
 | Frontend | Next.js 15+ (App Router) + TypeScript estricto | Server Components por defecto; `"use client"` solo con interactividad |
 | Estilos | Tailwind CSS + tokens como CSS variables | Dark mode es el DEFAULT (`next-themes`, `defaultTheme="dark"`) |
+| Personaje 3D | `three` + `@react-three/fiber` (decisión de Yerif, 2026-10-06) | Solo en pantallas con personaje, con carga diferida y un canvas por pantalla. `@react-three/fiber/native` permite reutilizarlo en v2 |
 | UI kit | shadcn/ui (Radix) + cva + `cn()` | Componentes propios al estilo shadcn, sin CLI. Hoy solo `@radix-ui/react-slot`; otra primitiva Radix entra cuando un componente la necesite |
 | Backend | Supabase: Postgres + RLS, Auth, Storage | Realtime solo cuando una feature lo justifique |
 | IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK instalado; el cliente se crea en A11 |
@@ -127,7 +128,8 @@ src/                          # "· pendiente" = aún no existe
   middleware.ts               # HOY: corta /dev/* con 404 en producción. Después: sesión de Supabase (en Next 16+ se llama proxy.ts)
   components/
     ui/                       # Button, Card (más Dialog… cuando se necesiten)
-    cozy/                     # Avatar, XPBar, GrassDivider, Pill, ThemeToggle
+    cozy/                     # Avatar (2D, para listas), XPBar, GrassDivider, Pill, ThemeToggle
+    personaje/                # Personaje3D (React Three Fiber): dibuja la `Apariencia` que calcula lib/game
     features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
     theme/                    # ThemeProvider (next-themes)
     dev/                      # DebugPanel (solo dev/preview)
@@ -136,7 +138,7 @@ src/                          # "· pendiente" = aún no existe
     api/                      # guard.ts (plantilla obligatoria de API routes) + limitador.ts
     tenant.ts                 # getActiveGroup, assertMember · pendiente
     ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, llamada (cliente inyectable, log y costo), client.ts (SDK, server-only), evals
-    game/                     # XP, niveles, badges, skins, estados — TS PURO
+    game/                     # XP, niveles, badges, skins, estados y apariencia del personaje — TS PURO
     splits/                   # cálculo en centavos — TS PURO, 100% testeado
     mock/                     # datos de ejemplo del demo; solo dev/preview
     categorias.ts             # catálogo único de categorías (UI, DB, IA)
@@ -230,6 +232,16 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 ### Categorías de gasto
 
 `comida` 🌮 · `super` 🛒 · `fiesta` 🍻 · `transporte` 🚗 · `hospedaje` 🏡 · `entretenimiento` 🎟️ · `hogar` 🧺 · `regalos` 🎁 · `otros` 📦. Fuente única en `lib/categorias.ts`; qué cubre cada una en `docs/PROMPTS.md` (B0). Cambiarlas implica nueva versión de los prompts B1, B2 y B5.
+
+### Personaje (decisión de Yerif, 2026-10-06)
+
+- **Personaje 3D** con React Three Fiber, estilo *low-poly cozy* (formas redondas, paleta de §10). Es la base del juego.
+- **Bases de arranque:** personitas y animalitos. Después, personalización (ropa, colores, piezas).
+- **Lógica ≠ dibujo:** `lib/game/apariencia.ts` (TS puro, 100 % testeado) convierte estado, nivel y skin en una `Apariencia` (base, accesorios, animación, saturación, efectos, postura). `components/personaje/` solo la dibuja. El mismo descriptor sirve para el 3D, para las miniaturas 2D de las listas y para React Native en v2.
+- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas.
+- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia.
+- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas, avatar 2D derivado de la misma `Apariencia` hasta tener miniaturas o vistas compartidas. Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
+- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. Cualquier costo de diseño se aprueba antes.
 
 ### Skins
 
@@ -450,7 +462,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 3. Gasto modo igual (sin IA) y modo itemizado; saldar deudas.
 4. Pantalla Dividir con modo rápido ≤ 3 interacciones.
 5. Smart Split: texto primero, foto de ticket después.
-6. XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
+6. Personaje 3D (personitas y animalitos), XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
 7. Home del grupo: personaje + estado de la banda + balances.
 8. Resumen semanal cozy generado por IA, entregado in-app.
 9. Categorización automática de gastos.
@@ -471,10 +483,10 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 | 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
-| 6 | XP, badges, skins, estados | `lib/game` completo y UI (Avatar, XPBar, SkinSelector) | Funciones `security definer`; D5 |
+| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |
 | 7 | Home del grupo | En el demo | Datos reales |
 | 8 | Resumen semanal | Prompt B4 y evals | Cron y almacenamiento |
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |
 | 10 | Dark/light | Toggle persistente, dark por default | — |
 
-**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.
+**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02; **sale con el personaje 3D aunque tarde más**, decisión del 2026-10-06) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.
