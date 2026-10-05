@@ -281,7 +281,7 @@ Implementa {{B1–B5}} de docs/PROMPTS.md (Parte B) en {{ruta}}.
 - Guard (A8) con el rate limit de la tabla de B0.
 - Tests Vitest sin llamar a la API: validador y armado del mensaje de usuario con fixtures, más el test de sincronía entre este archivo y el código.
 - El comportamiento del modelo se mide con evals (A12), no con Vitest.
-Confirma que el helper `zodOutputFormat` del SDK instalado acepta la versión de Zod del proyecto (Zod 4). Si no, plan B: `z.toJSONSchema(schema)` y `output_config.format` armado a mano; la validación con Zod en nuestro código no cambia.
+El helper `zodOutputFormat` del SDK (0.131) ya se verificó con Zod 4 y los 5 schemas (`src/lib/ai/sdk.test.ts`); no hace falta el plan B (`z.toJSONSchema`).
 Antes del plan: A13.
 ```
 
@@ -440,7 +440,7 @@ Costos estimados con Haiku 4.5 ($1 entrada / $5 salida por millón de tokens) y 
 | Cliente | `timeout` 20 s y `maxRetries` 1. El peor caso (timeout × 2 intentos del SDK, más el retry de validación) debe caber en el `maxDuration` de la ruta en Vercel. |
 | No se usan | `thinking` (en Haiku 4.5 exige `budget_tokens` ≥ 1024 y menor que `max_tokens`), `output_config.effort` (Haiku 4.5 lo rechaza), prefill del asistente y citations (ambos incompatibles con structured outputs). |
 
-> `src/lib/ai/client.ts` **aún no existe**: se crea con A11 (el SDK tampoco está instalado). El código siguiente es la forma prevista.
+> `src/lib/ai/client.ts` **aún no existe**: se crea con A11 (el SDK ya está instalado y verificado con Zod 4). El código siguiente es la forma prevista.
 
 ```ts
 // src/lib/ai/client.ts (solo servidor) · pendiente

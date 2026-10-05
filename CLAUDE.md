@@ -64,13 +64,13 @@
 | Estilos | Tailwind CSS + tokens como CSS variables | Dark mode es el DEFAULT (`next-themes`, `defaultTheme="dark"`) |
 | UI kit | shadcn/ui (Radix) + cva + `cn()` | Componentes propios al estilo shadcn, sin CLI. Hoy solo `@radix-ui/react-slot`; otra primitiva Radix entra cuando un componente la necesite |
 | Backend | Supabase: Postgres + RLS, Auth, Storage | Realtime solo cuando una feature lo justifique |
-| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK aún no instalado (A11) |
+| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK instalado; el cliente se crea en A11 |
 | Validación | Zod | Inputs de API, salidas de IA, formularios |
 | Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | Vitest y Playwright (smoke E2E del demo) ya están; pgTAP llega con Supabase |
 | Hosting | Vercel Hobby | Preview deploy por PR |
 | v2 | React Native (Expo) | Reutiliza `lib/game`, `lib/splits`, tipos y queries |
 
-**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@anthropic-ai/sdk`, `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
+**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@anthropic-ai/sdk`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
 
 ### Variables de entorno
 
@@ -273,7 +273,7 @@ El código tuvo que decidir esto; si alguna deja de convencer, se cambia **prime
 Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 ```
 
-- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). Faltan `client.ts` (SDK) y las rutas: ticket A11. Al instalar el SDK, verificar que `zodOutputFormat` acepta Zod 4; plan B: `z.toJSONSchema()` y `output_config.format` a mano.
+- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). Faltan `client.ts` (SDK) y las rutas: ticket A11. `@anthropic-ai/sdk` ya está instalado; `zodOutputFormat` funciona con Zod 4 y los 5 schemas (IA-04 resuelto, `src/lib/ai/sdk.test.ts`, sin llamar a la API).
 - **Split igualitario = JavaScript puro, nunca IA.** La IA solo entra donde agrega valor (texto libre, foto de ticket, categorización, resumen semanal).
 - Prompts versionados en `lib/ai/prompts/` (fuente: `docs/PROMPTS.md` Parte B). Ningún cambio de prompt sin correr sus evals (Loop 3).
 - Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual. Si el modelo se niega (`refusal`) o se corta (`max_tokens`), fallback directo sin retry: se repetiría igual.
