@@ -440,7 +440,7 @@ Costos estimados con Haiku 4.5 ($1 entrada / $5 salida por millón de tokens) y 
 | Cliente | `timeout` 20 s y `maxRetries` 1. El peor caso (timeout × 2 intentos del SDK, más el retry de validación) debe caber en el `maxDuration` de la ruta en Vercel. |
 | No se usan | `thinking` (en Haiku 4.5 exige `budget_tokens` ≥ 1024 y menor que `max_tokens`), `output_config.effort` (Haiku 4.5 lo rechaza), prefill del asistente y citations (ambos incompatibles con structured outputs). |
 
-> `src/lib/ai/client.ts` **aún no existe**: se crea con A11 (el SDK ya está instalado y verificado con Zod 4). El código siguiente es la forma prevista.
+> `src/lib/ai/client.ts` (cliente con `server-only`) y `src/lib/ai/llamada.ts` (`ejecutarPrompt`, `estimarCostoUsd`, logs) ya existen y se prueban con un cliente falso; el código siguiente es la forma de referencia. La llamada usa `messages.create` con `output_config.format` y parsea y valida el JSON en nuestro código (no `messages.parse`).
 
 ```ts
 // src/lib/ai/client.ts (solo servidor) · pendiente
@@ -489,10 +489,10 @@ Responde otra vez con el JSON completo, corregido y siguiendo las mismas reglas.
 
 #### Logs y costo
 
-Una línea por llamada en el namespace `ai`: `requestId`, prompt y versión (`B1@v1`), modelo, `input_tokens`, `output_tokens`, `cache_read_input_tokens`, latencia en ms, costo estimado, `stop_reason`, resultado (`ok` | `ok_tras_retry` | `fallback`) y rutas de los problemas de validación. Nunca el texto, la imagen ni los nombres.
+Una línea por llamada en el namespace `ai`: `requestId`, prompt y versión (`B1@v1`), modelo, `uso_in`, `uso_out`, `uso_cache_lectura` (tokens de entrada, salida y lectura de caché; los nombres evitan la palabra "token" porque el logger redacta esos campos), latencia en ms, costo estimado, `stop_reason`, resultado (`ok` | `ok_tras_retry` | `fallback`) y rutas de los problemas de validación. Nunca el texto, la imagen ni los nombres.
 
 ```ts
-// Pendiente (A11): aún no existe en el código.
+// Implementado en src/lib/ai/llamada.ts.
 // Telemetría, no dinero de usuarios. Haiku 4.5: $1/M entrada, $5/M salida; caché: escritura 1.25×, lectura 0.1×.
 export function estimarCostoUsd(u: Anthropic.Usage): number {
   const escritura = u.cache_creation_input_tokens ?? 0;
