@@ -2,16 +2,17 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
+import { ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
 import { FriendRow } from "@/components/features/FriendRow";
 import { GastoDetalle } from "@/components/features/GastoDetalle";
+import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { apariencia } from "@/lib/game/apariencia";
 import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
 import { progresoNivel, xpAcumuladaParaNivel } from "@/lib/game/levels";
-import { SKINS } from "@/lib/game/skins";
 import { xpPorPago } from "@/lib/game/xp";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
@@ -124,7 +125,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
       </nav>
 
       <Card size="sm" className="flex items-center gap-4" data-testid="mi-personaje">
-        <Avatar emoji={yoBase.emoji} accesorio={SKINS[yoBase.skinActivo].accesorio} estado={estadoYo} size="lg" />
+        <Personaje className="h-28 w-28 shrink-0" apariencia={apariencia({ base: yoBase.base, estado: estadoYo, skin: yoBase.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
         <div className="min-w-0 flex-1">
           <Pill variant={estadoYo === "clean" ? "grass" : estadoYo === "mild" ? "lemon" : "rose"} data-testid="mi-estado">
             {ETIQUETA_ESTADO[estadoYo]}

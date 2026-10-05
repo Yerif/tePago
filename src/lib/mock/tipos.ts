@@ -1,4 +1,5 @@
 import type { Categoria } from "@/lib/categorias";
+import type { BaseSlug } from "@/lib/game/apariencia";
 import type { EstadoAvatar } from "@/lib/game/avatar";
 import type { SkinSlug } from "@/lib/game/skins";
 import type { GastoCalculable } from "@/lib/splits/tipos";
@@ -7,7 +8,9 @@ export interface MiembroDemo {
   id: string;
   nombre: string;
   usuario: string;
-  /** Personaje base (emoji propio, sin IP de terceros). */
+  /** Personaje base (modelo propio, sin IP de terceros). */
+  base: BaseSlug;
+  /** Respaldo 2D de la base, para listas y chips. */
   emoji: string;
   nivel: number;
   /** Derivados de la XP total con `lib/game` (progresoNivel). */
