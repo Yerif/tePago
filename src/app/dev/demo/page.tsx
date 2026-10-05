@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Pill } from "@/components/cozy/Pill";
 import { Card } from "@/components/ui/Card";
-import { crearGrupos } from "@/lib/mock/datos";
+import { ListaGrupos } from "@/components/features/ListaGrupos";
+import { crearGrupos, YO } from "@/lib/mock/datos";
 
 export const metadata: Metadata = { title: "Demo · Cuentas Conmigo" };
 export const dynamic = "force-dynamic"; // las fechas de ejemplo son relativas a "ahora"
@@ -20,21 +21,7 @@ export default function DemoIndexPage() {
       </p>
 
       <h2 className="mt-2 font-display text-xl font-bold">Home de grupo</h2>
-      {grupos.map((g) => (
-        <Link key={g.id} href={`/dev/demo/g/${g.id}`} data-testid={`demo-grupo-${g.id}`}>
-          <Card size="sm" className="flex items-center gap-3">
-            <span aria-hidden className="text-3xl">
-              {g.icono}
-            </span>
-            <div>
-              <p className="font-semibold">{g.nombre}</p>
-              <p className="text-sm text-muted-foreground">
-                {g.miembros.length} personas · {g.gastos.length} gastos
-              </p>
-            </div>
-          </Card>
-        </Link>
-      ))}
+      <ListaGrupos grupos={grupos} yo={YO} base="/dev/demo/g" />
 
       <h2 className="mt-2 font-display text-xl font-bold">Dividir</h2>
       <Link href="/dev/demo/dividir" data-testid="demo-dividir">
