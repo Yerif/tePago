@@ -212,7 +212,7 @@ Lo que debes se suma **entre grupos**; lo que te deben en un grupo no compensa l
 
 La antigüedad de una deuda cuenta desde la fecha del gasto. Pasados 7 días, saldar da 0 XP. Nivel n requiere `100 + (n-1) * 75` XP (se guarda la XP total y el nivel se deriva). Fórmula única en `lib/game/levels.ts`.
 
-**Anti-farming (D5, aprobado por Yerif 2026-10-02):** +10 por gasto solo si participan ≥ 2 personas y máximo 5 gastos con XP por día; +25 por "semana sin deudas" solo si hubo al menos un gasto o pago esa semana. Aún por implementar en `lib/game/xp.ts` y en `otorgar_xp`.
+**Anti-farming (D5, aprobado por Yerif 2026-10-02):** +10 por gasto solo si participan ≥ 2 personas y máximo 5 gastos con XP por día; +25 por "semana sin deudas" solo si hubo al menos un gasto o pago esa semana. Implementado en `lib/game/xp.ts` (`xpPorRegistrarGasto`, `xpSemanaSinDeudas`, `contarDelDia`); falta replicarlo en la función SQL `otorgar_xp`.
 
 ### Badges (públicos en el grupo)
 
@@ -263,7 +263,7 @@ El código tuvo que decidir esto; si alguna deja de convencer, se cambia **prime
 | D2 | Skins Explorador (nivel 5) y Leyenda (nivel 10) | Implementada y confirmada |
 | D3 | Generoso: más gastos pagados en el mes; empate → más dinero; empate → comparten. Mecenas: el gasto más grande de todo el historial del grupo | Implementada y confirmada |
 | D4 | Propina e impuestos encima del total; "IVA incluido" sin ajuste | Implementada y confirmada |
-| D5 | Anti-farming de XP | Aprobada; por implementar |
+| D5 | Anti-farming de XP | Aprobada e implementada en `lib/game`; falta en SQL |
 
 ---
 
