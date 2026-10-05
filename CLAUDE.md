@@ -107,6 +107,7 @@ docs/                         # PROMPTS · LOOPS · SPRINTS · SECURITY · FEEDB
 src/                          # "· pendiente" = aún no existe
   app/
     page.tsx                  # HOY: portada mínima (título + toggle; en dev/preview, botón al demo)
+    manifest.ts icon.svg apple-icon.png opengraph-image.png   # "agregar a pantalla de inicio" y vista previa al compartir; íconos de tamaño fijo en public/icons/
     dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock) y ui/ (sistema de diseño)
     (auth)/                   # login, callback · pendiente
     (app)/                    # pendiente (necesita Supabase)
