@@ -46,7 +46,7 @@ function revisar(donde, texto, { nombresProhibidos }) {
 // 1) Bundle del cliente.
 const estaticos = ".next/static";
 if (!existsSync(estaticos)) {
-  console.error("No hay .next/static: corre `npm run build` primero.");
+  process.stderr.write("No hay .next/static: corre `npm run build` primero.\n");
   process.exit(2);
 }
 for (const f of archivos(estaticos)) if (/\.(js|css|html|json|map|txt)$/.test(f)) revisar(f, readFileSync(f, "utf8"), { nombresProhibidos: true });
@@ -68,7 +68,7 @@ for (const cabecera of ["Content-Security-Policy", "X-Frame-Options", "Referrer-
 for (const v of Object.keys(process.env)) if (v.startsWith("NEXT_PUBLIC_") && SECRETOS.some((s) => v.includes(s))) reportar("entorno", `${v} usa NEXT_PUBLIC_ para un secreto`);
 
 if (hallazgos.length > 0) {
-  console.error(`✖ check:secrets: ${hallazgos.length} hallazgo(s)\n${hallazgos.map((h) => `  - ${h}`).join("\n")}`);
+  process.stderr.write(`✖ check:secrets: ${hallazgos.length} hallazgo(s)\n${hallazgos.map((h) => `  - ${h}`).join("\n")}\n`);
   process.exit(1);
 }
-console.log(`✔ check:secrets: sin hallazgos (${versionados.length} archivos versionados y el bundle del cliente revisados)`);
+process.stdout.write(`✔ check:secrets: sin hallazgos (${versionados.length} archivos versionados y el bundle del cliente revisados)\n`);
