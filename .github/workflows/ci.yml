@@ -30,7 +30,7 @@ jobs:
 
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run test
+      - run: npm run test:coverage # tests + umbrales 100 % de lib/splits, game, ai, api y tiempo
       - run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: "1"
