@@ -109,7 +109,7 @@ src/                          # "· pendiente" = aún no existe
   app/
     page.tsx                  # HOY: portada mínima (título + toggle; en dev/preview, botón al demo)
     manifest.ts icon.svg apple-icon.png opengraph-image.png   # "agregar a pantalla de inicio" y vista previa al compartir; íconos de tamaño fijo en public/icons/
-    dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock) y ui/ (sistema de diseño)
+    dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock), ui/ (sistema de diseño) y personaje/ (laboratorio 3D)
     (auth)/                   # login, callback · pendiente
     (app)/                    # pendiente (necesita Supabase)
       page.tsx                # redirige al último grupo o a onboarding
@@ -129,7 +129,7 @@ src/                          # "· pendiente" = aún no existe
   components/
     ui/                       # Button, Card (más Dialog… cuando se necesiten)
     cozy/                     # Avatar (2D, para listas), XPBar, GrassDivider, Pill, ThemeToggle
-    personaje/                # Personaje3D (React Three Fiber): dibuja la `Apariencia` que calcula lib/game
+    personaje/                # Personaje (carga diferida + respaldo 2D), Personaje3D (React Three Fiber), PersonajeLab; dibujan la `Apariencia` de lib/game
     features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
     theme/                    # ThemeProvider (next-themes)
     dev/                      # DebugPanel (solo dev/preview)

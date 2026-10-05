@@ -56,7 +56,8 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
         <h2 className="mb-3 font-display text-xl font-bold">Skins</h2>
         <SkinSelector
           key={yo.id}
-          emoji={yo.emoji}
+          base={yo.base}
+          nivel={yo.nivel}
           estado={yo.estado}
           activaInicial={yo.skinActivo}
           skins={SKIN_SLUGS.map((slug) => ({

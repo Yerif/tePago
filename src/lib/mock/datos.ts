@@ -2,6 +2,7 @@ import type { Categoria } from "@/lib/categorias";
 import { BADGE_SLUGS, BADGES, type BadgeSlug } from "@/lib/game/badges";
 import { estadoAvatar, situacionEnGrupo, type EstadoAvatar, type SituacionGrupo } from "@/lib/game/avatar";
 import { progresoNivel } from "@/lib/game/levels";
+import { BASES } from "@/lib/game/apariencia";
 import { badgesValidos, skinEfectiva } from "@/lib/game/skins";
 import { repartirIgual } from "@/lib/splits/igual";
 import type { GastoDemo, GrupoDemo, MiembroDemo } from "./tipos";
@@ -23,15 +24,15 @@ export const BADGES_DEMO: Record<string, { nombre: string; variant: (typeof VARI
   BADGE_SLUGS.map((slug) => [slug, { nombre: BADGES[slug].nombre, variant: VARIANTE_BADGE[slug] }]),
 );
 
-type BaseMiembro = Pick<MiembroDemo, "id" | "nombre" | "usuario" | "emoji" | "badges"> & { xpTotal: number; skinElegida: string };
+type BaseMiembro = Pick<MiembroDemo, "id" | "nombre" | "usuario" | "base" | "badges"> & { xpTotal: number; skinElegida: string };
 
 const BASE: Record<string, BaseMiembro> = {
-  ana: { id: "ana", nombre: "Ana", usuario: "ana", emoji: "🐻", badges: ["jardinero"], xpTotal: 395, skinElegida: "jardinero" },
-  ferni: { id: "ferni", nombre: "Ferni", usuario: "ferni", emoji: "🦊", badges: ["rayo", "jardinero", "generoso"], xpTotal: 940, skinElegida: "explorador" },
-  caro: { id: "caro", nombre: "Caro", usuario: "caro", emoji: "🐰", badges: [], xpTotal: 160, skinElegida: "clasico" },
-  beto: { id: "beto", nombre: "Beto", usuario: "beto", emoji: "🐸", badges: ["fantasma"], xpTotal: 30, skinElegida: "clasico" },
-  luis: { id: "luis", nombre: "Luis", usuario: "luis", emoji: "🦉", badges: ["jardinero", "alcalde"], xpTotal: 725, skinElegida: "alcalde" },
-  mari: { id: "mari", nombre: "Mari", usuario: "mari", emoji: "🐱", badges: [], xpTotal: 240, skinElegida: "clasico" },
+  ana: { id: "ana", nombre: "Ana", usuario: "ana", base: "oso", badges: ["jardinero"], xpTotal: 395, skinElegida: "jardinero" },
+  ferni: { id: "ferni", nombre: "Ferni", usuario: "ferni", base: "zorro", badges: ["rayo", "jardinero", "generoso"], xpTotal: 940, skinElegida: "explorador" },
+  caro: { id: "caro", nombre: "Caro", usuario: "caro", base: "conejo", badges: [], xpTotal: 160, skinElegida: "clasico" },
+  beto: { id: "beto", nombre: "Beto", usuario: "beto", base: "rana", badges: ["fantasma"], xpTotal: 30, skinElegida: "clasico" },
+  luis: { id: "luis", nombre: "Luis", usuario: "luis", base: "persona-sol", badges: ["jardinero", "alcalde"], xpTotal: 725, skinElegida: "alcalde" },
+  mari: { id: "mari", nombre: "Mari", usuario: "mari", base: "persona-luna", badges: [], xpTotal: 240, skinElegida: "clasico" },
 };
 
 /** Nivel y XP salen de la XP total; el estado, de las deudas: nada de esto está escrito a mano. */
@@ -39,7 +40,7 @@ function miembro(id: string, estado: EstadoAvatar): MiembroDemo {
   const { xpTotal, skinElegida, ...base } = BASE[id] as BaseMiembro;
   const p = progresoNivel(xpTotal);
   const skinActivo = skinEfectiva(skinElegida, { nivel: p.nivel, badges: badgesValidos(base.badges) });
-  return { ...base, nivel: p.nivel, xp: p.xpEnNivel, xpSiguiente: p.xpSiguiente, estado, skinActivo };
+  return { ...base, emoji: BASES[base.base].emoji, nivel: p.nivel, xp: p.xpEnNivel, xpSiguiente: p.xpSiguiente, estado, skinActivo };
 }
 
 interface EntradaGasto {
