@@ -115,6 +115,8 @@ Otras decisiones implícitas ya verificadas contra el código: el avatar suma lo
 
 ## 6. Nota sobre el esquema de datos (CLAUDE.md §6, antes de A5)
 
+> **2026-10-05:** los 7 puntos están aplicados en CLAUDE.md §6 (PR `docs/esquema-db01`, pendiente del OK de Yerif; D6 y D7 ya estaban decididas). Lo de abajo queda como justificación.
+
 La base de datos no está conectada, así que no se audita. Pero antes de escribir la primera migración conviene resolver estos puntos; van en un solo ticket P2 ("Revisar esquema §6 antes de A5"):
 
 1. `item_assignments.fraccion numeric`: el código y B3 usan **partes enteras**; guardar una fracción reintroduce decimales. Mejor `partes int`.

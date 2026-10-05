@@ -92,7 +92,7 @@ DEBUG=                             # opcional: namespaces con logs de debug en e
 - **`group_id` denormalizado** en tablas hijas (`expense_items`, `item_assignments`, `expense_shares`) para que cada política RLS sea un check simple sin joins.
 - **Integridad entre tenants** con FKs compuestas: `(expense_id, group_id) → expenses(id, group_id)`. Es imposible que un item apunte a un gasto de otro grupo.
 - **Un solo helper para RLS**: `is_group_member(gid uuid)` (`security definer`, `stable`, `search_path = ''`). Todas las políticas lo usan. En políticas, `auth.uid()` va envuelto en `(select auth.uid())` por rendimiento.
-- **Índices** `(group_id, created_at desc)` en toda tabla de tenant; `group_members(user_id)` para listar mis grupos.
+- **Índices** `(group_id, created_at desc)` en toda tabla de tenant (en `group_members` y `user_badges`, sobre `joined_at` y `earned_at`); `group_members(user_id)` para listar mis grupos.
 - **Storage por tenant**: `tickets/{group_id}/{expense_id}.webp`; la política valida el primer segmento de la ruta contra la membresía.
 - **Rate limits** con llave por usuario, por tenant y por IP (invite codes).
 - **Crecimiento futuro sin re-arquitectura**: una tabla `orgs` encima de `groups` para espacios/white-label; particionar por `group_id` si un tenant crece mucho.
@@ -159,7 +159,7 @@ evals/                        # datasets (b1, b3, b4, b5; b2 espera fotos) y REA
 ```sql
 -- GLOBALES (por usuario)
 profiles       (id uuid PK → auth.users, username unique, display_name,
-                avatar_base, skin_activo, nivel int, xp int, created_at)
+                avatar_base, skin_activo, xp int, created_at)   -- el nivel se deriva de xp (progresoNivel)
 user_skins     (user_id, skin_slug, unlocked_at)          -- PK (user_id, skin_slug)
 
 -- TENANT (group_id NOT NULL en todas)
@@ -169,20 +169,23 @@ group_members  (group_id, user_id, rol check in ('owner','member'), joined_at)
 expenses       (id, group_id, descripcion, total numeric(12,2), moneda default 'MXN',
                 pagado_por, categoria, split_mode check in ('igual','itemizado'),
                 receipt_path, created_by, created_at)      -- unique (id, group_id)
-expense_items  (id, group_id, expense_id, nombre, precio numeric(12,2), cantidad int)
-item_assignments (group_id, item_id, user_id, fraccion numeric)
-expense_shares (group_id, expense_id, user_id, monto numeric(12,2), settled_at)
-settlements    (id, group_id, de_user, a_user, monto numeric(12,2), created_at)
+expense_items  (id, group_id, expense_id, nombre, precio numeric(12,2), cantidad int, created_at)
+item_assignments (group_id, item_id, user_id, partes int check (partes >= 1), created_at)   -- fracción = partes / Σ partes
+expense_shares (group_id, expense_id, user_id, monto numeric(12,2), created_at)           -- lo que cada quien debe del gasto
+settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0), created_at)
+                                                            -- pagos y abonos: ÚNICA fuente de verdad de lo saldado
 user_badges    (group_id, user_id, badge_slug, earned_at, revoked_at)
 
 -- SISTEMA
-xp_events      (id, user_id, group_id null, cantidad int, razon, created_at)
+xp_events      (id, user_id, group_id null, cantidad int, razon, ref_id, created_at)
+                                                            -- unique (user_id, razon, ref_id): el mismo evento nunca da XP dos veces
 rate_limits    (key text, window_start timestamptz, count int)
-weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
+weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)   -- unique (user_id, week_start)
 ```
 
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
+- **Saldado:** no hay `settled_at`. Lo pendiente de cada deuda se deriva aplicando `settlements` a `expense_shares` (PEPS, `lib/splits/pagos.ts`), igual que en el demo.
 - Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Decisión (D7, Yerif 2026-10-02):** al borrar una cuenta desaparecen sus deudas (y las que otros tenían con ella); los balances del resto se recalculan. La UI de borrar cuenta debe avisarlo con claridad antes de confirmar.
 - **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, saldado parcial con `settlements` como fuente de verdad, idempotencia de XP, `created_at` e índices). Las cascadas ya están decididas (D7).
 
