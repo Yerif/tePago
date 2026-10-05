@@ -70,7 +70,7 @@
 | Hosting | Vercel Hobby | Preview deploy por PR |
 | v2 | React Native (Expo) | Reutiliza `lib/game`, `lib/splits`, tipos y queries |
 
-**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@anthropic-ai/sdk`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
+**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@anthropic-ai/sdk`, `server-only`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
 
 ### Variables de entorno
 
@@ -135,7 +135,7 @@ src/                          # "· pendiente" = aún no existe
     supabase/                 # clients: browser, server, middleware · pendiente
     api/                      # guard.ts (plantilla obligatoria de API routes) + limitador.ts
     tenant.ts                 # getActiveGroup, assertMember · pendiente
-    ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, evals. client.ts pendiente
+    ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, llamada (cliente inyectable, log y costo), client.ts (SDK, server-only), evals
     game/                     # XP, niveles, badges, skins, estados — TS PURO
     splits/                   # cálculo en centavos — TS PURO, 100% testeado
     mock/                     # datos de ejemplo del demo; solo dev/preview
@@ -273,7 +273,7 @@ El código tuvo que decidir esto; si alguna deja de convencer, se cambia **prime
 Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 ```
 
-- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). Faltan `client.ts` (SDK) y las rutas: ticket A11. `@anthropic-ai/sdk` ya está instalado; `zodOutputFormat` funciona con Zod 4 y los 5 schemas (IA-04 resuelto, `src/lib/ai/sdk.test.ts`, sin llamar a la API).
+- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). `lib/ai/llamada.ts` (`ejecutarPrompt`) y `client.ts` ya están, probados con un cliente falso; faltan las rutas (necesitan sesión de Supabase para el guard): ticket A11. `@anthropic-ai/sdk` ya está instalado; `zodOutputFormat` funciona con Zod 4 y los 5 schemas (IA-04 resuelto, `src/lib/ai/sdk.test.ts`, sin llamar a la API).
 - **Split igualitario = JavaScript puro, nunca IA.** La IA solo entra donde agrega valor (texto libre, foto de ticket, categorización, resumen semanal).
 - Prompts versionados en `lib/ai/prompts/` (fuente: `docs/PROMPTS.md` Parte B). Ningún cambio de prompt sin correr sus evals (Loop 3).
 - Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual. Si el modelo se niega (`refusal`) o se corta (`max_tokens`), fallback directo sin retry: se repetiría igual.
