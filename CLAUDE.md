@@ -169,11 +169,16 @@ groups         (id, nombre, icono, invite_code unique, invite_revoked_at,
                 created_by, created_at)                    -- el tenant en sí
 group_members  (group_id, user_id, rol check in ('owner','member'), joined_at)
 expenses       (id, group_id, descripcion, total numeric(12,2), moneda default 'MXN',
-                pagado_por, categoria, split_mode check in ('igual','itemizado'),
+                pagado_por, categoria,
+                split_mode check in ('igual','montos','porcentajes','partes','ajustes','itemizado'),
+                sin_asignar numeric(12,2) not null default 0,   -- lo que "Montos" no cubrió (ver §7)
+                sin_asignar_resolucion check in ('absorbido','mio') null,
                 receipt_path, created_by, created_at)      -- unique (id, group_id)
 expense_items  (id, group_id, expense_id, nombre, precio numeric(12,2), cantidad int, created_at)
 item_assignments (group_id, item_id, user_id, partes int check (partes >= 1), created_at)   -- fracción = partes / Σ partes
-expense_shares (group_id, expense_id, user_id, monto numeric(12,2), created_at)           -- lo que cada quien debe del gasto
+expense_shares (group_id, expense_id, user_id, monto numeric(12,2), parametro int null, created_at)
+                                                            -- lo que cada quien debe del gasto; `parametro` guarda lo que se capturó
+                                                            -- (puntos base, partes o ajuste en centavos) para poder re-editar
 settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0), created_at)
                                                             -- pagos y abonos: ÚNICA fuente de verdad de lo saldado
 user_badges    (group_id, user_id, badge_slug, earned_at, revoked_at)
@@ -265,7 +270,14 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
 - **Itemizado**: cada renglón (precio × cantidad) se reparte por **partes enteras** (`partes / Σ partes`, nunca decimales): "3 chelas mías y 1 de Ferni" = partes 3 y 1. El residuo de cada renglón lo absorbe el pagador. Impuestos y propina se reparten **proporcionalmente al consumo** de cada quien, nunca en partes iguales; su residuo también es del pagador.
 - **Propina e impuestos se suman encima del total capturado**; "IVA incluido" no genera ajuste.
 - **Saldado parcial (D6, aprobado 2026-10-02):** se puede pagar una parte de una deuda. El XP por saldar se calcula sobre la antigüedad de la deuda y se otorga al quedar saldada por completo (regla por definir con el ticket de saldar: no dar XP por cada abono para evitar farming).
-- **Deudas entre personas**: se netean de dos en dos (A↔B). La simplificación en cadena (A→B→C) sigue siendo post-MVP.
+- **Modos de dividir** (decisión de Yerif, 2026-10-06). "Igual" es el predeterminado y se registra en ≤ 3 interacciones; los demás viven tras el selector "¿Cómo lo dividimos?" de Dividir, y al cambiar de modo se conservan los datos capturados. En todos, propina e impuestos van **proporcionales** a lo que le toca a cada quien (D4), el residuo de redondeo es del pagador y Σ partes = total:
+  - **Igual**: `total / n` entre los participantes.
+  - **Montos** (`repartirPorMontos`): se captura cuánto debe cada quien y se muestra en vivo "Faltan $X" / "Te pasaste $X". **No bloquea guardar**: lo que no se asignó queda con el pagador como **deuda sin pagador actual** (`sin_asignar`), visible en el gasto, y el pagador elige **absorberla** (es un costo suyo, nadie la debe) o **marcarla como suya** (cuenta como su consumo). Mientras esté pendiente no genera deuda para nadie. Si se asignó de más, no se puede guardar.
+  - **Porcentajes** (`repartirPorPorcentajes`): puntos base (10 000 = 100 %); deben sumar 100 %, con atajo "repartir lo que falta". El residuo de redondeo es del pagador.
+  - **Por partes** (`repartirPorPartes`): cada quien lleva N partes enteras ("3 noches / 2 / 2", o una pareja que cuenta como 2); partes ≥ 0 y al menos una > 0; es el mismo mecanismo que el itemizado, aplicado a todo el total.
+  - **Igual + ajustes** (`repartirConAjustes`): primero se resta la suma de ajustes (pueden ser negativos: "Beto +$60"), el resto se divide igual entre los participantes y a cada quien se le suma su ajuste. Ningún reparto puede quedar negativo.
+  - **Por producto** (itemizado): captura manual rápida de renglones (nombre, precio, quiénes) y "lo demás entre todos"; usa `repartirItemizado`.
+- **Deudas entre personas**: se netean de dos en dos (A↔B): si A le debe $200 a B y B le debe $50 a A, la app solo muestra que A le paga $150 a B (`deudasEntrePersonas`). **Cómo pagarse** (decisión de Yerif, 2026-10-06): además, el detalle del grupo muestra el **plan de pagos más sencillo para todos** (`planDePagos`): a partir de los saldos netos de cada persona, el mínimo de transferencias (≤ personas − 1) que deja a todos en cero. Es una **sugerencia**: el registro de deudas sigue siendo por pares; los pagos del plan se registran como pagos entre las personas que los hacen (`settlements` acepta cualquier par del grupo) y bajan el saldo neto de ambas. Cómo se relaciona con el saldado por pares (PEPS) en la base real se decide al migrar (A5).
 - **Invariante con test obligatorio**: Σ partes = total, en cada modo, con casos de borde (1 persona, fracciones de 1/3, propina 0, montos de 1 centavo).
 
 ### Reglas derivadas (implementadas; D1–D4 confirmadas por Yerif el 2026-10-02)
@@ -463,7 +475,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 
 1. Auth (magic link + Google) y perfil con personaje.
 2. Grupos (tenants) con invite code y selector de grupo.
-3. Gasto modo igual (sin IA) y modo itemizado; saldar deudas.
+3. Gasto en varios modos (igual sin IA, montos, porcentajes, partes, igual + ajustes, por producto/itemizado); saldar deudas y ver el plan de pagos más sencillo.
 4. Pantalla Dividir con modo rápido ≤ 3 interacciones.
 5. Smart Split: texto primero, foto de ticket después.
 6. Personaje 3D (personitas y animalitos), XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
@@ -472,7 +484,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 9. Categorización automática de gastos.
 10. Dark/light mode (dark por default).
 
-**Fuera del MVP:** pagos reales, modo familia, simplificación de deudas multi-persona, predicciones, email/push, monetización, app nativa.
+**Fuera del MVP:** pagos reales, modo familia, predicciones, email/push, monetización, app nativa.
 
 ---
 
