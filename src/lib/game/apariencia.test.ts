@@ -85,3 +85,21 @@ describe("apariencia", () => {
     expect(() => apariencia({ base: "oso", estado: "clean", skin: "pirata" as never, nivel: 1 })).toThrow(RangeError);
   });
 });
+
+describe("miniaturas", () => {
+  it("la ruta lleva la base y el estado, y una base inválida usa la inicial", async () => {
+    const { rutaMiniatura } = await import("./apariencia");
+    expect(rutaMiniatura("zorro", "rekt")).toBe("/personajes/zorro-rekt.png");
+    expect(rutaMiniatura("dragon", "clean")).toBe(`/personajes/${BASE_INICIAL}-clean.png`);
+    expect(rutaMiniatura(null, "mild")).toBe(`/personajes/${BASE_INICIAL}-mild.png`);
+  });
+});
+
+describe("archivos de miniaturas", () => {
+  it("existe una miniatura para cada base y estado (si falta, corre npm run personajes:miniaturas)", async () => {
+    const { existsSync } = await import("node:fs");
+    const { ESTADOS_MINIATURA, rutaMiniatura } = await import("./apariencia");
+    const faltan = BASE_SLUGS.flatMap((b) => ESTADOS_MINIATURA.map((e) => rutaMiniatura(b, e))).filter((r) => !existsSync(`public${r}`));
+    expect(faltan).toEqual([]);
+  });
+});

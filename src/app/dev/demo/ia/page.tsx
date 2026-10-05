@@ -10,7 +10,7 @@ import casosJson from "../../../../../evals/b1/casos.json";
 
 export const metadata: Metadata = { title: "Confirmar gasto (demo)" };
 
-const EMOJIS = ["🐻", "🦊", "🐰", "🐸"];
+const BASES_EJEMPLO = ["oso", "zorro", "conejo", "rana"];
 const casos = z.array(CasoB1).parse(casosJson).filter((c) => c.tipo === "normal" && c.esperado);
 
 export default async function ConfirmarDemoPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
@@ -18,7 +18,7 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
   const caso = casos.find((x) => x.id === c) ?? casos[0];
   if (!caso?.esperado) return null;
 
-  const miembros = caso.entrada.miembros.map((m, i) => ({ id: m.alias, nombre: m.nombre, emoji: EMOJIS[i] ?? "🙂", estado: "clean" as const }));
+  const miembros = caso.entrada.miembros.map((m, i) => ({ id: m.alias, nombre: m.nombre, base: BASES_EJEMPLO[i] ?? "gato", estado: "clean" as const }));
   const alias = Object.fromEntries(miembros.map((m) => [m.id, m.id]));
 
   return (

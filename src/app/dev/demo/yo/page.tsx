@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
 import { DebugDatos } from "@/components/dev/DebugDatos";
@@ -34,7 +35,7 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
         {[...miembros.values()].map((m) => (
           <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`} className="inline-flex min-h-11 items-center">
             <Pill variant={m.id === yo.id ? "grass" : "neutral"}>
-              {m.emoji} {m.nombre}
+              <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8 border-0 bg-transparent" /> {m.nombre}
             </Pill>
           </Link>
         ))}

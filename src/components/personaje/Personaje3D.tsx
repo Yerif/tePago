@@ -304,16 +304,18 @@ function Modelo({ a }: { a: Apariencia }) {
 
 export interface Personaje3DProps {
   apariencia: Apariencia;
+  /** Distancia de la cámara: más chica = más cerca (las miniaturas usan 5.2). */
+  distancia?: number;
 }
 
 /** Un solo canvas 3D por pantalla (CLAUDE.md §7). Con ritmo 0 no anima: dibuja a demanda y no gasta batería. */
-export default function Personaje3D({ apariencia }: Personaje3DProps) {
+export default function Personaje3D({ apariencia, distancia = 6 }: Personaje3DProps) {
   return (
     <Canvas
       data-testid="personaje-canvas"
       dpr={[1, 2]}
       frameloop={apariencia.ritmo === 0 ? "demand" : "always"}
-      camera={{ position: [0, 0, 6], fov: 34 }}
+      camera={{ position: [0, 0, distancia], fov: 34 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       aria-label="Personaje"
     >

@@ -1,4 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import Image from "next/image";
+import { rutaMiniatura } from "@/lib/game/apariencia";
 import type { EstadoAvatar } from "@/lib/game/avatar";
 import { cn } from "@/lib/utils";
 
@@ -28,25 +30,35 @@ export const avatarVariants = cva("relative inline-flex shrink-0 select-none ite
 });
 
 export interface AvatarProps extends VariantProps<typeof avatarVariants> {
-  emoji: string;
+  /** Base del personaje: se dibuja su miniatura (generada desde el modelo 3D). Sin base se usa el emoji. */
+  base?: string;
+  emoji?: string;
   /** Accesorio de la skin activa (emoji); se coloca sobre la cabeza. */
   accesorio?: string;
   estado: EstadoAvatar;
+  /** Sin el sticker de estado: para chips y filas muy chicas. */
+  compacto?: boolean;
   className?: string;
 }
 
-export function Avatar({ emoji, accesorio, estado, size, className }: AvatarProps) {
+export function Avatar({ base, emoji, accesorio, estado, size, compacto = false, className }: AvatarProps) {
   return (
     <span className={cn(avatarVariants({ estado, size }), className)} data-testid="avatar" role="img" aria-label={`Personaje ${ETIQUETA_ESTADO[estado].toLowerCase()}`}>
-      <span aria-hidden>{emoji}</span>
-      {accesorio ? (
+      {base ? (
+        <Image src={rutaMiniatura(base, estado)} alt="" width={128} height={128} unoptimized className="size-full scale-[1.3] object-contain" />
+      ) : (
+        <span aria-hidden>{emoji}</span>
+      )}
+      {accesorio && !base ? (
         <span aria-hidden data-testid="avatar-accesorio" className="absolute -top-[0.3em] left-1/2 -translate-x-1/2 text-[0.5em] leading-none">
           {accesorio}
         </span>
       ) : null}
-      <span aria-hidden className="absolute -right-1 -bottom-1 text-base leading-none">
-        {STICKER[estado]}
-      </span>
+      {compacto ? null : (
+        <span aria-hidden className="absolute -right-1 -bottom-1 text-base leading-none">
+          {STICKER[estado]}
+        </span>
+      )}
     </span>
   );
 }
