@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
+import { Personaje } from "@/components/personaje/Personaje";
+import { apariencia } from "@/lib/game/apariencia";
 import type { EstadoAvatar } from "@/lib/game/avatar";
+import { SKIN_SLUGS, type SkinSlug } from "@/lib/game/skins";
 import { cn } from "@/lib/utils";
 
 export interface SkinOpcion {
@@ -16,20 +18,23 @@ export interface SkinOpcion {
 }
 
 export interface SkinSelectorProps {
-  emoji: string;
+  base: string;
+  nivel: number;
   estado: EstadoAvatar;
   skins: SkinOpcion[];
   activaInicial: string;
 }
 
+const skinSlug = (slug: string): SkinSlug => SKIN_SLUGS.find((s) => s === slug) ?? "clasico";
+
 /** Elige la skin activa. En la demo solo cambia el estado local: guardar la elección es un ticket con backend. */
-export function SkinSelector({ emoji, estado, skins, activaInicial }: SkinSelectorProps) {
+export function SkinSelector({ base, nivel, estado, skins, activaInicial }: SkinSelectorProps) {
   const [activa, setActiva] = useState(activaInicial);
   const actual = skins.find((s) => s.slug === activa);
 
   return (
     <section data-component="SkinSelector" className="flex flex-col items-center gap-4">
-      <Avatar emoji={emoji} accesorio={actual?.accesorio} estado={estado} size="lg" />
+      <Personaje apariencia={apariencia({ base, estado, skin: skinSlug(activa), nivel })} estado={estado} />
       <p data-testid="skin-activa" className="font-display text-lg font-bold">
         {actual?.nombre ?? "Clásico"}
       </p>

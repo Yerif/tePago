@@ -31,6 +31,7 @@ UAT-1 **no** valida: login, grupos reales, invitaciones, persistencia, IA real, 
 - [ ] UAT-02 hecho: se puede saldar (total o con abonos) en el demo y ver XP, nivel y estado del personaje.
 - [ ] UAT-01 resuelto: URL estable y probada desde un celular que no es el tuyo.
 - [ ] UAT-06 hecho: objetivos táctiles ≥ 44 px (se prueba con el dedo).
+- [ ] Personaje 3D (PJ-01) en Home del grupo, Yo y detalle, con sus 3 estados, fluido en un celular de gama media (decisión de Yerif del 2026-10-06: UAT-1 sale con todo).
 - [ ] CI-01 hecho: el CI exige la cobertura 100 % (el código de UAT-02 toca `lib/game`).
 - [ ] D1–D5 de `docs/AUDITORIA.md` decididas (o aceptadas por defecto) y reflejadas en CLAUDE.md.
 - [ ] `lint`, `typecheck`, `test`, `build` en verde en `develop`; PRs de dependencias resueltos.

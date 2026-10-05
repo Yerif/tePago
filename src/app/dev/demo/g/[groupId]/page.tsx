@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
+import { ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { GrassDivider } from "@/components/cozy/GrassDivider";
 import { Pill } from "@/components/cozy/Pill";
+import { Personaje } from "@/components/personaje/Personaje";
 import { ThemeToggle } from "@/components/cozy/ThemeToggle";
 import { XPBar } from "@/components/cozy/XPBar";
 import { DebugDatos } from "@/components/dev/DebugDatos";
@@ -13,7 +14,7 @@ import { buttonVariants } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
 import { xpAcumuladaParaNivel } from "@/lib/game/levels";
-import { SKINS } from "@/lib/game/skins";
+import { apariencia } from "@/lib/game/apariencia";
 import { balancesNetos } from "@/lib/splits/balances";
 import { formatoMXN } from "@/lib/splits/formato";
 
@@ -80,7 +81,7 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
         </Pill>
 
         <Card className="flex flex-col items-center gap-4 text-center" data-testid="mi-personaje">
-          <Avatar emoji={yo.emoji} accesorio={SKINS[yo.skinActivo].accesorio} estado={yo.estado} size="lg" />
+          <Personaje apariencia={apariencia({ base: yo.base, estado: yo.estado, skin: yo.skinActivo, nivel: yo.nivel })} estado={yo.estado} />
           <div>
             <p className="font-display text-2xl font-bold">{yo.nombre}</p>
             <Pill variant={VARIANT_ESTADO[yo.estado]} className="mt-1">

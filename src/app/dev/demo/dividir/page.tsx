@@ -24,7 +24,7 @@ export default async function DividirDemoPage({ searchParams }: { searchParams: 
           id,
           nombre,
           icono,
-          miembros: miembros.map(({ id: mid, nombre: mn, emoji, estado }) => ({ id: mid, nombre: mn, emoji, estado })),
+          miembros: miembros.map(({ id: mid, nombre: mn, base, estado }) => ({ id: mid, nombre: mn, base, estado })),
         }))}
       />
     </main>

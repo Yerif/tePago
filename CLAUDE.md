@@ -62,15 +62,16 @@
 |---|---|---|
 | Frontend | Next.js 15+ (App Router) + TypeScript estricto | Server Components por defecto; `"use client"` solo con interactividad |
 | Estilos | Tailwind CSS + tokens como CSS variables | Dark mode es el DEFAULT (`next-themes`, `defaultTheme="dark"`) |
+| Personaje 3D | `three` + `@react-three/fiber` (decisión de Yerif, 2026-10-06) | Solo en pantallas con personaje, con carga diferida y un canvas por pantalla. `@react-three/fiber/native` permite reutilizarlo en v2 |
 | UI kit | shadcn/ui (Radix) + cva + `cn()` | Componentes propios al estilo shadcn, sin CLI. Hoy solo `@radix-ui/react-slot`; otra primitiva Radix entra cuando un componente la necesite |
 | Backend | Supabase: Postgres + RLS, Auth, Storage | Realtime solo cuando una feature lo justifique |
-| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK aún no instalado (A11) |
+| IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK instalado; el cliente se crea en A11 |
 | Validación | Zod | Inputs de API, salidas de IA, formularios |
 | Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | Vitest y Playwright (smoke E2E del demo) ya están; pgTAP llega con Supabase |
 | Hosting | Vercel Hobby | Preview deploy por PR |
 | v2 | React Native (Expo) | Reutiliza `lib/game`, `lib/splits`, tipos y queries |
 
-**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@anthropic-ai/sdk`, `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
+**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@anthropic-ai/sdk`, `server-only`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
 
 ### Variables de entorno
 
@@ -108,7 +109,7 @@ src/                          # "· pendiente" = aún no existe
   app/
     page.tsx                  # HOY: portada mínima (título + toggle; en dev/preview, botón al demo)
     manifest.ts icon.svg apple-icon.png opengraph-image.png   # "agregar a pantalla de inicio" y vista previa al compartir; íconos de tamaño fijo en public/icons/
-    dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock) y ui/ (sistema de diseño)
+    dev/                      # SOLO dev/preview (404 en producción): demo/ (datos mock), ui/ (sistema de diseño) y personaje/ (laboratorio 3D)
     (auth)/                   # login, callback · pendiente
     (app)/                    # pendiente (necesita Supabase)
       page.tsx                # redirige al último grupo o a onboarding
@@ -127,7 +128,8 @@ src/                          # "· pendiente" = aún no existe
   middleware.ts               # HOY: corta /dev/* con 404 en producción. Después: sesión de Supabase (en Next 16+ se llama proxy.ts)
   components/
     ui/                       # Button, Card (más Dialog… cuando se necesiten)
-    cozy/                     # Avatar, XPBar, GrassDivider, Pill, ThemeToggle
+    cozy/                     # Avatar (miniatura del personaje, para listas), XPBar, GrassDivider, Pill, ThemeToggle
+    personaje/                # Personaje (carga diferida + respaldo 2D), Personaje3D (React Three Fiber), PersonajeLab; dibujan la `Apariencia` de lib/game
     features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
     theme/                    # ThemeProvider (next-themes)
     dev/                      # DebugPanel (solo dev/preview)
@@ -135,8 +137,8 @@ src/                          # "· pendiente" = aún no existe
     supabase/                 # clients: browser, server, middleware · pendiente
     api/                      # guard.ts (plantilla obligatoria de API routes) + limitador.ts
     tenant.ts                 # getActiveGroup, assertMember · pendiente
-    ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, evals. client.ts pendiente
-    game/                     # XP, niveles, badges, skins, estados — TS PURO
+    ai/                       # prompts/ (versionados), schemas/ (Zod), validadores, sanitizar, flujo, llamada (cliente inyectable, log y costo), client.ts (SDK, server-only), evals
+    game/                     # XP, niveles, badges, skins, estados y apariencia del personaje — TS PURO
     splits/                   # cálculo en centavos — TS PURO, 100% testeado
     mock/                     # datos de ejemplo del demo; solo dev/preview
     categorias.ts             # catálogo único de categorías (UI, DB, IA)
@@ -234,6 +236,16 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 
 `comida` 🌮 · `super` 🛒 · `fiesta` 🍻 · `transporte` 🚗 · `hospedaje` 🏡 · `entretenimiento` 🎟️ · `hogar` 🧺 · `regalos` 🎁 · `otros` 📦. Fuente única en `lib/categorias.ts`; qué cubre cada una en `docs/PROMPTS.md` (B0). Cambiarlas implica nueva versión de los prompts B1, B2 y B5.
 
+### Personaje (decisión de Yerif, 2026-10-06)
+
+- **Personaje 3D** con React Three Fiber, estilo *low-poly cozy* (formas redondas, paleta de §10). Es la base del juego.
+- **Bases de arranque:** personitas y animalitos. Después, personalización (ropa, colores, piezas).
+- **Lógica ≠ dibujo:** `lib/game/apariencia.ts` (TS puro, 100 % testeado) convierte estado, nivel y skin en una `Apariencia` (base, accesorios, animación, saturación, efectos, postura). `components/personaje/` solo la dibuja. El mismo descriptor sirve para el 3D, para las miniaturas 2D de las listas y para React Native en v2.
+- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas.
+- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia. Los cambios de estado son graduales (≈ 0.7 s: color, postura y ritmo). **Festejo** (confeti, saltos y una vuelta de 1.6 s) al saldar una deuda completa o subir de nivel; un abono no festeja. Con movimiento reducido no hay transición ni festejo.
+- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas y chips, **miniaturas generadas desde el mismo modelo 3D** (`public/personajes/{base}-{estado}.png`, 27 archivos, ~280 KB): `npm run personajes:miniaturas` las regenera con la app corriendo, y un test exige que existan todas. **Cada vez que cambie un modelo o se agregue una base, hay que regenerarlas.** Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
+- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. Cualquier costo de diseño se aprueba antes.
+
 ### Skins
 
 Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencias a Nintendo. El deterioro visual aplica sobre cualquier skin activo. Las skins son globales (cuentan los badges y el nivel de cualquier grupo).
@@ -276,7 +288,7 @@ El código tuvo que decidir esto; si alguna deja de convencer, se cambia **prime
 Cliente → POST /api/smart-split → guard → Haiku 4.5 → Zod → cliente
 ```
 
-- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). Faltan `client.ts` (SDK) y las rutas: ticket A11. Al instalar el SDK, verificar que `zodOutputFormat` acepta Zod 4; plan B: `z.toJSONSchema()` y `output_config.format` a mano.
+- **Estado:** `lib/ai` ya tiene prompts B1–B5 v1, schemas, validadores, sanitizado, flujo con retry/fallback y evals puros (cobertura 100 %). `lib/ai/llamada.ts` (`ejecutarPrompt`) y `client.ts` ya están, probados con un cliente falso; faltan las rutas (necesitan sesión de Supabase para el guard): ticket A11. `@anthropic-ai/sdk` ya está instalado; `zodOutputFormat` funciona con Zod 4 y los 5 schemas (IA-04 resuelto, `src/lib/ai/sdk.test.ts`, sin llamar a la API).
 - **Split igualitario = JavaScript puro, nunca IA.** La IA solo entra donde agrega valor (texto libre, foto de ticket, categorización, resumen semanal).
 - Prompts versionados en `lib/ai/prompts/` (fuente: `docs/PROMPTS.md` Parte B). Ningún cambio de prompt sin correr sus evals (Loop 3).
 - Salida JSON: usar structured outputs de la API si el modelo lo soporta; **validar con Zod siempre**. Si falla: 1 retry con el error de validación; si falla otra vez, fallback a entrada manual. Si el modelo se niega (`refusal`) o se corta (`max_tokens`), fallback directo sin retry: se repetiría igual.
@@ -390,7 +402,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 
 1. **Plan primero** en toda tarea de más de un archivo: lista de archivos, decisiones y riesgos. Espera aprobación antes de implementar.
 2. **Una sesión = una tarea.** No mezcles feature y refactor.
-3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test:coverage && npm run build` en verde (es lo que corre el CI; la cobertura 100 % de `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` se exige ahí). Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
+3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run check:secrets` en verde (es lo que corre el CI; la cobertura 100 % de `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` se exige ahí). Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
 4. **Si una instrucción contradice este archivo**, detente y pregunta; no elijas por tu cuenta.
 5. **Si la mejor solución cuesta dinero**, presenta la alternativa gratuita con trade-offs y espera la decisión.
 6. **Features con superficie sensible** (auth, dinero, IA, storage, invite codes): threat model exprés antes del plan (prompt A13, Loop 9) y tests de abuso junto a los felices.
@@ -407,9 +419,10 @@ npm run typecheck            # tsc --noEmit
 npm run test                 # Vitest (lib/)
 npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos críticos)
 npm run build                # build de producción
+npm run check:secrets        # bundle del cliente y repo sin llaves + cabeceras de seguridad (corre en CI tras el build)
 npm run test:e2e             # Playwright: levanta el build en modo preview y en modo producción
+npm run personajes:miniaturas  # regenera public/personajes/ desde el modelo 3D (con la app en dev/preview)
 # Pendientes (aún no existen en package.json):
-npm run check:secrets        # scan del bundle + gitleaks
 npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local
 npx supabase db reset        # recrea la DB local con migraciones + seed
@@ -453,7 +466,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 3. Gasto modo igual (sin IA) y modo itemizado; saldar deudas.
 4. Pantalla Dividir con modo rápido ≤ 3 interacciones.
 5. Smart Split: texto primero, foto de ticket después.
-6. XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
+6. Personaje 3D (personitas y animalitos), XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
 7. Home del grupo: personaje + estado de la banda + balances.
 8. Resumen semanal cozy generado por IA, entregado in-app.
 9. Categorización automática de gastos.
@@ -474,10 +487,10 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 | 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
-| 6 | XP, badges, skins, estados | `lib/game` completo y UI (Avatar, XPBar, SkinSelector) | Funciones `security definer`; D5 |
+| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |
 | 7 | Home del grupo | En el demo | Datos reales |
 | 8 | Resumen semanal | Prompt B4 y evals | Cron y almacenamiento |
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |
 | 10 | Dark/light | Toggle persistente, dark por default | — |
 
-**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.
+**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02; **sale con el personaje 3D aunque tarde más**, decisión del 2026-10-06) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.

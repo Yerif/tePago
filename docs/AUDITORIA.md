@@ -68,10 +68,10 @@ Prioridad = P0 antes de UAT-1 (prototipo) · P1 antes de UAT-2 (con Supabase y l
 | IA-01 | — | PROMPTS.md citaba como existentes cosas que son plan: `src/lib/ai/client.ts`, `conciliarTicket`, `estimarCostoUsd` | **Hecho en este PR:** marcadas como pendientes con su ticket |
 | IA-02 | P1 | **B1 no cubre préstamos ni pagos directos.** "Le presté 500 a Ferni", "le pagué 200 a Ferni" o "pagué la entrada de Ferni" no son un gasto compartido: con las reglas 5–6 el modelo repartiría entre quien escribe y Ferni. Tampoco hay casos así en `evals/b1/` | Propuesta B1 v2 en `docs/PROMPTS.md` (no es el bloque canónico); ticket de evals (L3) |
 | IA-03 | P1 | B1 no distingue "propina incluida" de "+ propina" ni "entre los 4" cuando el grupo tiene 6 | Misma propuesta B1 v2 |
-| IA-04 | P1 | Riesgo abierto: `zodOutputFormat` del SDK con Zod 4 (el SDK aún no está instalado) | Se verifica en A11 al instalar el SDK; plan B documentado en PROMPTS.md |
+| IA-04 | P1 | Riesgo abierto: `zodOutputFormat` del SDK con Zod 4 | **Resuelto (2026-10-05):** SDK 0.131 instalado y los 5 schemas convierten y parsean bien (`src/lib/ai/sdk.test.ts`). No hace falta el plan B |
 | IA-05 | P1 | Los golden de `evals/` los escribió Claude; no los has revisado, y son 100 % sintéticos | Ticket: Yerif revisa los golden y aporta ≥ 5 mensajes reales (UAT-1 es una buena fuente) |
 | IA-06 | P1 | B2 sin fotos de evals | Yerif aporta ≥ 15 fotos reales sin tarjetas ni caras (ver `evals/b2/README.md`) |
-| IA-07 | P2 | La lista de categorías está copiada en los prompts B1, B2 y B5; `sync.test.ts` compara prompt ↔ doc, pero nada compara prompt ↔ `CATEGORIAS` | Ticket: test que verifique que cada categoría de `lib/categorias.ts` aparece en B1, B2 y B5 |
+| IA-07 | P2 | **Resuelto (2026-10-05, `categorias-prompts.test.ts`).** La lista de categorías está copiada en los prompts B1, B2 y B5; `sync.test.ts` compara prompt ↔ doc, pero nada compara prompt ↔ `CATEGORIAS` | Ticket: test que verifique que cada categoría de `lib/categorias.ts` aparece en B1, B2 y B5 |
 
 ## 3. Reglas de producto implementadas que CLAUDE.md no definía
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
 import { DebugDatos } from "@/components/dev/DebugDatos";
@@ -34,11 +35,29 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
         {[...miembros.values()].map((m) => (
           <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`} className="inline-flex min-h-11 items-center">
             <Pill variant={m.id === yo.id ? "grass" : "neutral"}>
-              {m.emoji} {m.nombre}
+              <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8 border-0 bg-transparent" /> {m.nombre}
             </Pill>
           </Link>
         ))}
       </nav>
+
+      <Card>
+        <h2 className="mb-3 font-display text-xl font-bold">Skins</h2>
+        <SkinSelector
+          key={yo.id}
+          base={yo.base}
+          nivel={yo.nivel}
+          estado={yo.estado}
+          activaInicial={yo.skinActivo}
+          skins={SKIN_SLUGS.map((slug) => ({
+            slug,
+            nombre: SKINS[slug].nombre,
+            accesorio: SKINS[slug].accesorio,
+            desbloqueada: estaDesbloqueada(slug, progreso),
+            requisito: requisitoSkin(slug),
+          }))}
+        />
+      </Card>
 
       <Card className="flex flex-col gap-4">
         <XPBar nivel={yo.nivel} xp={yo.xp} xpSiguiente={yo.xpSiguiente} />
@@ -50,23 +69,6 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
             </Pill>
           ))}
         </div>
-      </Card>
-
-      <Card>
-        <h2 className="mb-3 font-display text-xl font-bold">Skins</h2>
-        <SkinSelector
-          key={yo.id}
-          emoji={yo.emoji}
-          estado={yo.estado}
-          activaInicial={yo.skinActivo}
-          skins={SKIN_SLUGS.map((slug) => ({
-            slug,
-            nombre: SKINS[slug].nombre,
-            accesorio: SKINS[slug].accesorio,
-            desbloqueada: estaDesbloqueada(slug, progreso),
-            requisito: requisitoSkin(slug),
-          }))}
-        />
       </Card>
     </main>
   );

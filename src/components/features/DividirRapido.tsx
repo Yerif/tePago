@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 interface MiembroLite {
   id: string;
   nombre: string;
-  emoji: string;
+  base: string;
   estado: "clean" | "mild" | "rekt";
 }
 interface GrupoLite {
@@ -165,7 +165,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
                     dentro ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground line-through",
                   )}
                 >
-                  <Avatar emoji={m.emoji} estado={m.estado} size="sm" className="size-8 text-lg" />
+                  <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-9" />
                   {m.nombre}
                 </button>
               );

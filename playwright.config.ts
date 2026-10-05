@@ -10,7 +10,12 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["list"]] : "list",
-  use: { baseURL: `http://localhost:${PUERTO}`, trace: "retain-on-failure" },
+  use: {
+    baseURL: `http://localhost:${PUERTO}`,
+    trace: "retain-on-failure",
+    // WebGL por software (SwiftShader): el personaje 3D corre también sin GPU, como en el CI.
+    launchOptions: { args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] },
+  },
   projects: [{ name: "movil-375", use: { ...devices["Pixel 5"], viewport: { width: 375, height: 800 } } }],
   webServer: [
     {

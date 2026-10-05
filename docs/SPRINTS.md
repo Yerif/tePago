@@ -66,22 +66,24 @@ Extra adelantado (ya en `develop`, sin Supabase): demo con datos de ejemplo (`/d
 
 Fuera del Sprint 1 a propósito: Storage multitenant (va con el modo foto en el Sprint 4) y borrar cuenta (P2).
 
-### Camino a UAT-1 (carril A, propuesta)
+### Camino a UAT-1 (carril A) — estado al 2026-10-05
 
-Meta: una ronda de pruebas con 3–5 personas sobre el prototipo antes de terminar el Sprint 1 (13 oct). Detalle, guion y criterios en `docs/UAT.md`. Los tickets están en Notion con el ID del hallazgo en el título.
+Meta: una ronda de pruebas con 3–5 personas sobre el prototipo antes de terminar el Sprint 1 (13 oct). Detalle, guion y criterios en `docs/UAT.md`.
 
-| Orden | ID | Ticket | Prio | Est. | Loop | Prompt |
-|---|---|---|---|---|---|---|
-| 1 | CI-01 | El CI corre `test:coverage` (exige el 100 %) | P0 | S | L0 | A4 |
-| 2 | UAT-02 | Demo: saldar una deuda (total o por abonos) con XP, nivel y estado del avatar | P0 | M | L1 | A10 |
-| 3 | UAT-06 | Objetivos táctiles ≥ 44 px | P0 | S | L2 | A15 |
-| 4 | UAT-01 | Entorno de UAT-1: preview estable, protección y llaves por scope | P0 | S | L6 | A18 |
-| 5 | UAT-04 | Error Boundary, `not-found` y `loading` con "copiar reporte" | P1 | M | L1 | A10 |
-| 6 | UAT-05 | Metadatos móviles: favicon, manifest, `themeColor` | P1 | S | L2 | A15 |
-| 7 | UAT-03 | Onboarding y selector de grupo en el demo | P1 | M | L1 | A10 |
-| 8 | CI-03 | Smoke E2E (Playwright) del demo | P1 | M | L1 | A10 |
+| Orden | ID | Ticket | Estado |
+|---|---|---|---|
+| 1 | CI-01 | El CI exige la cobertura 100 % | ✅ PR #27 |
+| 2 | UAT-02 | Saldar en el demo (total o por abonos) con XP, nivel y personaje | ✅ PR #28 |
+| 3 | UAT-06 | Objetivos táctiles ≥ 44 px | ✅ PR #29 |
+| 4 | UAT-01 | Entorno de UAT-1 (preview estable, protección, llaves por scope) | ⏳ **Yerif**: desactivar la protección de Vercel solo para previews y revisar que Preview no tenga llaves reales |
+| 5 | UAT-04 | Error Boundary, not-found y "copiar reporte" | ✅ PR #30 (y #32: `/dev/*` 404 real en producción) |
+| 6 | UAT-05 | Metadatos móviles: ícono, manifest, themeColor, OG | ✅ PR #31 |
+| 7 | UAT-03 | Pantalla de entrada "Elige tu banda" | ✅ PR #33 |
+| 8 | CI-03 | Smoke E2E con Playwright | ✅ PR #34 (workflow `e2e.yml`: lanzarlo a mano una vez) |
 
-Los pasos 1–4 son el mínimo para invitar a alguien; 5–8 mejoran la ronda y son requisito de UAT-2. Mientras tanto, A12 puede avanzar con los casos nuevos de B1 (v2) sin gastar en la API.
+Extras ya hechos: D5 anti-farming de XP en `lib/game` (#35), SDK de Anthropic verificado con Zod 4 y test de categorías (#36), `npm run check:secrets` en CI (#37), capa de llamada a la IA con cliente inyectable (#39). En revisión: esquema de datos de CLAUDE.md §6 (#38, necesita tu OK).
+
+**Lo único que falta para invitar a UAT-1 es de Yerif:** UAT-01 (Vercel), el mensaje de `docs/UAT.md` §8 con la URL estable de `develop` y probar tú mismo T1–T7 desde el celular.
 
 ### Paralelismo
 
