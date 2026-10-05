@@ -66,11 +66,11 @@
 | Backend | Supabase: Postgres + RLS, Auth, Storage | Realtime solo cuando una feature lo justifique |
 | IA | Anthropic API — Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) | Solo desde el servidor. Verificar string vigente en docs.claude.com. SDK aún no instalado (A11) |
 | Validación | Zod | Inputs de API, salidas de IA, formularios |
-| Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | Hoy solo Vitest; Playwright y pgTAP llegan con su ticket |
+| Tests | Vitest (`lib/`) · Playwright (E2E) · pgTAP (`supabase test db`) para RLS | Vitest y Playwright (smoke E2E del demo) ya están; pgTAP llega con Supabase |
 | Hosting | Vercel Hobby | Preview deploy por PR |
 | v2 | React Native (Expo) | Reutiliza `lib/game`, `lib/splits`, tipos y queries |
 
-**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`. **Pendientes** (cada una se justifica en el PR que la trae): `@anthropic-ai/sdk`, `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Playwright, Promptfoo.
+**Versiones hoy:** Node ≥ 22 · Next 15.5 · React 19 · TypeScript 6 · Tailwind 4 · Zod 4 · Vitest 5. **Instaladas:** `next`, `react`, `zod`, `next-themes`, `cva`, `clsx`, `tailwind-merge`, `@radix-ui/react-slot`, `@playwright/test` (dev). **Pendientes** (cada una se justifica en el PR que la trae): `@anthropic-ai/sdk`, `@supabase/supabase-js` y `@supabase/ssr`, `nanoid`, Promptfoo.
 
 ### Variables de entorno
 
@@ -148,7 +148,7 @@ supabase/
   migrations/                 # SQL versionado; nunca editar una migración aplicada (vacío hoy)
   tests/                      # pgTAP: tests RLS cruzados (vacío hoy)
   seed.sql
-tests/e2e/                    # Playwright + selectors.ts (vacío hoy)
+tests/e2e/                    # Playwright: smoke.spec.ts (demo), produccion.spec.ts (/dev da 404) y selectors.ts
 evals/                        # datasets (b1, b3, b4, b5; b2 espera fotos) y README; runner Promptfoo pendiente
 ```
 
@@ -351,7 +351,7 @@ FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #
 - TypeScript estricto; prohibido `any` (usar `unknown` + narrowing).
 - Un componente por archivo, PascalCase, props con interface local. Export default solo en `page.tsx`/`layout.tsx`.
 - Los componentes orquestan, no calculan: lógica → `lib/`.
-- Tests: Vitest obligatorio en `lib/splits` y `lib/game`; Playwright para flujos críticos (registrar gasto, smart split, saldar). Playwright aún no está instalado.
+- Tests: Vitest obligatorio en `lib/splits` y `lib/game`; Playwright para flujos críticos (registrar gasto, smart split, saldar). Smoke E2E del demo: `npm run test:e2e` (levanta el build; en CI corre solo hacia `main` o a mano, `.github/workflows/e2e.yml`).
 - Cobertura: 100 % de líneas, ramas y funciones en `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` (umbrales en `vitest.config.mts`). Se evalúan con `npm run test:coverage`, que es lo que corre el CI. Nunca se baja un umbral para pasar.
 - Commits: Conventional Commits en español (`feat: split por voz`, `fix: redondeo en itemizado`).
 - Accesibilidad mínima: focus visible, labels en inputs, contraste AA en ambos temas, objetivos táctiles ≥ 44×44 px en móvil (nunca < 24 px, WCAG 2.5.8).
@@ -404,8 +404,8 @@ npm run typecheck            # tsc --noEmit
 npm run test                 # Vitest (lib/)
 npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos críticos)
 npm run build                # build de producción
+npm run test:e2e             # Playwright: levanta el build en modo preview y en modo producción
 # Pendientes (aún no existen en package.json):
-npm run test:e2e             # Playwright
 npm run check:secrets        # scan del bundle + gitleaks
 npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local
