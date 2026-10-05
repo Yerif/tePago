@@ -387,7 +387,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 
 1. **Plan primero** en toda tarea de más de un archivo: lista de archivos, decisiones y riesgos. Espera aprobación antes de implementar.
 2. **Una sesión = una tarea.** No mezcles feature y refactor.
-3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test:coverage && npm run build` en verde (es lo que corre el CI; la cobertura 100 % de `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` se exige ahí). Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
+3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run check:secrets` en verde (es lo que corre el CI; la cobertura 100 % de `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` se exige ahí). Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
 4. **Si una instrucción contradice este archivo**, detente y pregunta; no elijas por tu cuenta.
 5. **Si la mejor solución cuesta dinero**, presenta la alternativa gratuita con trade-offs y espera la decisión.
 6. **Features con superficie sensible** (auth, dinero, IA, storage, invite codes): threat model exprés antes del plan (prompt A13, Loop 9) y tests de abuso junto a los felices.
@@ -404,9 +404,9 @@ npm run typecheck            # tsc --noEmit
 npm run test                 # Vitest (lib/)
 npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos críticos)
 npm run build                # build de producción
+npm run check:secrets        # bundle del cliente y repo sin llaves + cabeceras de seguridad (corre en CI tras el build)
 npm run test:e2e             # Playwright: levanta el build en modo preview y en modo producción
 # Pendientes (aún no existen en package.json):
-npm run check:secrets        # scan del bundle + gitleaks
 npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local
 npx supabase db reset        # recrea la DB local con migraciones + seed
