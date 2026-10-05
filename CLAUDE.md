@@ -351,7 +351,7 @@ FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #
 - Un componente por archivo, PascalCase, props con interface local. Export default solo en `page.tsx`/`layout.tsx`.
 - Los componentes orquestan, no calculan: lógica → `lib/`.
 - Tests: Vitest obligatorio en `lib/splits` y `lib/game`; Playwright para flujos críticos (registrar gasto, smart split, saldar). Playwright aún no está instalado.
-- Cobertura: 100 % de líneas, ramas y funciones en `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` (umbrales en `vitest.config.mts`). Solo se evalúan con `npm run test:coverage`: córrelo antes de cerrar. Nunca se baja un umbral para pasar.
+- Cobertura: 100 % de líneas, ramas y funciones en `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` (umbrales en `vitest.config.mts`). Se evalúan con `npm run test:coverage`, que es lo que corre el CI. Nunca se baja un umbral para pasar.
 - Commits: Conventional Commits en español (`feat: split por voz`, `fix: redondeo en itemizado`).
 - Accesibilidad mínima: focus visible, labels en inputs, contraste AA en ambos temas, objetivos táctiles ≥ 44×44 px en móvil (nunca < 24 px, WCAG 2.5.8).
 
@@ -386,7 +386,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 
 1. **Plan primero** en toda tarea de más de un archivo: lista de archivos, decisiones y riesgos. Espera aprobación antes de implementar.
 2. **Una sesión = una tarea.** No mezcles feature y refactor.
-3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test && npm run build` en verde (es lo que corre el CI). Si tocaste `lib/splits`, `lib/game`, `lib/ai` o `lib/api`, también `npm run test:coverage`. Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
+3. **Definición de terminado**: `npm run lint && npm run typecheck && npm run test:coverage && npm run build` en verde (es lo que corre el CI; la cobertura 100 % de `lib/splits`, `lib/game`, `lib/ai`, `lib/api` y `lib/tiempo.ts` se exige ahí). Si tocaste la DB: migración nueva + `gen types` + tests RLS en verde. Un cambio solo de docs no necesita `build`, pero sí `npm run test`: el test de sincronía lee `docs/PROMPTS.md`.
 4. **Si una instrucción contradice este archivo**, detente y pregunta; no elijas por tu cuenta.
 5. **Si la mejor solución cuesta dinero**, presenta la alternativa gratuita con trade-offs y espera la decisión.
 6. **Features con superficie sensible** (auth, dinero, IA, storage, invite codes): threat model exprés antes del plan (prompt A13, Loop 9) y tests de abuso junto a los felices.
