@@ -123,7 +123,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
             value={descripcion}
             onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Tacos, Uber, súper…"
-            className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2"
+            className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2 min-h-11"
           />
         </div>
 
@@ -138,7 +138,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
                 data-testid={`grupo-${g.id}`}
                 onClick={() => cambiarGrupo(g.id)}
                 className={cn(
-                  "rounded-full border-2 px-3 py-1 text-sm font-semibold",
+                  "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
                   g.id === grupo.id ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
                 )}
               >
@@ -161,7 +161,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
                   data-testid={`miembro-${m.id}`}
                   onClick={() => alternar(m.id)}
                   className={cn(
-                    "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-semibold",
+                    "flex min-h-11 items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-semibold",
                     dentro ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground line-through",
                   )}
                 >
@@ -182,7 +182,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
             data-testid="dividir-pagador"
             value={pagador}
             onChange={(e) => setPagador(e.target.value)}
-            className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2"
+            className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2 min-h-11"
           >
             {grupo.miembros.map((m) => (
               <option key={m.id} value={m.id}>

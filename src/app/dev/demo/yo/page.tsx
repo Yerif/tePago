@@ -22,7 +22,7 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
   return (
     <main data-component="YoDemoPage" className="mx-auto flex max-w-md flex-col gap-5 p-6">
       <DebugDatos usuario={`${yo.nombre} (demo)`} estadoAvatar={yo.estado} />
-      <Link href="/dev/demo" className="text-sm text-muted-foreground underline">
+      <Link href="/dev/demo" className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
         ← Demo
       </Link>
       <h1 className="font-display text-3xl font-bold">Yo 🌻</h1>
@@ -32,7 +32,7 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
 
       <nav aria-label="Probar como" className="flex flex-wrap gap-2">
         {[...miembros.values()].map((m) => (
-          <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`}>
+          <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`} className="inline-flex min-h-11 items-center">
             <Pill variant={m.id === yo.id ? "grass" : "neutral"}>
               {m.emoji} {m.nombre}
             </Pill>

@@ -13,7 +13,7 @@ export default async function DividirDemoPage({ searchParams }: { searchParams: 
 
   return (
     <main data-component="DividirDemoPage" className="mx-auto flex max-w-md flex-col gap-4 p-6">
-      <Link href="/dev/demo" className="text-sm text-muted-foreground underline">
+      <Link href="/dev/demo" className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
         ← Demo
       </Link>
       <h1 className="font-display text-3xl font-bold">Dividir ⚡</h1>
