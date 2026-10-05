@@ -41,18 +41,6 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
         ))}
       </nav>
 
-      <Card className="flex flex-col gap-4">
-        <XPBar nivel={yo.nivel} xp={yo.xp} xpSiguiente={yo.xpSiguiente} />
-        <div className="flex flex-wrap gap-2" data-testid="mis-badges">
-          {yo.badges.length === 0 ? <span className="text-muted-foreground">Aún sin badges 🌱</span> : null}
-          {yo.badges.map((b) => (
-            <Pill key={b} variant={BADGES_DEMO[b]?.variant ?? "neutral"}>
-              {BADGES_DEMO[b]?.nombre ?? b}
-            </Pill>
-          ))}
-        </div>
-      </Card>
-
       <Card>
         <h2 className="mb-3 font-display text-xl font-bold">Skins</h2>
         <SkinSelector
@@ -69,6 +57,18 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
             requisito: requisitoSkin(slug),
           }))}
         />
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <XPBar nivel={yo.nivel} xp={yo.xp} xpSiguiente={yo.xpSiguiente} />
+        <div className="flex flex-wrap gap-2" data-testid="mis-badges">
+          {yo.badges.length === 0 ? <span className="text-muted-foreground">Aún sin badges 🌱</span> : null}
+          {yo.badges.map((b) => (
+            <Pill key={b} variant={BADGES_DEMO[b]?.variant ?? "neutral"}>
+              {BADGES_DEMO[b]?.nombre ?? b}
+            </Pill>
+          ))}
+        </div>
       </Card>
     </main>
   );
