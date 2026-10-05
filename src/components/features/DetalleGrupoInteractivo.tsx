@@ -44,6 +44,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
   const [pagos, setPagos] = useState<PagoDemo[]>([]);
   const [xpGanada, setXpGanada] = useState(0);
   const [reaccion, setReaccion] = useState<Reaccion | null>(null);
+  const [festejos, setFestejos] = useState(0);
   const [montos, setMontos] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +87,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
     const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + xp).nivel;
     const quedaDeuda = deudaCentavos - centavos > 0;
     setPagos(siguientes);
+    if (xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
     setXpGanada((x) => x + xp);
     setMontos((m) => ({ ...m, [acreedorId]: "" }));
     setReaccion({
@@ -125,7 +127,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
       </nav>
 
       <Card size="sm" className="flex items-center gap-4" data-testid="mi-personaje">
-        <Personaje className="h-28 w-28 shrink-0" apariencia={apariencia({ base: yoBase.base, estado: estadoYo, skin: yoBase.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
+        <Personaje celebrar={festejos} className="h-28 w-28 shrink-0" apariencia={apariencia({ base: yoBase.base, estado: estadoYo, skin: yoBase.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
         <div className="min-w-0 flex-1">
           <Pill variant={estadoYo === "clean" ? "grass" : estadoYo === "mild" ? "lemon" : "rose"} data-testid="mi-estado">
             {ETIQUETA_ESTADO[estadoYo]}

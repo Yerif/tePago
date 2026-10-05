@@ -39,4 +39,20 @@ test.describe("personaje 3D", () => {
     await expect(page.getByTestId(ids.personaje.raiz)).toHaveAttribute("data-modo", "3d");
     await expect(page.locator("canvas")).toHaveCount(1);
   });
+
+  test("festeja al pedirlo y al pagar una deuda completa, pero no con un abono", async ({ page }) => {
+    await page.goto("/dev/personaje");
+    const raiz = page.getByTestId(ids.personaje.raiz);
+    await expect(raiz).toHaveAttribute(ids.personaje.celebraciones, "0");
+    await page.getByTestId(ids.personaje.festejar).click();
+    await expect(raiz).toHaveAttribute(ids.personaje.celebraciones, "1");
+
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    const beto = page.getByTestId(ids.personaje.raiz);
+    await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("100");
+    await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
+    await expect(beto).toHaveAttribute(ids.personaje.celebraciones, "0");
+    await page.getByTestId(ids.saldar.todo("beto", "ferni")).click();
+    await expect(beto).toHaveAttribute(ids.personaje.celebraciones, "1");
+  });
 });

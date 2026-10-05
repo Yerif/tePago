@@ -17,13 +17,18 @@ export function PersonajeLab() {
   const [estado, setEstado] = useState<EstadoAvatar>("clean");
   const [skin, setSkin] = useState<SkinSlug>("clasico");
   const [nivel, setNivel] = useState(1);
+  const [festejos, setFestejos] = useState(0);
   const a = apariencia({ base, estado, skin, nivel });
 
   return (
     <div data-component="PersonajeLab" className="flex flex-col gap-4">
       <Card className="flex justify-center">
-        <Personaje apariencia={a} estado={estado} />
+        <Personaje apariencia={a} estado={estado} celebrar={festejos} />
       </Card>
+
+      <Button variant="peach" data-testid="festejar" onClick={() => setFestejos((n) => n + 1)}>
+        Festejar 🎉
+      </Button>
 
       <fieldset>
         <legend className="mb-2 text-sm text-muted-foreground">Estado</legend>
