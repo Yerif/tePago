@@ -9,10 +9,12 @@ export interface GastoDetalleProps {
   /** id → nombre visible, para todos los miembros del grupo. */
   nombres: Record<string, string>;
   ahora: Date;
+  /** userId → centavos que aún faltan por pagar de su parte (con abonos aplicados). Sin esto se usa `saldado`. */
+  pendientes?: Record<string, number>;
 }
 
 /** Un gasto que se despliega para ver cuánto le toca a cada quien y quién ya saldó. */
-export function GastoDetalle({ gasto, nombres, ahora }: GastoDetalleProps) {
+export function GastoDetalle({ gasto, nombres, ahora, pendientes }: GastoDetalleProps) {
   const nombre = (id: string) => nombres[id] ?? id;
   return (
     <details data-component="GastoDetalle" data-testid={`gasto-${gasto.id}`} className="group rounded-card-sm border-[2.5px] border-border bg-card p-4">
@@ -38,8 +40,10 @@ export function GastoDetalle({ gasto, nombres, ahora }: GastoDetalleProps) {
               <span className="font-display font-bold">{formatoMXN(p.centavos)}</span>
               {p.userId === gasto.pagadoPor ? (
                 <Pill variant="water">Pagó</Pill>
-              ) : p.saldado ? (
+              ) : (pendientes?.[p.userId] ?? (p.saldado ? 0 : p.centavos)) === 0 ? (
                 <Pill variant="grass">Saldado ✔</Pill>
+              ) : (pendientes?.[p.userId] ?? p.centavos) < p.centavos ? (
+                <Pill variant="lemon">Faltan {formatoMXN(pendientes?.[p.userId] ?? p.centavos)}</Pill>
               ) : (
                 <Pill variant="rose">Debe</Pill>
               )}

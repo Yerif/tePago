@@ -56,7 +56,7 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 | T2 | "Ahora, un gasto donde Ferni no participó." | ¿Encuentra cómo quitar a alguien? | Sin ayuda |
 | T3 | "Imagina que escribiste *cena 1,240 + 10% de propina, pagué yo*; elige ese mensaje en la pantalla Confirmar y revisa lo que entendió la app. Corrígelo si algo no cuadra." (en UAT-1 se eligen mensajes de ejemplo; en UAT-2 se escribe libre) | ¿Entiende lo que se "entendió"? ¿Corrige sin miedo? | Corrige monto o persona sin ayuda |
 | T4 | "Ferni te debe dinero. ¿Cuánto? Y tú, ¿le debes a alguien?" | ¿Lee el detalle del grupo? | Responde bien sin tocar la calculadora |
-| T5 | "Paga lo que debes: primero un abono y luego el resto." (requiere UAT-02; el saldado parcial está aprobado) | ¿Entiende qué cambió en su personaje? | Dice con sus palabras qué ganó o recuperó |
+| T5 | "Eres Beto y le debes a tres amigos. Paga lo que debes: primero un abono y luego el resto." (en el detalle del grupo Oaxaca, `?u=beto` o la pill de Beto) | ¿Entiende qué cambió en su personaje? | Dice con sus palabras qué ganó o recuperó |
 | T6 | "Mira tu perfil. ¿Qué te falta para la siguiente skin?" | Claridad de nivel, badges y skins | Responde bien |
 | T7 | "Cambia a modo claro." | Toggle | Sin ayuda |
 

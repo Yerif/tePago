@@ -467,7 +467,7 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 |---|---|---|---|
 | 1 | Auth y perfil | Perfil con personaje, skins y badges en el demo | Supabase Auth |
 | 2 | Grupos | Home y detalle del grupo en el demo | Invite codes, selector, onboarding |
-| 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | **Saldar en el demo (UAT-02)**; persistencia |
+| 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
 | 6 | XP, badges, skins, estados | `lib/game` completo y UI (Avatar, XPBar, SkinSelector) | Funciones `security definer`; D5 |
