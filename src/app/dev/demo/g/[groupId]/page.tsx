@@ -64,7 +64,7 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
         </div>
         <nav aria-label="Grupos" className="flex flex-wrap gap-2 px-6 pt-3 pb-4">
           {grupos.map((g) => (
-            <Link key={g.id} href={`/dev/demo/g/${g.id}`} aria-current={g.id === grupo.id ? "page" : undefined}>
+            <Link key={g.id} href={`/dev/demo/g/${g.id}`} aria-current={g.id === grupo.id ? "page" : undefined} className="inline-flex min-h-11 items-center">
               <Pill variant={g.id === grupo.id ? "grass" : "neutral"}>
                 {g.icono} {g.nombre}
               </Pill>
@@ -121,7 +121,7 @@ export default async function HomeGrupoDemoPage({ params }: { params: Promise<{ 
           </Card>
         </section>
 
-        <Link href={`/dev/demo/g/${grupo.id}/detalle`} data-testid="ver-detalle" className="text-center font-semibold underline">
+        <Link href={`/dev/demo/g/${grupo.id}/detalle`} data-testid="ver-detalle" className="inline-flex min-h-11 items-center justify-center font-semibold underline">
           Ver quién le debe a quién →
         </Link>
 

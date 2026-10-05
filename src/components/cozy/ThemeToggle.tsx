@@ -9,7 +9,7 @@ export function ThemeToggle() {
   return (
     <Button
       variant="outline"
-      size="sm"
+      size="md"
       aria-label="Cambiar entre tema claro y oscuro"
       data-testid="theme-toggle"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}

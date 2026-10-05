@@ -23,7 +23,7 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
 
   return (
     <main data-component="ConfirmarDemoPage" className="mx-auto flex max-w-md flex-col gap-4 p-6">
-      <Link href="/dev/demo" className="text-sm text-muted-foreground underline">
+      <Link href="/dev/demo" className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
         ← Demo
       </Link>
       <h1 className="font-display text-3xl font-bold">Confirmar gasto ✅</h1>
@@ -36,7 +36,7 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
 
       <nav aria-label="Ejemplos" className="flex flex-wrap gap-2">
         {casos.map((x, i) => (
-          <Link key={x.id} href={`/dev/demo/ia?c=${x.id}`} aria-current={x.id === caso.id ? "page" : undefined} data-testid={`ejemplo-${x.id}`}>
+          <Link key={x.id} href={`/dev/demo/ia?c=${x.id}`} aria-current={x.id === caso.id ? "page" : undefined} data-testid={`ejemplo-${x.id}`} className="inline-flex min-h-11 min-w-11 items-center justify-center">
             <Pill variant={x.id === caso.id ? "grass" : "neutral"}>{i + 1}</Pill>
           </Link>
         ))}

@@ -97,7 +97,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
 
   const chip = (activo: boolean) =>
     cn(
-      "flex items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-semibold",
+      "flex min-h-11 items-center gap-2 rounded-full border-2 py-1 pr-3 pl-1 text-sm font-semibold",
       activo ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground line-through",
     );
 
@@ -129,7 +129,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
           <label htmlFor="ia-descripcion" className="mb-1 block text-sm text-muted-foreground">
             ¿De qué fue?
           </label>
-          <input id="ia-descripcion" data-testid="ia-descripcion" maxLength={60} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2" />
+          <input id="ia-descripcion" data-testid="ia-descripcion" maxLength={60} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2 min-h-11" />
         </div>
 
         <div>
@@ -144,7 +144,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
           <label htmlFor="ia-pagador" className="mb-1 block text-sm text-muted-foreground">
             Pagó {calculo.pagadorPropuesto && <span>(lo puse a tu nombre, cámbialo si no fue así)</span>}
           </label>
-          <select id="ia-pagador" data-testid="ia-pagador" value={calculo.pagadorId} onChange={(e) => setPagadorId(e.target.value)} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2">
+          <select id="ia-pagador" data-testid="ia-pagador" value={calculo.pagadorId} onChange={(e) => setPagadorId(e.target.value)} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2 min-h-11">
             {miembros.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.id === quienEscribeId ? `${m.nombre} (yo)` : m.nombre}
@@ -202,7 +202,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
           <label htmlFor="ia-propina" className="mb-1 block text-sm text-muted-foreground">
             Propina (opcional)
           </label>
-          <input id="ia-propina" data-testid="ia-propina" autoComplete="off" placeholder="10% o $200" value={propinaTexto} onChange={(e) => setPropinaTexto(e.target.value)} aria-invalid={propinaInvalida} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2" />
+          <input id="ia-propina" data-testid="ia-propina" autoComplete="off" placeholder="10% o $200" value={propinaTexto} onChange={(e) => setPropinaTexto(e.target.value)} aria-invalid={propinaInvalida} className="w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2 min-h-11" />
           {propinaInvalida && <p className="mt-1 text-sm text-rose-text">Escríbela como 10% o $200</p>}
         </div>
       </Card>
