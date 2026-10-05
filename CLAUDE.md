@@ -128,7 +128,7 @@ src/                          # "· pendiente" = aún no existe
   middleware.ts               # HOY: corta /dev/* con 404 en producción. Después: sesión de Supabase (en Next 16+ se llama proxy.ts)
   components/
     ui/                       # Button, Card (más Dialog… cuando se necesiten)
-    cozy/                     # Avatar (2D, para listas), XPBar, GrassDivider, Pill, ThemeToggle
+    cozy/                     # Avatar (miniatura del personaje, para listas), XPBar, GrassDivider, Pill, ThemeToggle
     personaje/                # Personaje (carga diferida + respaldo 2D), Personaje3D (React Three Fiber), PersonajeLab; dibujan la `Apariencia` de lib/game
     features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
     theme/                    # ThemeProvider (next-themes)
@@ -240,7 +240,7 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 - **Lógica ≠ dibujo:** `lib/game/apariencia.ts` (TS puro, 100 % testeado) convierte estado, nivel y skin en una `Apariencia` (base, accesorios, animación, saturación, efectos, postura). `components/personaje/` solo la dibuja. El mismo descriptor sirve para el 3D, para las miniaturas 2D de las listas y para React Native en v2.
 - **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas.
 - **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia.
-- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas, avatar 2D derivado de la misma `Apariencia` hasta tener miniaturas o vistas compartidas. Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
+- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas y chips, **miniaturas generadas desde el mismo modelo 3D** (`public/personajes/{base}-{estado}.png`, 27 archivos, ~280 KB): `npm run personajes:miniaturas` las regenera con la app corriendo, y un test exige que existan todas. **Cada vez que cambie un modelo o se agregue una base, hay que regenerarlas.** Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
 - **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. Cualquier costo de diseño se aprueba antes.
 
 ### Skins
@@ -418,6 +418,7 @@ npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos
 npm run build                # build de producción
 npm run check:secrets        # bundle del cliente y repo sin llaves + cabeceras de seguridad (corre en CI tras el build)
 npm run test:e2e             # Playwright: levanta el build en modo preview y en modo producción
+npm run personajes:miniaturas  # regenera public/personajes/ desde el modelo 3D (con la app en dev/preview)
 # Pendientes (aún no existen en package.json):
 npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local

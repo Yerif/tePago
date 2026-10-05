@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
+import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
 import { FriendRow } from "@/components/features/FriendRow";
@@ -118,7 +118,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
             className="inline-flex min-h-11 items-center"
           >
             <Pill variant={m.id === yo ? "grass" : "neutral"}>
-              {m.emoji} {m.nombre}
+              <Avatar base={m.base} estado={estadoDe(m.id)} size="sm" compacto className="size-8 border-0 bg-transparent" /> {m.nombre}
             </Pill>
           </Link>
         ))}
