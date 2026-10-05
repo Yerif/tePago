@@ -377,7 +377,7 @@ Prohibido estilizar vía `data-*` y prohibido seleccionar por clases de Tailwind
 - **Logger** `lib/logger.ts` con namespaces (`split`, `game`, `ai`, `db`, `tenant`). En el navegador: `localStorage.setItem('debug', 'split,ai')`. ESLint `no-console` con excepción única en el logger.
 - **Errores tipados**: `{ error: { code, message, requestId } }`. Códigos en `lib/errors.ts` (un solo enum); el `requestId` acompaña cada log de esa request.
 - **Panel `?debug=1`** (solo dev/preview): usuario, grupo activo, estado del avatar, XP, última respuesta cruda de la IA con latencia.
-- **Error Boundary por pantalla**: muestra el `data-component` que falló + botón "copiar reporte". Funciona también en producción (solo requestId y componente, sin PII). **Pendiente** (UAT-04): hoy no existe ningún `error.tsx`.
+- **Error Boundary**: `app/error.tsx` y `global-error.tsx` (componente `ErrorPantalla`) con "Intentar de nuevo" y "Copiar reporte". El reporte (`lib/reporte.ts`) lleva ruta, mensaje recortado, `digest` de Next (para buscar en los logs de Vercel), hora y navegador; nunca ids de usuario ni cookies. Funciona también en producción. `not-found.tsx` y `loading.tsx` cozy en la raíz. Pendiente: boundaries por segmento cuando existan las pantallas reales.
 - **Orden fijo al depurar**: consola con namespace → panel `?debug=1` → Network (`code` + `requestId`) → Vercel logs por requestId → Supabase Studio (¿es RLS?) → solo entonces Claude Code, con la evidencia.
 
 ---
