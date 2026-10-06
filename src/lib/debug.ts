@@ -9,6 +9,8 @@ export interface DatosDebug {
   grupo?: string;
   estadoAvatar?: EstadoAvatar;
   xp?: { total: number; nivel: number };
+  /** Medidor del personaje 3D (PX-06): sirve para cerrar la prueba de rendimiento en celulares reales. */
+  personaje?: { modo: "3d" | "2d"; primerCuadroMs: number; fpsMediana: number; fpsP5: number; drawCalls: number; triangulos: number };
   /** Última llamada a la IA: prompt y versión, latencia y la respuesta cruda. */
   ia?: { prompt: string; latenciaMs: number; respuesta: string; ts: string };
 }

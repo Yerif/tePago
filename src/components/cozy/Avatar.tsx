@@ -1,14 +1,10 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import Image from "next/image";
 import { rutaMiniatura } from "@/lib/game/apariencia";
-import type { EstadoAvatar } from "@/lib/game/avatar";
+import { ETIQUETA_ESTADO, type EstadoAvatar } from "@/lib/game/avatar";
 import { cn } from "@/lib/utils";
 
-export const ETIQUETA_ESTADO: Record<EstadoAvatar, string> = {
-  clean: "Radiante",
-  mild: "Apagado",
-  rekt: "Deteriorado",
-};
+export { ETIQUETA_ESTADO };
 
 const STICKER: Record<EstadoAvatar, string> = { clean: "✨", mild: "😓", rekt: "🌧️" };
 
@@ -38,14 +34,22 @@ export interface AvatarProps extends VariantProps<typeof avatarVariants> {
   estado: EstadoAvatar;
   /** Sin el sticker de estado: para chips y filas muy chicas. */
   compacto?: boolean;
+  /** Sin aro ni dibujo de estado (siempre la figura radiante): donde no se habla de reputación (Dividir, selector…). */
+  neutro?: boolean;
   className?: string;
 }
 
-export function Avatar({ base, emoji, accesorio, estado, size, compacto = false, className }: AvatarProps) {
+export function Avatar({ base, emoji, accesorio, estado, size, compacto = false, neutro = false, className }: AvatarProps) {
+  const mostrado: EstadoAvatar = neutro ? "clean" : estado;
   return (
-    <span className={cn(avatarVariants({ estado, size }), className)} data-testid="avatar" role="img" aria-label={`Personaje ${ETIQUETA_ESTADO[estado].toLowerCase()}`}>
+    <span
+      className={cn(avatarVariants({ estado: mostrado, size }), neutro && "border-border bg-muted", className)}
+      data-testid="avatar"
+      role="img"
+      aria-label={neutro ? "Personaje" : `Personaje ${ETIQUETA_ESTADO[estado].toLowerCase()}`}
+    >
       {base ? (
-        <Image src={rutaMiniatura(base, estado)} alt="" width={128} height={128} unoptimized className="size-full scale-[1.3] object-contain" />
+        <Image src={rutaMiniatura(base, mostrado)} alt="" width={128} height={128} unoptimized className="size-full scale-[1.3] object-contain" />
       ) : (
         <span aria-hidden>{emoji}</span>
       )}
@@ -54,7 +58,7 @@ export function Avatar({ base, emoji, accesorio, estado, size, compacto = false,
           {accesorio}
         </span>
       ) : null}
-      {compacto ? null : (
+      {compacto || neutro ? null : (
         <span aria-hidden className="absolute -right-1 -bottom-1 text-base leading-none">
           {STICKER[estado]}
         </span>

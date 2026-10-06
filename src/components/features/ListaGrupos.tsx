@@ -31,7 +31,7 @@ export function ListaGrupos({ grupos, yo, base }: ListaGruposProps) {
     <ul data-component="ListaGrupos" className="flex flex-col gap-3">
       {conSaldo.map(({ g, balance }) => (
         <li key={g.id}>
-          <Link href={`${base}/${g.id}`} data-testid={`demo-grupo-${g.id}`} className="block rounded-card-sm">
+          <Link href={`${base}/${g.id}?u=${yo}`} data-testid={`demo-grupo-${g.id}`} className="block rounded-card-sm">
             <Card size="sm" className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <span aria-hidden className="text-3xl">

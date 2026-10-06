@@ -8,16 +8,14 @@ import { FilaCuenta } from "@/components/features/FilaCuenta";
 import { HojaPago } from "@/components/features/HojaPago";
 import { ToastPago } from "@/components/features/ToastPago";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
-import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
+import { usePersonajeVivo } from "@/components/features/usePersonajeVivo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
 import type { GrupoDemo } from "@/lib/mock/tipos";
-import { paresConfirmados } from "@/lib/splits/confirmacion";
 import { formatoMXN } from "@/lib/splits/formato";
-import { aplicarPagos } from "@/lib/splits/pagos";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 import { tiempoDesdeHoras } from "@/lib/tiempo";
+import { cn } from "@/lib/utils";
 
 export interface ResumenInicioProps {
   grupos: GrupoDemo[];
@@ -34,19 +32,13 @@ const FILAS_VISIBLES = 4;
  * fila por persona a la que le debes y, plegado, lo que te deben. Pagar es una hoja de 2 toques con "Deshacer".
  */
 export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInicioProps) {
-  const ahora = new Date(ahoraIso);
-  const grupos = useGruposConPerfiles(gruposBase);
-  const miembros = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
-  const nombres = Object.fromEntries([...miembros].map(([id, m]) => [id, m.nombre]));
+  const { grupos, vista, ahora, estadoYo, estadoDe, miembro, yo: yoMiembro } = usePersonajeVivo(gruposBase, yo, ahoraIso);
+  const nombres = Object.fromEntries(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m.nombre])));
   const { registros, toast, error, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
   const [hoja, setHoja] = useState<string | null>(null);
   const [verTodas, setVerTodas] = useState(false);
 
-  // Solo los pagos CONFIRMADOS saldan deudas; los pendientes y en disputa se marcan aparte.
-  const vista = grupos.map((g) => ({ ...g, gastos: aplicarPagos(g.gastos, paresConfirmados(registros, g.id)) }));
   const resumen = resumenPorPersona(vista, yo, ahora);
-  const estadoYo = estadoAvatar(vista.filter((g) => g.miembros.some((m) => m.id === yo)).map((g) => situacionEnGrupo(g.gastos, yo, ahora)));
-  const yoMiembro = miembros.get(yo);
 
   const filas = verTodas ? resumen.debes : resumen.debes.slice(0, FILAS_VISIBLES);
   const cuentaHoja = hoja ? resumen.debes.find((c) => c.personaId === hoja) : undefined;
@@ -66,7 +58,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
 
       <Card className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">Debes</p>
-        <p data-testid="inicio-debes" className="font-display text-4xl font-bold text-rose-text">
+        <p data-testid="inicio-debes" className={cn("font-display text-4xl font-bold", resumen.debesCentavos > 0 ? "text-rose-text" : "text-foreground")}>
           {formatoMXN(resumen.debesCentavos)}
         </p>
         {resumen.debes.length > 0 ? (
@@ -92,14 +84,14 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
           <h2 className="font-display text-xl font-bold">Te toca pagar</h2>
           <ul className="flex flex-col gap-2" data-testid="inicio-te-toca">
             {filas.map((c) => {
-              const m = miembros.get(c.personaId);
+              const m = miembro(c.personaId);
               return (
                 <FilaCuenta
                   key={c.personaId}
                   cuenta={c}
                   nombre={m?.nombre ?? c.personaId}
                   base={m?.base ?? "persona-sol"}
-                  estado={m?.estado ?? "clean"}
+                  estado={estadoDe(c.personaId)}
                   reserva={reservaDeCuenta(c, registros, yo)}
                   onPagar={() => setHoja(c.personaId)}
                   onCancelar={() => cancelarA(c.personaId)}
@@ -125,8 +117,8 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
           </summary>
           <ul className="mt-2 flex flex-col gap-2">
             {resumen.teDeben.map((c) => {
-              const m = miembros.get(c.personaId);
-              return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={m?.estado ?? "clean"} reserva={null} />;
+              const m = miembro(c.personaId);
+              return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={estadoDe(c.personaId)} reserva={null} />;
             })}
           </ul>
         </details>
@@ -135,7 +127,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
 
       {cuentaHoja && reservaHoja && reservaHoja.disponibleCentavos > 0 && (
         <HojaPago
-          titulo={`Pagarle a ${miembros.get(cuentaHoja.personaId)?.nombre ?? cuentaHoja.personaId}`}
+          titulo={`Pagarle a ${miembro(cuentaHoja.personaId)?.nombre ?? cuentaHoja.personaId}`}
           detalle={reservaHoja.disponibles.map((d) => `${grupos.find((g) => g.id === d.grupoId)?.icono ?? ""} ${grupos.find((g) => g.id === d.grupoId)?.nombre ?? d.grupoId}: ${formatoMXN(d.centavos)}`)}
           totalCentavos={reservaHoja.disponibleCentavos}
           onCerrar={() => setHoja(null)}

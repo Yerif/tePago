@@ -1,6 +1,6 @@
 # Análisis UX/UI de la sección del personaje — "¿dónde está mi personaje cuando decido pagar?"
 
-> **Estado (2026-10-06): análisis, sin cambios de código.** Los tickets PX-01…PX-17 de §6 no están implementados y las decisiones de §5 esperan a Yerif. Completa **UX-07** de `docs/UX.md` (personaje y XP en el inicio, festejo al confirmarse), que está marcado como hecho pero quedó a medias.
+> **Estado (2026-10-06): decisiones de §5 aprobadas por Yerif** (1 héroe en el Inicio: sí · 2 etiquetas de clima: sí · 3 recompensas recomendadas · 4 skins visibles y probar: sí · 5 explorar modelos finales hechos por nosotros). **Hechos: PX-01, PX-02, PX-06 y las etiquetas de clima.** Los demás tickets de §6 siguen en el backlog. Completa **UX-07** de `docs/UX.md` (personaje y XP en el inicio, festejo al confirmarse), que está marcado como hecho pero quedó a medias.
 > Fecha: 2026-10-06 · Medido sobre el build de la rama `docs/analisis-ux-personaje` (desde `develop`) en modo preview: 375×812 px (también 360×740, 414×896 y 320×568), dark y light, con las personas del demo. Chromium con WebGL **por software** (SwiftShader, sin GPU): sirve para comparar y encontrar fallas, **no** reemplaza la prueba en un celular real (PJ-02, pendiente de Yerif).
 > Las propuestas de §4 no cambian reglas del juego; lo que sí las toca está en §5, con la parte de CLAUDE.md que cambiaría. Las referencias a otras apps (§3.1) son conocimiento general, solo inspiración: no se copian assets ni personajes.
 

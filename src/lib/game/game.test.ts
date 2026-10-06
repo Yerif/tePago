@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { estadoAvatar, situacionEnGrupo, UMBRAL_REKT_CENTAVOS, UMBRAL_REKT_HORAS } from "./avatar";
+import { estadoAvatar, ETIQUETA_ESTADO, situacionEnGrupo, UMBRAL_REKT_CENTAVOS, UMBRAL_REKT_HORAS } from "./avatar";
 import { progresoNivel, xpAcumuladaParaNivel, xpParaSubir } from "./levels";
 import { XP, xpPorSaldar } from "./xp";
 
@@ -177,5 +177,11 @@ describe("situacionEnGrupo", () => {
     expect(estadoAvatar([situacionEnGrupo(vieja, "yo", ahora)])).toBe("rekt");
     const reciente = [gasto("a", "x", hace(2), [["x", 100, true], ["yo", 100, false]])];
     expect(estadoAvatar([situacionEnGrupo(reciente, "yo", ahora)])).toBe("mild");
+  });
+});
+
+describe("etiquetas de clima", () => {
+  it("claves estables y etiquetas visibles de clima (nunca sobre la persona)", () => {
+    expect(ETIQUETA_ESTADO).toEqual({ clean: "Radiante", mild: "Nublado", rekt: "Bajo la lluvia" });
   });
 });

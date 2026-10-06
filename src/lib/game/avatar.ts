@@ -4,6 +4,13 @@ import type { GastoCalculable } from "@/lib/splits/tipos";
 /** Estado del avatar: siempre DERIVADO de las deudas, nunca almacenado (CLAUDE.md §7). */
 export type EstadoAvatar = "clean" | "mild" | "rekt";
 
+/** Etiquetas de clima que se ven (CLAUDE.md §7): la broma es del personaje, no de la persona. */
+export const ETIQUETA_ESTADO: Record<EstadoAvatar, string> = {
+  clean: "Radiante",
+  mild: "Nublado",
+  rekt: "Bajo la lluvia",
+};
+
 export const UMBRAL_REKT_CENTAVOS = 50_000; // $500 MXN
 export const UMBRAL_REKT_HORAS = 72;
 

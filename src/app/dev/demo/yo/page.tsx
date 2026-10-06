@@ -4,7 +4,7 @@ import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { DebugDatos } from "@/components/dev/DebugDatos";
 import { PerfilYo } from "@/components/features/PerfilYo";
-import { SKIN_SLUGS, SKINS, badgesValidos, estaDesbloqueada, requisitoSkin } from "@/lib/game/skins";
+import { SKIN_SLUGS, SKINS, requisitoSkin } from "@/lib/game/skins";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
 import type { MiembroDemo } from "@/lib/mock/tipos";
 
@@ -13,10 +13,11 @@ export const dynamic = "force-dynamic";
 
 export default async function YoDemoPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
   const { u } = await searchParams;
+  const ahora = new Date();
+  const grupos = crearGrupos(ahora);
   const miembros = new Map<string, MiembroDemo>();
-  for (const g of crearGrupos(new Date())) for (const m of g.miembros) miembros.set(m.id, m);
+  for (const g of grupos) for (const m of g.miembros) miembros.set(m.id, m);
   const yo = miembros.get(u ?? "") ?? (miembros.get(YO) as MiembroDemo);
-  const progreso = { nivel: yo.nivel, badges: badgesValidos(yo.badges) };
 
   return (
     <main data-component="YoDemoPage" className="mx-auto flex max-w-md flex-col gap-5 p-6">
@@ -39,20 +40,9 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
       <PerfilYo
         key={yo.id}
         id={yo.id}
-        nombre={yo.nombre}
-        base={yo.base}
-        estado={yo.estado}
-        nivel={yo.nivel}
-        xp={yo.xp}
-        xpSiguiente={yo.xpSiguiente}
-        skinActiva={yo.skinActivo}
-        skins={SKIN_SLUGS.map((slug) => ({
-          slug,
-          nombre: SKINS[slug].nombre,
-          accesorio: SKINS[slug].accesorio,
-          desbloqueada: estaDesbloqueada(slug, progreso),
-          requisito: requisitoSkin(slug),
-        }))}
+        grupos={grupos}
+        ahoraIso={ahora.toISOString()}
+        skins={SKIN_SLUGS.map((slug) => ({ slug, nombre: SKINS[slug].nombre, accesorio: SKINS[slug].accesorio, requisito: requisitoSkin(slug) }))}
         badges={yo.badges.map((b) => ({ slug: b, nombre: BADGES_DEMO[b]?.nombre ?? b, variant: BADGES_DEMO[b]?.variant ?? "neutral" }))}
       />
     </main>

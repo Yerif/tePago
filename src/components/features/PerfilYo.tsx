@@ -6,23 +6,21 @@ import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
 import { SkinSelector, type SkinOpcion } from "@/components/features/SkinSelector";
 import { usePerfilesDemo } from "@/components/features/usePerfilesDemo";
+import { usePersonajeVivo } from "@/components/features/usePersonajeVivo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BASE_SLUGS, BASES, type BaseSlug } from "@/lib/game/apariencia";
-import type { EstadoAvatar } from "@/lib/game/avatar";
+import { badgesValidos, estaDesbloqueada, type SkinSlug } from "@/lib/game/skins";
+import type { GrupoDemo } from "@/lib/mock/tipos";
 import { validarNombre } from "@/lib/game/perfil";
 import { cn } from "@/lib/utils";
 
 export interface PerfilYoProps {
   id: string;
-  nombre: string;
-  base: BaseSlug;
-  estado: EstadoAvatar;
-  nivel: number;
-  xp: number;
-  xpSiguiente: number;
-  skinActiva: string;
-  skins: SkinOpcion[];
+  grupos: GrupoDemo[];
+  ahoraIso: string;
+  /** Todas las skins (metadatos): si están desbloqueadas se calcula aquí con el nivel y los badges vivos. */
+  skins: Omit<SkinOpcion, "desbloqueada">[];
   badges: { slug: string; nombre: string; variant: "lemon" | "mint" | "rose" | "grass" | "lavender" | "neutral" }[];
 }
 
@@ -30,10 +28,13 @@ export interface PerfilYoProps {
  * La pestaña Yo: nombre y personaje editables (se ven en todas las pantallas y para los demás), skins, nivel y badges.
  * Cambiar de personaje no pierde nivel, XP, badges ni skins (CLAUDE.md §7, "Perfil editable").
  */
-export function PerfilYo({ id, nombre, base, estado, nivel, xp, xpSiguiente, skinActiva, skins, badges }: PerfilYoProps) {
-  const { perfiles, cambiar } = usePerfilesDemo();
-  const nombreActual = perfiles[id]?.nombre ?? nombre;
-  const baseActual = perfiles[id]?.base ?? base;
+export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: PerfilYoProps) {
+  const { cambiar } = usePerfilesDemo();
+  const { yo, estadoYo: estado, progreso } = usePersonajeVivo(grupos, id, ahoraIso);
+  const nombreActual = yo?.nombre ?? "";
+  const baseActual = (yo?.base ?? "persona-sol") as BaseSlug;
+  const nivel = progreso.nivel;
+  const skins: SkinOpcion[] = skinsBase.map((s) => ({ ...s, desbloqueada: estaDesbloqueada(s.slug as SkinSlug, { nivel, badges: badgesValidos(badges.map((b) => b.slug)) }) }));
   const [texto, setTexto] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [guardado, setGuardado] = useState<string | null>(null);
@@ -128,11 +129,11 @@ export function PerfilYo({ id, nombre, base, estado, nivel, xp, xpSiguiente, ski
 
       <Card>
         <h2 className="mb-3 font-display text-xl font-bold">Skins</h2>
-        <SkinSelector key={id} base={baseActual} nivel={nivel} estado={estado} activaInicial={skinActiva} skins={skins} />
+        <SkinSelector key={id} base={baseActual} nivel={nivel} estado={estado} activaInicial={yo?.skinActivo ?? "clasico"} skins={skins} />
       </Card>
 
       <Card className="flex flex-col gap-4">
-        <XPBar nivel={nivel} xp={xp} xpSiguiente={xpSiguiente} />
+        <XPBar nivel={nivel} xp={progreso.xpEnNivel} xpSiguiente={progreso.xpSiguiente} />
         <div className="flex flex-wrap gap-2" data-testid="mis-badges">
           {badges.length === 0 ? <span className="text-muted-foreground">Aún sin badges 🌱</span> : null}
           {badges.map((b) => (
