@@ -8,6 +8,7 @@ import { FilaCuenta } from "@/components/features/FilaCuenta";
 import { HojaPago } from "@/components/features/HojaPago";
 import { ToastPago } from "@/components/features/ToastPago";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
+import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
@@ -32,8 +33,9 @@ const FILAS_VISIBLES = 4;
  * Primera pantalla: "¿qué hago con mi dinero?". Cuánto debes, lo que tienes que resolver con pagos (siempre arriba), una
  * fila por persona a la que le debes y, plegado, lo que te deben. Pagar es una hoja de 2 toques con "Deshacer".
  */
-export function ResumenInicio({ grupos, yo, ahoraIso }: ResumenInicioProps) {
+export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInicioProps) {
   const ahora = new Date(ahoraIso);
+  const grupos = useGruposConPerfiles(gruposBase);
   const miembros = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
   const nombres = Object.fromEntries([...miembros].map(([id, m]) => [id, m.nombre]));
   const { registros, toast, error, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);

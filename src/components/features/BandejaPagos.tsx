@@ -6,6 +6,7 @@ import { xpAlConfirmar } from "@/lib/game/pagarPlan";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { avisosParaPagador, paresConfirmados, porConfirmar, porRevisar, type PagoRegistrado, type Respuesta } from "@/lib/splits/confirmacion";
 import { formatoMXN } from "@/lib/splits/formato";
+import { useGruposConPerfiles } from "./usePerfilesDemo";
 import { usePagosDemo } from "./usePagosDemo";
 
 export interface BandejaPagosProps {
@@ -27,7 +28,8 @@ function porLote(registros: readonly PagoRegistrado[]): PagoRegistrado[][] {
  * - pagos que rechazó y puede aprobar más tarde;
  * - si ella pagó, el resultado (confirmado o rechazado).
  */
-export function BandejaPagos({ grupos, yo }: BandejaPagosProps) {
+export function BandejaPagos({ grupos: gruposBase, yo }: BandejaPagosProps) {
+  const grupos = useGruposConPerfiles(gruposBase);
   const { registros, responder, cancelar, avisado } = usePagosDemo();
   const nombres = Object.fromEntries(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m.nombre])));
   const nombreGrupo = (id: string) => grupos.find((g) => g.id === id)?.nombre ?? id;

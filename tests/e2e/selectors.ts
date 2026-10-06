@@ -54,6 +54,7 @@ export const ids = {
     todasLasDeudas: "todas-las-deudas",
     herramientas: "herramientas-demo",
   },
+  perfil: { nombre: "perfil-nombre", guardar: "perfil-guardar", error: "perfil-error", guardado: "perfil-guardado", actual: "perfil-nombre-actual", base: (b: string) => `perfil-base-${b}` },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },
   personaje: { raiz: "personaje", canvas: "personaje-canvas", respaldo: "personaje-respaldo", estado: (e: string) => `estado-${e}`, base: (b: string) => `base-${b}`, skin: (s: string) => `skin-${s}`, nivel: "nivel", festejar: "festejar", celebraciones: "data-celebraciones" },
   saldar: { estado: "mi-estado", error: "pagar-error" },

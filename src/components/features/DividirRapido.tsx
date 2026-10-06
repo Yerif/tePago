@@ -5,6 +5,7 @@ import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
 import { ModoPorPersona } from "@/components/features/ModoPorPersona";
 import { ModoProducto, type RenglonProducto } from "@/components/features/ModoProducto";
 import { calcularBorrador } from "@/lib/splits/borrador";
@@ -54,7 +55,8 @@ export interface DividirRapidoProps {
 }
 
 /** Modo rápido: abrir → monto → confirmar (≤ 3 interacciones). Todo local, sin backend. */
-export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) {
+export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirRapidoProps) {
+  const grupos = useGruposConPerfiles(gruposBase);
   const [grupoId, setGrupoId] = useState(grupoInicial);
   const [excluidos, setExcluidos] = useState<string[]>([]);
   const [pagador, setPagador] = useState(yo);
