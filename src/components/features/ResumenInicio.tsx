@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
-import { Pill } from "@/components/cozy/Pill";
+import { useEffect, useRef, useState } from "react";
 import { BandejaPagos } from "@/components/features/BandejaPagos";
 import { FilaCuenta } from "@/components/features/FilaCuenta";
+import { HeroPersonaje } from "@/components/features/HeroPersonaje";
 import { HojaPago } from "@/components/features/HojaPago";
+import { RevelacionPersonaje } from "@/components/features/RevelacionPersonaje";
 import { ToastPago } from "@/components/features/ToastPago";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
 import { usePersonajeVivo } from "@/components/features/usePersonajeVivo";
+import { useHidratado, useVistoDemo } from "@/components/features/useVistoDemo";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { apariencia } from "@/lib/game/apariencia";
+import { caminoDeEstado, textoDelCamino } from "@/lib/game/camino";
+import { xpAcumuladaParaNivel } from "@/lib/game/levels";
+import { fraseDelPersonaje } from "@/lib/game/microcopy";
+import { revelacion, type Revelacion } from "@/lib/game/revelacion";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { formatoMXN } from "@/lib/splits/formato";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
@@ -32,13 +38,36 @@ const FILAS_VISIBLES = 4;
  * fila por persona a la que le debes y, plegado, lo que te deben. Pagar es una hoja de 2 toques con "Deshacer".
  */
 export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInicioProps) {
-  const { grupos, vista, ahora, estadoYo, estadoDe, miembro, yo: yoMiembro } = usePersonajeVivo(gruposBase, yo, ahoraIso);
+  const { grupos, vista, ahora, estadoYo, estadoDe, miembro, yo: yoMiembro, xpTotal, progreso } = usePersonajeVivo(gruposBase, yo, ahoraIso);
   const nombres = Object.fromEntries(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m.nombre])));
-  const { registros, toast, error, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
+  const { registros, toast, error, reaccion, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
   const [hoja, setHoja] = useState<string | null>(null);
   const [verTodas, setVerTodas] = useState(false);
 
   const resumen = resumenPorPersona(vista, yo, ahora);
+
+  // "Si pagas a X pasas a Y": las personas con un pago ya en camino se dan por pagadas.
+  const enCamino = resumen.debes.filter((c) => reservaDeCuenta(c, registros, yo).disponibleCentavos < c.centavos).map((c) => c.personaId);
+  const camino = caminoDeEstado(vista, yo, ahora, resumen.debes, enCamino);
+  const lineasCamino = textoDelCamino(camino, (id) => nombres[id] ?? id);
+
+  // La recompensa llega al abrir la app: compara con lo último que viste (PX-04).
+  const hidratado = useHidratado();
+  const { visto, marcar } = useVistoDemo();
+  const [revelada, setRevelada] = useState<Revelacion | null>(null);
+  const [festejos, setFestejos] = useState(0);
+  const revisado = useRef(false);
+  useEffect(() => {
+    if (!hidratado || revisado.current || !yoMiembro) return;
+    revisado.current = true;
+    const referencia = visto[yo] ?? { estado: yoMiembro.estado, xpTotal: xpAcumuladaParaNivel(yoMiembro.nivel) + yoMiembro.xp };
+    const r = revelacion(referencia, { estado: estadoYo, xpTotal });
+    if (r) {
+      setRevelada(r);
+      if (r.festejar) setFestejos((n) => n + 1);
+    }
+    marcar(yo, { estado: estadoYo, xpTotal });
+  }, [hidratado]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const filas = verTodas ? resumen.debes : resumen.debes.slice(0, FILAS_VISIBLES);
   const cuentaHoja = hoja ? resumen.debes.find((c) => c.personaId === hoja) : undefined;
@@ -46,15 +75,20 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
 
   return (
     <section data-component="ResumenInicio" aria-label="Tus cuentas" className="flex flex-col gap-4">
-      <header className="flex items-center gap-3">
-        {yoMiembro && <Avatar base={yoMiembro.base} estado={estadoYo} size="md" compacto />}
-        <div>
-          <h1 className="font-display text-2xl font-bold">Hola, {yoMiembro?.nombre} 👋</h1>
-          <Pill variant={estadoYo === "clean" ? "grass" : estadoYo === "mild" ? "lemon" : "rose"} data-testid="inicio-estado">
-            {ETIQUETA_ESTADO[estadoYo]}
-          </Pill>
-        </div>
-      </header>
+      {yoMiembro && (
+        <HeroPersonaje
+          nombre={yoMiembro.nombre}
+          apariencia={apariencia({ base: yoMiembro.base, estado: estadoYo, skin: yoMiembro.skinActivo, nivel: progreso.nivel })}
+          estado={estadoYo}
+          nivel={progreso.nivel}
+          xp={progreso.xpEnNivel}
+          xpSiguiente={progreso.xpSiguiente}
+          celebrar={festejos}
+          frase={reaccion ?? fraseDelPersonaje(estadoYo, resumen.debes.length > 0)}
+          camino={lineasCamino}
+        />
+      )}
+      {revelada && <RevelacionPersonaje revelacion={revelada} onCerrar={() => setRevelada(null)} />}
 
       <Card className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">Debes</p>
@@ -64,7 +98,6 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
         {resumen.debes.length > 0 ? (
           <p className="text-sm text-muted-foreground" data-testid="inicio-resumen-texto">
             a {resumen.debes.length === 1 ? "1 persona" : `${resumen.debes.length} personas`} · la más vieja {tiempoDesdeHoras(resumen.masViejaHoras ?? 0)}
-            {estadoYo !== "clean" ? " · al pagar, tu personaje se recupera 🌱" : ""}
           </p>
         ) : (
           <p className="text-sm text-muted-foreground">¡Todo en orden! 🌻</p>
