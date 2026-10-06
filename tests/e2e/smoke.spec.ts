@@ -11,6 +11,73 @@ test.describe("flujos críticos del demo", () => {
     await expect(page.getByTestId(ids.dividir.guardados)).toContainText("$850.00");
   });
 
+  test("montos: avisa cuánto falta, deja guardar y el pagador absorbe lo que quedó sin asignar", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await page.getByTestId(ids.modos.modo("montos")).click();
+    await page.getByTestId(ids.modos.valor("ana")).fill("300");
+    await page.getByTestId(ids.modos.valor("beto")).fill("200");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Faltan $500.00");
+    await expect(page.getByTestId(ids.modos.sinAsignar)).toContainText("$500.00");
+    await page.getByTestId(ids.dividir.confirmar).click();
+    await page.getByTestId(ids.modos.absorber(1)).click();
+    await expect(page.getByTestId(ids.dividir.guardados)).toContainText("absorbió $500.00");
+  });
+
+  test("montos: pasarse del total bloquea guardar", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("100");
+    await page.getByTestId(ids.modos.modo("montos")).click();
+    await page.getByTestId(ids.modos.valor("ana")).fill("150");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Te pasaste $50.00");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeDisabled();
+  });
+
+  test("porcentajes: deben sumar 100 y hay atajo para repartir lo que falta", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await page.getByTestId(ids.modos.modo("porcentajes")).click();
+    await page.getByTestId(ids.modos.valor("ana")).fill("50");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Llevan 50 %");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeDisabled();
+    await page.getByTestId(ids.modos.completar).click();
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Suma 100 %");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$500.00");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeEnabled();
+  });
+
+  test("partes y ajustes; al cambiar de modo se conserva lo capturado", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("700");
+    await page.getByTestId(ids.modos.modo("partes")).click();
+    await page.getByTestId(ids.modos.valor("ana")).fill("3");
+    await page.getByTestId(ids.modos.valor("beto")).fill("2");
+    await page.getByTestId(ids.modos.valor("caro")).fill("2");
+    await page.getByTestId(ids.modos.valor("ferni")).fill("0");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$300.00");
+    await page.getByTestId(ids.modos.modo("ajustes")).click();
+    await page.getByTestId(ids.modos.modo("partes")).click();
+    await expect(page.getByTestId(ids.modos.valor("ana"))).toHaveValue("3");
+  });
+
+  test("por producto: lo que pidió uno solo se le carga a él y lo demás se reparte", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await page.getByTestId(ids.modos.modo("producto")).click();
+    await page.getByTestId(ids.modos.productoNombre).fill("Postre");
+    await page.getByTestId(ids.modos.productoPrecio).fill("200");
+    await page.getByTestId(ids.modos.productoQuien("beto")).click();
+    await page.getByTestId(ids.modos.productoAgregar).click();
+    // 800 restantes entre 4 = 200 c/u; Beto además el postre.
+    await expect(page.getByTestId(ids.modos.parte("beto"))).toContainText("$400.00");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$200.00");
+  });
+
+  test("cómo pagarse: muestra el plan más sencillo", async ({ page }) => {
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    await expect(page.getByTestId(ids.modos.comoPagarse)).toContainText("más sencilla");
+  });
+
   test("confirmar lo que entendió la app y guardar", async ({ page }) => {
     await page.goto("/dev/demo/ia?c=b1-05-cena-detalle");
     await expect(page.getByTestId(ids.confirmar.resultado)).toBeVisible();

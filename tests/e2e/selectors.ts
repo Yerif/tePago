@@ -2,6 +2,20 @@
 export const ids = {
   inicio: { dividir: "ir-dividir", grupo: (id: string) => `demo-grupo-${id}` },
   dividir: { monto: "dividir-monto", confirmar: "dividir-confirmar", aviso: "dividir-aviso", guardados: "dividir-guardados" },
+  modos: {
+    modo: (m: string) => `modo-${m}`,
+    valor: (id: string) => `valor-${id}`,
+    estado: "dividir-estado",
+    sinAsignar: "dividir-sin-asignar",
+    completar: "completar-porcentaje",
+    absorber: (n: number) => `sin-asignar-absorber-${n}`,
+    productoNombre: "producto-nombre",
+    productoPrecio: "producto-precio",
+    productoQuien: (id: string) => `producto-quien-${id}`,
+    productoAgregar: "producto-agregar",
+    parte: (id: string) => `parte-${id}`,
+    comoPagarse: "como-pagarse",
+  },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },
   personaje: { raiz: "personaje", canvas: "personaje-canvas", respaldo: "personaje-respaldo", estado: (e: string) => `estado-${e}`, base: (b: string) => `base-${b}`, skin: (s: string) => `skin-${s}`, nivel: "nivel", festejar: "festejar", celebraciones: "data-celebraciones" },
   saldar: {
