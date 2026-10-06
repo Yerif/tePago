@@ -17,6 +17,17 @@ export const ids = {
     comoPagarse: "como-pagarse",
   },
   inicio_resumen: { debes: "inicio-debes", teDeben: "inicio-te-deben", enOrden: "inicio-en-orden", aviso: "inicio-aviso", pagar: (g: string, a: string) => `inicio-pagar-${g}-${a}`, probar: (id: string) => `inicio-probar-${id}` },
+  pagos: {
+    porConfirmar: "por-confirmar",
+    confirmar: '[data-testid^="confirmar-"]',
+    rechazar: '[data-testid^="rechazar-"]',
+    avisos: "avisos-pago",
+    avisoXp: '[data-testid^="aviso-xp-"]',
+    avisoOk: '[data-testid^="aviso-ok-"]',
+    pendienteInicio: (g: string, a: string) => `inicio-pendiente-${g}-${a}`,
+    pendienteDetalle: (d: string, a: string) => `pendiente-${d}-${a}`,
+    reiniciar: "reiniciar-demo",
+  },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },
   personaje: { raiz: "personaje", canvas: "personaje-canvas", respaldo: "personaje-respaldo", estado: (e: string) => `estado-${e}`, base: (b: string) => `base-${b}`, skin: (s: string) => `skin-${s}`, nivel: "nivel", festejar: "festejar", celebraciones: "data-celebraciones" },
   saldar: {
