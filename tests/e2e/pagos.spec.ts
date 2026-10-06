@@ -168,13 +168,13 @@ test.describe("detalle del grupo", () => {
 
   test("el detalle de Beto: abono pendiente, Ferni confirma, XP solo al saldar por completo", async ({ page }) => {
     await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
-    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Deteriorado");
+    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Bajo la lluvia");
 
     await page.getByTestId(ids.cuenta.pagar("ferni")).click();
     await page.getByTestId(ids.hoja.monto).fill("100");
     await page.getByTestId(ids.hoja.confirmar).click();
     await expect(page.getByTestId(ids.cuenta.pendiente("ferni"))).toContainText("$100.00");
-    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Deteriorado"); // nada cambia hasta que confirme
+    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Bajo la lluvia"); // nada cambia hasta que confirme
 
     await inicio(page, "ferni");
     await expect(page.getByTestId(ids.pagos.porConfirmar)).toContainText("Beto dice que ya te pagó $100.00");

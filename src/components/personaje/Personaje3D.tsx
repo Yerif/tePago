@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import type { Group } from "three";
 import type { Accesorio, Apariencia, BaseSlug, Efecto } from "@/lib/game/apariencia";
 import { BASES } from "@/lib/game/apariencia";
+import { resumenFps } from "@/lib/game/rendimiento";
+import { setDebug } from "@/lib/debug";
 import { COLORES, tono } from "./paleta";
 
 const OSCURO = "#2A2F45";
@@ -394,7 +396,33 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
   );
 }
 
+/** Mide el primer cuadro y, con `medir`, el FPS, los draw calls y los triángulos durante 3 s (`?debug=1`, PX-06). */
+function Sensor({ t0, onListo, medir }: { t0: number; onListo?: () => void; medir: boolean }) {
+  const gl = useThree((s) => s.gl);
+  const primero = useRef<number | null>(null);
+  const deltas = useRef<number[]>([]);
+  const publicado = useRef(false);
+  useFrame((_, delta) => {
+    if (primero.current === null) {
+      primero.current = Math.round(performance.now() - t0);
+      onListo?.();
+      return;
+    }
+    if (!medir || publicado.current) return;
+    deltas.current.push(delta);
+    if (deltas.current.length >= 180 || performance.now() - t0 > 6000) {
+      publicado.current = true;
+      setDebug({ personaje: { modo: "3d", primerCuadroMs: primero.current, ...resumenFps(deltas.current), drawCalls: gl.info.render.calls, triangulos: gl.info.render.triangles } });
+    }
+  });
+  return null;
+}
+
 export interface Personaje3DProps {
+  /** Se llama una vez cuando se dibuja el primer cuadro: el respaldo PNG se desvanece solo entonces. */
+  onListo?: () => void;
+  /** Activa el medidor de rendimiento (`?debug=1`). */
+  medir?: boolean;
   apariencia: Apariencia;
   /** Distancia de la cámara: más chica = más cerca (las miniaturas usan 5.2). */
   distancia?: number;
@@ -403,7 +431,8 @@ export interface Personaje3DProps {
 }
 
 /** Un solo canvas 3D por pantalla (CLAUDE.md §7). Con ritmo 0 no anima: dibuja a demanda y no gasta batería. */
-export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0 }: Personaje3DProps) {
+export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0, onListo, medir = false }: Personaje3DProps) {
+  const t0 = useRef(performance.now());
   // Mientras festeja hay que dibujar cada cuadro aunque el resto del tiempo esté quieto (ritmo 0 = a demanda).
   const [festejando, setFestejando] = useState(false);
   useEffect(() => {
@@ -425,6 +454,7 @@ export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0 }:
       <hemisphereLight args={["#ffffff", "#8C93AE", 0.7]} />
       <directionalLight position={[3, 5, 4]} intensity={1.6} />
       <Modelo a={apariencia} celebrar={celebrar} />
+      <Sensor t0={t0.current} onListo={onListo} medir={medir} />
     </Canvas>
   );
 }

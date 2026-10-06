@@ -206,11 +206,13 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)   -
 
 ### Estados del avatar (derivados, nunca almacenados)
 
-| Estado | Condición | Visual |
+| Estado | Condición | Etiqueta visible · visual |
 |---|---|---|
-| `clean` | balance ≥ 0 en todos sus grupos | Radiante |
-| `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | Apagado, preocupado |
-| `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | Deteriorado |
+| `clean` | balance ≥ 0 en todos sus grupos | **Radiante** · radiante |
+| `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | **Nublado** · apagado, preocupado |
+| `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | **Bajo la lluvia** · deteriorado |
+
+Las claves (`clean`, `mild`, `rekt`) no cambian; las **etiquetas de clima** son las que se ven (decisión de Yerif, 2026-10-06): la broma es del personaje, nunca de la persona ("Beto anda con nubes ☁️", no "Beto está deteriorado"). El prompt B4 del resumen semanal aún usa "radiante / apagado / deteriorado": se alinea con una versión B4 v2 cuando haya llave de Anthropic para correr sus evals (no hay resumen en la UI todavía).
 
 Lo que debes se suma **entre grupos**; lo que te deben en un grupo no compensa lo que debes en otro. $500 exactos es `rekt`; 72 h exactas sigue siendo `mild`. Persona nueva (sin grupos) = `clean`. Implementado en `lib/game/avatar.ts`.
 
@@ -250,11 +252,15 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 - **Personaje 3D** con React Three Fiber, estilo *low-poly cozy* (formas redondas, paleta de §10). Es la base del juego.
 - **Bases de arranque:** personitas y animalitos. Después, personalización (ropa, colores, piezas).
 - **Lógica ≠ dibujo:** `lib/game/apariencia.ts` (TS puro, 100 % testeado) convierte estado, nivel y skin en una `Apariencia` (base, accesorios, animación, saturación, efectos, postura). `components/personaje/` solo la dibuja. El mismo descriptor sirve para el 3D, para las miniaturas 2D de las listas y para React Native en v2.
-- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas.
-- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia. Los cambios de estado son graduales (≈ 0.7 s: color, postura y ritmo). **Festejo** (confeti, saltos y una vuelta de 1.6 s) al saldar una deuda completa o subir de nivel; un abono no festeja. Con movimiento reducido no hay transición ni festejo.
-- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas y chips, **miniaturas generadas desde el mismo modelo 3D** (`public/personajes/{base}-{estado}.png`, 27 archivos, ~280 KB): `npm run personajes:miniaturas` las regenera con la app corriendo, y un test exige que existan todas. **Cada vez que cambie un modelo o se agregue una base, hay que regenerarlas.** Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
+- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas. **Se ven** también en las miniaturas (overlay 2D del accesorio sobre la miniatura de la base) y las bloqueadas se pueden **probar 3 s** sobre tu personaje (solo vista previa: no se activan, no se guardan y la regla de que se ganan no cambia).
+- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia. Los cambios de estado son graduales (≈ 0.7 s: color, postura y ritmo). **Festejo** (confeti, saltos y una vuelta de 1.6 s) al saldar una deuda completa o subir de nivel; un abono no festeja. Con movimiento reducido no hay transición ni festejo. **La recompensa llega al abrir la app**: si desde la última vez que viste tu personaje cambió su estado, subió de nivel o ganó XP, el Inicio lo revela (transición, festejo, XP que sube, nivel) sin depender de otra pantalla; un abono, cancelar o rechazar tienen una reacción pequeña, no festejo.
+- **Rendimiento:** un solo canvas 3D por pantalla (**Inicio**, Home del grupo, Yo, detalle). El **héroe del Inicio** (128 px, con globo de una frase, nivel/XP y "si pagas a X pasas a Y") pinta primero la miniatura PNG de la misma figura y la cambia por el 3D con un fundido solo si hay WebGL, no hay ahorro de datos y llegó el primer cuadro; sin 3D, la miniatura se mueve con CSS. En listas y chips, **miniaturas generadas desde el mismo modelo 3D** (`public/personajes/{base}-{estado}.png`, 27 archivos, ~280 KB): `npm run personajes:miniaturas` las regenera con la app corriendo, y un test exige que existan todas. **Cada vez que cambie un modelo o se agregue una base, hay que regenerarlas.** Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
 - **Perfil editable** (decisión de Yerif, 2026-10-06): en la pestaña Yo la persona puede cambiar su **nombre** (`profiles.display_name`: 1–24 caracteres, sin espacios de sobra) y su **personaje** (`profiles.avatar_base`, una de las bases). Cambiar de personaje no cuesta nada ni pierde nada: nivel, XP, badges y skins son de la persona, no de la base, y el estado (radiante/apagado/deteriorado) se aplica a la nueva base. El cambio se ve en todo el demo y lo ven los demás en su grupo. En el demo se guarda en `localStorage` (solo dev/preview); con Supabase será un `update` de la propia fila protegido por RLS.
-- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. Cualquier costo de diseño se aprueba antes.
+- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. **Yerif quiere explorar modelos finales hechos por nosotros** (procedurales mejorados o glTF diseñados por el equipo, sin costo externo): se evalúa en un spike (PX-17). Cualquier costo de diseño externo se aprueba antes.
+
+### Reputación pública (decisión de Yerif, 2026-10-06)
+
+Lo que ve la banda de ti es el personaje, el nivel, los badges y tu saldo del grupo. Salvaguardas: **una sola señal negativa por persona** en las listas públicas (el estado o el badge Fantasma, nunca ambos junto al monto en rojo; lo positivo va primero); los **avatares son neutros** (sin aro de estado ni nube) donde no se habla de reputación (Dividir, Confirmar gasto, selector de personaje); los montos de terceros van en neutro y solo los de tu relación llevan color y acción; el Fantasma dice "se esfuma al pagar".
 
 ### Skins
 
@@ -365,7 +371,8 @@ LIGHT           background #FFFBF0 · card #FFFFFF · border #E8CF99
 ACENTOS         grass #7DC67E (dark #4A9E6A) · peach #FFB085 · rose #FF8FAB
                 lemon #FFE566 · mint #7DDEC8 · lavender #C4A8E8 · water #74C2E8
 FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #3D1828)
-                en dark, el texto de acento usa el color vivo
+                en dark, el texto de acento usa el color vivo; en light, `rose-text` (#A3224C) y `grass-text` (#1F6B35)
+                son versiones oscuras para montos y estados (AA sobre card, fondo y su fondo suave); los demás usan el color del texto
 ```
 
 `subtle` no llega ni a 3:1 (≈ 3.0:1 en dark y ≈ 2.6:1 en light): solo elementos decorativos, **nunca** texto con información, ni siquiera grande.
@@ -513,7 +520,7 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 | 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio por persona (debes / te deben, desglose por grupo, antigüedad), hoja de pago con Deshacer, bandeja de confirmación (multi-persona, rechazo reversible, cancelar), "Pagar menos veces" opcional, barra inferior, Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
-| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |
+| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo, personaje 3D con miniaturas, festejo, perfil editable y etiquetas de clima; análisis `docs/UX-PERSONAJE.md` (tickets PX) | Héroe en el Inicio y revelación al abrir (PX-03/04); funciones `security definer` |
 | 7 | Home del grupo | En el demo | Datos reales |
 | 8 | Resumen semanal | Prompt B4 y evals | Cron y almacenamiento |
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |

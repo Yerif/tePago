@@ -11,20 +11,18 @@ import { GastoDetalle } from "@/components/features/GastoDetalle";
 import { HojaPago } from "@/components/features/HojaPago";
 import { ToastPago } from "@/components/features/ToastPago";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
-import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
+import { usePersonajeVivo } from "@/components/features/usePersonajeVivo";
 import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { apariencia } from "@/lib/game/apariencia";
-import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
-import { progresoNivel, xpAcumuladaParaNivel } from "@/lib/game/levels";
 import { declararPagoPlan } from "@/lib/game/pagarPlan";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
-import { avisosParaPagador, centavosEnDisputa, centavosPendientes, paresConfirmados, paresVigentes, xpPorPagosConfirmados } from "@/lib/splits/confirmacion";
+import { avisosParaPagador, centavosEnDisputa, centavosPendientes, paresVigentes } from "@/lib/splits/confirmacion";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN } from "@/lib/splits/formato";
-import { aplicarPagos, type Pago } from "@/lib/splits/pagos";
+import type { Pago } from "@/lib/splits/pagos";
 import { planDePagos } from "@/lib/splits/plan";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 
@@ -48,19 +46,14 @@ interface PlanElegido {
  * (CLAUDE.md §7).
  */
 export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: DetalleGrupoInteractivoProps) {
-  const ahora = new Date(ahoraIso);
-  const grupos = useGruposConPerfiles(gruposBase);
-  const miembrosTodos = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
-  const nombres = Object.fromEntries([...miembrosTodos].map(([id, m]) => [id, m.nombre]));
+  const { grupos, vista, ahora, estadoDe, estadoYo, progreso } = usePersonajeVivo(gruposBase, yo, ahoraIso);
+  const nombres = Object.fromEntries(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m.nombre])));
   const { registros, toast, error, pagar, pagarPlan, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
   const [hoja, setHoja] = useState<string | null>(null);
   const [plan, setPlan] = useState<PlanElegido | null>(null);
   const [festejos, setFestejos] = useState(0);
   const [errorPlan, setErrorPlan] = useState<string | null>(null);
 
-  // Solo los pagos CONFIRMADOS saldan deudas, cambian balances y personaje.
-  const vista = grupos.map((g) => ({ ...g, gastos: aplicarPagos(g.gastos, paresConfirmados(registros, g.id)) }));
-  const estadoDe = (id: string) => estadoAvatar(vista.filter((g) => g.miembros.some((m) => m.id === id)).map((g) => situacionEnGrupo(g.gastos, id, ahora)));
   const hayConfirmacionSinVer = avisosParaPagador(registros, yo).some((r) => r.estado === "confirmado" && r.xp > 0 && r.grupoId === grupoId);
 
   // Si alguien confirmó un pago tuyo y aún no lo has visto en el inicio, el personaje festeja al entrar.
@@ -81,8 +74,6 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
   const pendientesDe = (gastoId: string) =>
     Object.fromEntries(grupoVista.gastos.find((g) => g.id === gastoId)?.partes.map((p) => [p.userId, p.saldado ? 0 : p.centavos]) ?? []);
 
-  const progreso = progresoNivel(xpAcumuladaParaNivel(yoBase.nivel) + yoBase.xp + xpPorPagosConfirmados(registros, yo));
-  const estadoYo = estadoDe(yo);
 
   const miembro = (id: string) => grupo.miembros.find((m) => m.id === id);
   const cuentaHoja = hoja ? resumen.debes.find((c) => c.personaId === hoja) : undefined;
@@ -108,7 +99,7 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
 
   return (
     <main data-component="DetalleGrupoInteractivo" className="mx-auto flex max-w-md flex-col gap-5 p-6">
-      <Link href={`/dev/demo/g/${grupo.id}`} className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
+      <Link href={`/dev/demo/g/${grupo.id}?u=${yo}`} className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
         ← {grupo.icono} {grupo.nombre}
       </Link>
       <h1 className="font-display text-3xl font-bold">Detalle</h1>

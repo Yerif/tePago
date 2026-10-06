@@ -44,6 +44,14 @@ export function DebugPanel({ habilitado }: DebugPanelProps) {
             <dd data-testid="debug-avatar">{datos.estadoAvatar ?? "—"}</dd>
             <dt className="text-muted-foreground">XP</dt>
             <dd data-testid="debug-xp">{datos.xp ? `${datos.xp.total} (nivel ${datos.xp.nivel})` : "—"}</dd>
+            <dt className="text-muted-foreground">3D</dt>
+            <dd data-testid="debug-personaje">
+              {datos.personaje
+                ? datos.personaje.modo === "2d"
+                  ? "sin WebGL (2D)"
+                  : `1.er cuadro ${datos.personaje.primerCuadroMs} ms · ${datos.personaje.fpsMediana} fps (p5 ${datos.personaje.fpsP5}) · ${datos.personaje.drawCalls} draw calls · ${datos.personaje.triangulos} tris`
+                : "—"}
+            </dd>
             <dt className="text-muted-foreground">IA</dt>
             <dd data-testid="debug-ia">{datos.ia ? `${datos.ia.prompt} · ${datos.ia.latenciaMs} ms` : "sin llamadas"}</dd>
           </dl>

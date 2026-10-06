@@ -32,10 +32,11 @@
   --lavender-soft: #eadff7;
   --water-soft: #d5eef9;
 
-  /* Texto de acento sobre fondo suave: en light usa el color del texto normal. */
-  --grass-text: var(--foreground);
+  /* Texto de acento sobre fondo suave: en light usa el color del texto normal (salvo rose y grass, abajo). */
+  /* Montos y estados ("te deben" / "debes") se distinguen por color también en light: versiones oscuras con AA. */
+  --grass-text: #1f6b35;
   --peach-text: var(--foreground);
-  --rose-text: var(--foreground);
+  --rose-text: #a3224c;
   --lemon-text: var(--foreground);
   --mint-text: var(--foreground);
   --lavender-text: var(--foreground);
@@ -134,5 +135,24 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+}
+
+/* Respiración suave del personaje mientras llega el 3D (o sin WebGL); sin movimiento si la persona lo pidió.
+   Anima `scale`/`translate` (propiedades individuales) para sumarse al `scale-[0.92]` fijo de la clase. */
+@keyframes respirar {
+  0%,
+  100% {
+    scale: 0.92;
+    translate: 0 0;
+  }
+  50% {
+    scale: 0.95;
+    translate: 0 -1.5%;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .respirar {
+    animation: respirar 3.4s ease-in-out infinite;
   }
 }

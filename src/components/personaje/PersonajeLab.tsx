@@ -5,11 +5,10 @@ import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { apariencia, BASE_SLUGS, BASES, type BaseSlug } from "@/lib/game/apariencia";
-import type { EstadoAvatar } from "@/lib/game/avatar";
+import { ETIQUETA_ESTADO, type EstadoAvatar } from "@/lib/game/avatar";
 import { SKIN_SLUGS, SKINS, type SkinSlug } from "@/lib/game/skins";
 
 const ESTADOS: EstadoAvatar[] = ["clean", "mild", "rekt"];
-const ETIQUETA: Record<EstadoAvatar, string> = { clean: "Radiante", mild: "Apagado", rekt: "Deteriorado" };
 
 /** Laboratorio del personaje (solo dev y previews): cambia base, estado, skin y nivel y mira el resultado. */
 export function PersonajeLab() {
@@ -35,7 +34,7 @@ export function PersonajeLab() {
         <div className="flex flex-wrap gap-2">
           {ESTADOS.map((e) => (
             <Button key={e} size="md" variant={e === estado ? "grass" : "outline"} aria-pressed={e === estado} data-testid={`estado-${e}`} onClick={() => setEstado(e)}>
-              {ETIQUETA[e]}
+              {ETIQUETA_ESTADO[e]}
             </Button>
           ))}
         </div>
