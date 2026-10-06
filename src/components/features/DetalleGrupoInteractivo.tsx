@@ -11,6 +11,7 @@ import { GastoDetalle } from "@/components/features/GastoDetalle";
 import { HojaPago } from "@/components/features/HojaPago";
 import { ToastPago } from "@/components/features/ToastPago";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
+import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
 import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -46,8 +47,9 @@ interface PlanElegido {
  * banda → gastos → todas las deudas del grupo (plegado). Pagar deja el pago pendiente hasta que quien recibe lo confirma
  * (CLAUDE.md §7).
  */
-export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: DetalleGrupoInteractivoProps) {
+export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: DetalleGrupoInteractivoProps) {
   const ahora = new Date(ahoraIso);
+  const grupos = useGruposConPerfiles(gruposBase);
   const miembrosTodos = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
   const nombres = Object.fromEntries([...miembrosTodos].map(([id, m]) => [id, m.nombre]));
   const { registros, toast, error, pagar, pagarPlan, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
