@@ -8,8 +8,8 @@ import { crearGrupos, YO } from "@/lib/mock/datos";
 export const metadata: Metadata = { title: "Inicio (demo) · Cuentas Conmigo" };
 export const dynamic = "force-dynamic"; // las fechas de ejemplo son relativas a "ahora"
 
-export default async function DemoIndexPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
-  const { u } = await searchParams;
+export default async function DemoIndexPage({ searchParams }: { searchParams: Promise<{ u?: string; bienvenida?: string }> }) {
+  const { u, bienvenida } = await searchParams;
   const ahora = new Date();
   const grupos = crearGrupos(ahora);
   const miembros = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
@@ -17,7 +17,7 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
 
   return (
     <main data-component="DemoIndexPage" className="mx-auto flex max-w-md flex-col gap-5 p-6">
-      <ResumenInicio key={yo} grupos={grupos} yo={yo} ahoraIso={ahora.toISOString()} />
+      <ResumenInicio key={yo} grupos={grupos} yo={yo} ahoraIso={ahora.toISOString()} forzarBienvenida={bienvenida === "1"} />
 
       <details data-testid="herramientas-demo" className="rounded-3xl border-[2.5px] border-dashed border-border p-4">
         <summary className="flex min-h-11 cursor-pointer items-center font-semibold">🧪 Herramientas de prueba</summary>
@@ -37,6 +37,11 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
           </nav>
           <ReiniciarDemo />
           <ul className="flex flex-col gap-1 text-sm underline">
+            <li>
+              <Link href={`/dev/demo?u=${yo}&bienvenida=1`} data-testid="demo-bienvenida" className="inline-flex min-h-11 items-center">
+                👋 Ver la bienvenida «Conoce a tu personaje»
+              </Link>
+            </li>
             <li>
               <Link href="/dev/demo/ia" data-testid="demo-ia" className="inline-flex min-h-11 items-center">
                 ✅ Revisar lo que se entendió (IA de ejemplo)

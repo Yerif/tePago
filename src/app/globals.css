@@ -139,15 +139,15 @@
 }
 
 /* Respiración suave del personaje mientras llega el 3D (o sin WebGL); sin movimiento si la persona lo pidió.
-   Anima `scale`/`translate` (propiedades individuales) para sumarse al `scale-[0.92]` fijo de la clase. */
+   Anima `scale`/`translate` (propiedades individuales) para sumarse al `scale-[0.97]` fijo de la clase. */
 @keyframes respirar {
   0%,
   100% {
-    scale: 0.92;
+    scale: 0.97;
     translate: 0 0;
   }
   50% {
-    scale: 0.95;
+    scale: 1;
     translate: 0 -1.5%;
   }
 }

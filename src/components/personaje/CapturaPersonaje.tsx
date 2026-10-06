@@ -14,7 +14,7 @@ export function CapturaPersonaje({ base, estado }: CapturaPersonajeProps) {
   const a = { ...apariencia({ base: baseValida(base), estado, skin: "clasico", nivel: 1 }), ritmo: 0 };
   return (
     <div data-component="CapturaPersonaje" data-testid="captura" className="size-64">
-      <Personaje3D apariencia={a} distancia={5.2} />
+      <Personaje3D apariencia={a} distancia={5.8} />
     </div>
   );
 }

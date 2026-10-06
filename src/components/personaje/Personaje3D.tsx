@@ -7,9 +7,12 @@ import type { Accesorio, Apariencia, BaseSlug, Efecto } from "@/lib/game/aparien
 import { BASES } from "@/lib/game/apariencia";
 import { resumenFps } from "@/lib/game/rendimiento";
 import { setDebug } from "@/lib/debug";
+import { contraste } from "@/lib/contraste";
 import { COLORES, tono } from "./paleta";
 
 const OSCURO = "#2A2F45";
+/** Disco bajo el personaje: el color suave del estado (radiante, nublado, bajo la lluvia). */
+const COLOR_ESCENARIO = { clean: "#B8E3B6", mild: "#FFE985", rekt: "#FFB3C6" } as const;
 const ORO = "#FFD84D";
 /** Centra el personaje (con nube y accesorios) en el encuadre de la cámara. */
 const BASE_Y = -0.95;
@@ -84,21 +87,41 @@ function Orejas({ base, color, detalle }: { base: BaseSlug; color: ReturnType<ty
   }
 }
 
-function Cara({ animo }: { animo: Apariencia["animo"] }) {
+const CLARO = "#F6F2EA";
+/** Debajo de este contraste (WCAG, 3:1 mínimo para elementos gráficos) la cara oscura se pierde en el cuerpo. */
+const CONTRASTE_MINIMO_CARA = 3.5;
+
+/**
+ * Cara: ojos con un brillo, cejas y boca. Si el cuerpo es oscuro (o se oscurece al deteriorarse) los ojos llevan esclera
+ * clara y las cejas y la boca se vuelven claras, para que la cara —el canal emocional— se lea en las 9 bases (PX-12).
+ */
+function Cara({ animo, fondo }: { animo: Apariencia["animo"]; fondo: string }) {
   const ojoY = animo === "triste" ? 1.0 : 1.06;
+  const oscuro = contraste(OSCURO, fondo) < CONTRASTE_MINIMO_CARA;
+  const trazo = oscuro ? CLARO : OSCURO;
   return (
     <group position={[0, 0, 0.62]}>
       {[-0.22, 0.22].map((x) => (
         <group key={x}>
-          <mesh position={[x, ojoY, 0.05]}>
-            <sphereGeometry args={[0.075, 14, 12]} />
+          {oscuro ? (
+            <mesh position={[x, ojoY, 0.03]} scale={[1, 1.15, 0.6]}>
+              <sphereGeometry args={[0.115, 16, 12]} />
+              <meshStandardMaterial color={CLARO} />
+            </mesh>
+          ) : null}
+          <mesh position={[x, ojoY, 0.07]}>
+            <sphereGeometry args={[oscuro ? 0.062 : 0.075, 14, 12]} />
             <meshStandardMaterial color={OSCURO} />
+          </mesh>
+          <mesh position={[x + 0.025, ojoY + 0.03, 0.125]}>
+            <sphereGeometry args={[0.02, 8, 8]} />
+            <meshBasicMaterial color="#FFFFFF" />
           </mesh>
           {animo !== "contento" ? (
             // Cejas de pena: el extremo de adentro sube (más inclinadas si está triste).
-            <mesh position={[x, ojoY + 0.17, 0.05]} rotation={[0, 0, (x > 0 ? -1 : 1) * (animo === "triste" ? 0.5 : 0.28)]}>
+            <mesh position={[x, ojoY + 0.19, 0.05]} rotation={[0, 0, (x > 0 ? -1 : 1) * (animo === "triste" ? 0.5 : 0.28)]}>
               <boxGeometry args={[0.2, 0.035, 0.03]} />
-              <meshStandardMaterial color={OSCURO} />
+              <meshStandardMaterial color={trazo} />
             </mesh>
           ) : null}
         </group>
@@ -110,7 +133,7 @@ function Cara({ animo }: { animo: Apariencia["animo"] }) {
         scale={animo === "preocupado" ? [1, 0.2, 1] : [1, 1, 1]}
       >
         <torusGeometry args={[0.15, 0.028, 8, 20, Math.PI]} />
-        <meshStandardMaterial color={OSCURO} />
+        <meshStandardMaterial color={trazo} />
       </mesh>
     </group>
   );
@@ -142,9 +165,9 @@ function PiezaAccesorio({ a }: { a: Accesorio }) {
             <boxGeometry args={[0.14, 0.4, 0.02]} />
             <meshStandardMaterial color="#C4A8E8" />
           </mesh>
-          <mesh position={[0, -0.12, 0.02]}>
-            <cylinderGeometry args={[0.16, 0.16, 0.05, 20]} />
-            <meshStandardMaterial color={ORO} metalness={0.4} roughness={0.35} />
+          <mesh position={[0, -0.14, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.24, 0.24, 0.06, 24]} />
+            <meshStandardMaterial color={ORO} metalness={0.4} roughness={0.35} emissive={ORO} emissiveIntensity={0.25} />
           </mesh>
         </group>
       );
@@ -184,7 +207,8 @@ function PiezaAccesorio({ a }: { a: Accesorio }) {
 }
 
 /** Efectos animados del estado: brillos, gota, nubecita con lluvia y aura. */
-function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
+function Efectos({ efectos, ritmo, base }: { efectos: Efecto[]; ritmo: number; base: BaseSlug }) {
+  const gota = useRef<Group>(null);
   const brillos = useRef<Group>(null);
   const lluvia = useRef<Group>(null);
   const aura = useRef<Group>(null);
@@ -192,6 +216,8 @@ function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
     const t = clock.getElapsedTime() * ritmo;
     if (brillos.current) brillos.current.rotation.y = t * 1.2;
     if (aura.current) aura.current.scale.setScalar(1 + Math.sin(t * 2) * 0.04);
+    // La gota de sudor resbala y vuelve a empezar (quieta con movimiento reducido).
+    if (gota.current) gota.current.position.y = 1.3 - ((t * 0.5) % 1) * 0.28;
     lluvia.current?.children.forEach((gota, i) => {
       gota.position.y = 2.15 - ((t * 0.8 + i * 0.33) % 1) * 1.1;
     });
@@ -213,7 +239,7 @@ function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
         </group>
       ) : null}
       {efectos.includes("gota") ? (
-        <group position={[0.55, 1.3, 0.45]}>
+        <group ref={gota} position={[0.55, 1.3, 0.45]}>
           <mesh>
             <sphereGeometry args={[0.09, 14, 12]} />
             <meshStandardMaterial color="#74C2E8" />
@@ -226,7 +252,7 @@ function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
       ) : null}
       {efectos.includes("nube") ? (
         <group position={[0, 0, 0]}>
-          <group position={[0, 2.3, 0]}>
+          <group position={[base === "conejo" ? 0.85 : 0, base === "conejo" ? 2.05 : 2.3, 0]}>
             {[
               [-0.3, 0, 0.26],
               [0, 0.1, 0.34],
@@ -238,7 +264,7 @@ function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
               </mesh>
             ))}
           </group>
-          <group ref={lluvia}>
+          <group ref={lluvia} position={[base === "conejo" ? 0.85 : 0, 0, 0]}>
             {[-0.25, 0, 0.25].map((x) => (
               <mesh key={x} position={[x, 2, 0.05]} scale={[1, 1.8, 1]}>
                 <sphereGeometry args={[0.04, 8, 8]} />
@@ -251,8 +277,8 @@ function Efectos({ efectos, ritmo }: { efectos: Efecto[]; ritmo: number }) {
       {efectos.includes("aura") ? (
         <group ref={aura} position={[0, 0.9, -0.5]}>
           <mesh>
-            <torusGeometry args={[1.15, 0.045, 10, 48]} />
-            <meshStandardMaterial color="#C4A8E8" emissive="#C4A8E8" emissiveIntensity={0.6} transparent opacity={0.8} />
+            <torusGeometry args={[1.15, 0.09, 12, 48]} />
+            <meshStandardMaterial color="#C4A8E8" emissive="#C4A8E8" emissiveIntensity={0.9} transparent opacity={0.85} />
           </mesh>
         </group>
       ) : null}
@@ -281,6 +307,7 @@ function useSuave(objetivo: number, ms: number): number {
 }
 
 const DURACION_FESTEJO = 1.6;
+const VUELTA_FESTEJO = 0.6;
 const CONFETI = ["#FF8FAB", "#FFE566", "#7DDEC8", "#C4A8E8", "#74C2E8", "#FFB085"];
 
 /** Confeti que sale hacia arriba y cae; se ve solo mientras dura el festejo. */
@@ -296,16 +323,17 @@ function Confeti({ inicio }: { inicio: React.RefObject<number | null> }) {
     g.children.forEach((pieza, i) => {
       const ang = i * 2.4; // ángulo áureo: reparte las piezas sin que se alineen
       const rapidez = 0.5 + (i % 4) * 0.25;
-      pieza.position.set(Math.cos(ang) * rapidez * dt, 1.0 + 2.6 * dt - 4.2 * dt * dt, 0.8 + Math.sin(ang) * rapidez * dt * 0.6);
+      // Nace sobre la cabeza (y ≈ 2.0), sube y cae a los costados sin tapar la cara.
+      pieza.position.set(Math.cos(ang) * (0.35 + rapidez) * (0.3 + dt * 1.4), 2.0 + 1.9 * dt - 3.6 * dt * dt, 0.9 + Math.sin(ang) * rapidez * dt * 0.6);
       pieza.rotation.set(dt * (3 + i), dt * 2, 0);
-      pieza.scale.setScalar(Math.min(1, (1 - dt / DURACION_FESTEJO) / 0.4) * 0.3);
+      pieza.scale.setScalar(Math.min(1, (1 - dt / DURACION_FESTEJO) / 0.4) * 0.22);
     });
   });
   return (
     <group ref={grupo} visible={false}>
-      {CONFETI.concat(CONFETI).map((c, i) => (
+      {CONFETI.concat(CONFETI, CONFETI, CONFETI).map((c, i) => (
         <mesh key={i}>
-          <boxGeometry args={[1, 1, 0.3]} />
+          <boxGeometry args={[1, 0.55, 0.12]} />
           <meshStandardMaterial color={c} />
         </mesh>
       ))}
@@ -325,9 +353,12 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
   const incZ = useSuave(a.postura === "ladeado" ? 0.2 : 0, ms);
   const alto = useSuave(a.postura === "encorvado" ? 0.9 : 1, ms);
 
+  // El festejo arranca solo cuando sube `celebrar`: un cambio de estado (que cambia el ritmo) no lo vuelve a disparar.
+  const ritmoActual = useRef(a.ritmo);
+  ritmoActual.current = a.ritmo;
   useEffect(() => {
-    if (celebrar > 0 && a.ritmo > 0) inicioFestejo.current = clock.getElapsedTime();
-  }, [celebrar, a.ritmo, clock]);
+    if (celebrar > 0 && ritmoActual.current > 0) inicioFestejo.current = clock.getElapsedTime();
+  }, [celebrar, clock]);
 
   const colores = COLORES[a.base];
   const cuerpo = tono(colores.cuerpo, saturacion);
@@ -348,7 +379,9 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
       else {
         const k = 1 - dt / DURACION_FESTEJO;
         brinco += Math.abs(Math.sin(dt * Math.PI * 3)) * 0.5 * k;
-        giro += (dt / DURACION_FESTEJO) * Math.PI * 2 * k;
+        // Una vuelta completa y rápida (0.6 s, con frenado) y luego cara a cámara con la sonrisa.
+        const t = Math.min(1, dt / VUELTA_FESTEJO);
+        giro += (1 - Math.pow(1 - t, 3)) * Math.PI * 2;
       }
     }
     raiz.current.position.y = BASE_Y + brinco;
@@ -357,6 +390,11 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
 
   return (
     <>
+      {/* Escenario: un disco de contacto del color del estado ancla al personaje (y no brinca con él). */}
+      <mesh position={[0, BASE_Y - 0.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.95, 36]} />
+        <meshBasicMaterial color={COLOR_ESCENARIO[a.efectos.includes("nube") ? "rekt" : a.efectos.includes("gota") ? "mild" : "clean"]} transparent opacity={0.55} />
+      </mesh>
       <group ref={raiz} position={[0, BASE_Y, 0]}>
         <group rotation={[incX, 0, incZ]} scale={[1, alto, 1]}>
           {/* Cuerpo y panza */}
@@ -381,12 +419,12 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
             <meshStandardMaterial color={cuerpo} />
           </mesh>
           <Orejas base={a.base} color={cuerpo} detalle={detalle} />
-          <Cara animo={a.animo} />
+          <Cara animo={a.animo} fondo={`#${cuerpo.getHexString()}`} />
           {a.accesorios.map((acc) => (
             <PiezaAccesorio key={acc.slug} a={acc} />
           ))}
         </group>
-        <Efectos efectos={a.efectos} ritmo={ritmo} />
+        <Efectos efectos={a.efectos} ritmo={ritmo} base={a.base} />
       </group>
       {/* Fuera del grupo que gira: el confeti sale hacia la cámara aunque el personaje dé la vuelta. */}
       <group position={[0, BASE_Y, 0]}>
@@ -424,7 +462,7 @@ export interface Personaje3DProps {
   /** Activa el medidor de rendimiento (`?debug=1`). */
   medir?: boolean;
   apariencia: Apariencia;
-  /** Distancia de la cámara: más chica = más cerca (las miniaturas usan 5.2). */
+  /** Distancia de la cámara: más chica = más cerca (las miniaturas usan 5.8: así la nube de la lluvia no se corta). */
   distancia?: number;
   /** Cada vez que sube este número, el personaje festeja (pago, nivel nuevo). Con movimiento reducido no hace nada. */
   celebrar?: number;

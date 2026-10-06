@@ -14,6 +14,8 @@ export interface FilaCuentaProps {
   nombre: string;
   base: string;
   estado: EstadoAvatar;
+  /** Accesorio de la skin activa de la persona (se ve como sello sobre su miniatura). */
+  accesorio?: string;
   /** `null` en filas de "te deben": no hay nada que pagar. */
   reserva: ReservaDeCuenta | null;
   onPagar?: () => void;
@@ -23,13 +25,13 @@ export interface FilaCuentaProps {
 }
 
 /** Una persona con quien tienes cuentas: cuánto, desde cuándo, desglose por grupo y, si debes, Pagar. */
-export function FilaCuenta({ cuenta, nombre, base, estado, reserva, onPagar, onCancelar, ocultarDesglose = false }: FilaCuentaProps) {
+export function FilaCuenta({ cuenta, nombre, base, estado, accesorio, reserva, onPagar, onCancelar, ocultarDesglose = false }: FilaCuentaProps) {
   const id = cuenta.personaId;
   return (
     <li data-testid={`cuenta-${id}`}>
       <Card size="sm" className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
-          <Avatar base={base} estado={estado} size="sm" compacto />
+          <Avatar base={base} estado={estado} accesorio={accesorio} size="sm" compacto />
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{nombre}</p>
             <p className="text-sm text-muted-foreground">

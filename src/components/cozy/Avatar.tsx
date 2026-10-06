@@ -49,12 +49,18 @@ export function Avatar({ base, emoji, accesorio, estado, size, compacto = false,
       aria-label={neutro ? "Personaje" : `Personaje ${ETIQUETA_ESTADO[estado].toLowerCase()}`}
     >
       {base ? (
-        <Image src={rutaMiniatura(base, mostrado)} alt="" width={128} height={128} unoptimized className="size-full scale-[1.3] object-contain" />
+        <Image src={rutaMiniatura(base, mostrado)} alt="" width={128} height={128} unoptimized className="size-full scale-[1.4] object-contain" />
       ) : (
         <span aria-hidden>{emoji}</span>
       )}
       {accesorio && !base ? (
         <span aria-hidden data-testid="avatar-accesorio" className="absolute -top-[0.3em] left-1/2 -translate-x-1/2 text-[0.5em] leading-none">
+          {accesorio}
+        </span>
+      ) : null}
+      {accesorio && base ? (
+        // La skin ganada se ve también en las miniaturas (overlay 2D del accesorio): "mi skin" la ve la banda.
+        <span aria-hidden data-testid="avatar-skin" className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-border bg-card text-[0.7rem] leading-none">
           {accesorio}
         </span>
       ) : null}
