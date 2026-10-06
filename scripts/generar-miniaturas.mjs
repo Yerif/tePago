@@ -13,7 +13,7 @@ const navegador = await chromium.launch({
   executablePath: process.env.PW_CHROMIUM || undefined,
   args: ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist", "--no-sandbox"],
 });
-const pagina = await navegador.newPage({ viewport: { width: 256, height: 256 }, deviceScaleFactor: 0.5 });
+const pagina = await navegador.newPage({ viewport: { width: 256, height: 256 }, deviceScaleFactor: 1 });
 let n = 0;
 for (const base of BASES) {
   for (const estado of ESTADOS) {

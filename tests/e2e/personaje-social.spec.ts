@@ -36,6 +36,17 @@ test.describe("reputación pública con humor, sin exhibir (PX-07)", () => {
   });
 });
 
+test.describe("las skins que ganaste las ve la banda (PX-09)", () => {
+  test("un sello con el accesorio sobre la miniatura en La banda y en el Inicio; sin skin no hay sello", async ({ page }) => {
+    await page.goto("/dev/demo/g/oaxaca?u=ana");
+    await expect(page.getByTestId("friend-ana").getByTestId("avatar-skin")).toHaveText("👒"); // Jardinero
+    await expect(page.getByTestId("friend-ferni").getByTestId("avatar-skin")).toHaveText("🧭"); // Explorador
+    await expect(page.getByTestId("friend-caro").getByTestId("avatar-skin")).toHaveCount(0); // Clásico
+    await page.goto("/dev/demo?u=ana");
+    await expect(page.getByTestId("inicio-te-toca").getByTestId("cuenta-pau").getByTestId("avatar-skin")).toHaveText("👒");
+  });
+});
+
 test.describe("Tu camino: la meta siempre visible y en números (PX-08)", () => {
   test("nivel, skin, semana limpia y cómo se gana cada badge", async ({ page }) => {
     await page.goto("/dev/demo/yo?u=ana");

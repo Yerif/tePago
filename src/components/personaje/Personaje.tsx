@@ -35,7 +35,7 @@ function Respaldo({ apariencia, estado, visible }: Pick<PersonajeProps, "aparien
         height={256}
         unoptimized
         priority
-        className="respirar size-full scale-[0.92] object-contain"
+        className="respirar size-full scale-[0.97] object-contain"
       />
     </div>
   );

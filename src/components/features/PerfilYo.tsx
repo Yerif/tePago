@@ -206,7 +206,7 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
       <Card className="flex flex-col gap-3" data-testid="perfil-banda">
         <h2 className="font-display text-xl font-bold">Así te ve tu banda</h2>
         <div className="flex items-center gap-3">
-          <Avatar base={baseActual} estado={estado} size="sm" />
+          <Avatar base={baseActual} estado={estado} accesorio={SKINS[skinSlug(skinActiva)].accesorio} size="sm" />
           <div className="min-w-0 flex-1">
             <p className="truncate font-semibold">{nombreActual}</p>
             <p className="text-sm text-muted-foreground">Nivel {nivel}</p>

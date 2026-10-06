@@ -3,10 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { BandejaPagos } from "@/components/features/BandejaPagos";
 import { FilaCuenta } from "@/components/features/FilaCuenta";
+import { Bienvenida } from "@/components/features/Bienvenida";
 import { HeroPersonaje } from "@/components/features/HeroPersonaje";
 import { HojaPago } from "@/components/features/HojaPago";
 import { RevelacionPersonaje } from "@/components/features/RevelacionPersonaje";
 import { ToastPago } from "@/components/features/ToastPago";
+import { useBienvenidaDemo } from "@/components/features/useBienvenidaDemo";
 import { usePagarPersona } from "@/components/features/usePagarPersona";
 import { usePersonajeVivo } from "@/components/features/usePersonajeVivo";
 import { useHidratado, useVistoDemo } from "@/components/features/useVistoDemo";
@@ -17,6 +19,7 @@ import { caminoDeEstado, textoDelCamino } from "@/lib/game/camino";
 import { xpAcumuladaParaNivel } from "@/lib/game/levels";
 import { fraseDelPersonaje } from "@/lib/game/microcopy";
 import { revelacion, type Revelacion } from "@/lib/game/revelacion";
+import { SKIN_SLUGS, SKINS, type SkinSlug } from "@/lib/game/skins";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { formatoMXN } from "@/lib/splits/formato";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
@@ -29,15 +32,18 @@ export interface ResumenInicioProps {
   yo: string;
   /** Instante de la página (ISO): la antigüedad de las deudas se mide contra él. */
   ahoraIso: string;
+  /** `?bienvenida=1`: muestra "Conoce a tu personaje" aunque ya se haya visto (herramientas de prueba y UAT). */
+  forzarBienvenida?: boolean;
 }
 
 const FILAS_VISIBLES = 4;
+const skinDe = (slug: string | undefined): SkinSlug => SKIN_SLUGS.find((s) => s === slug) ?? "clasico";
 
 /**
  * Primera pantalla: "¿qué hago con mi dinero?". Cuánto debes, lo que tienes que resolver con pagos (siempre arriba), una
  * fila por persona a la que le debes y, plegado, lo que te deben. Pagar es una hoja de 2 toques con "Deshacer".
  */
-export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInicioProps) {
+export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso, forzarBienvenida = false }: ResumenInicioProps) {
   const { grupos, vista, ahora, estadoYo, estadoDe, miembro, yo: yoMiembro, xpTotal, progreso } = usePersonajeVivo(gruposBase, yo, ahoraIso);
   const nombres = Object.fromEntries(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m.nombre])));
   const { registros, toast, error, reaccion, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
@@ -69,6 +75,12 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
     marcar(yo, { estado: estadoYo, xpTotal });
   }, [hidratado]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Bienvenida "Conoce a tu personaje": una sola vez por persona. No se muestra a navegadores automatizados (pruebas E2E)
+  // salvo que se pida con `?bienvenida=1` (también desde "Herramientas de prueba").
+  const { vista: vistaBienvenida, marcar: marcarBienvenida } = useBienvenidaDemo();
+  const [bienvenidaCerrada, setBienvenidaCerrada] = useState(false);
+  const mostrarBienvenida = hidratado && !bienvenidaCerrada && yoMiembro && (forzarBienvenida || (!vistaBienvenida[yo] && !navigator.webdriver));
+
   const filas = verTodas ? resumen.debes : resumen.debes.slice(0, FILAS_VISIBLES);
   const cuentaHoja = hoja ? resumen.debes.find((c) => c.personaId === hoja) : undefined;
   const reservaHoja = cuentaHoja ? reservaDeCuenta(cuentaHoja, registros, yo) : null;
@@ -86,6 +98,17 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
           celebrar={festejos}
           frase={reaccion ?? fraseDelPersonaje(estadoYo, resumen.debes.length > 0)}
           camino={lineasCamino}
+        />
+      )}
+      {mostrarBienvenida && yoMiembro && (
+        <Bienvenida
+          nombre={yoMiembro.nombre}
+          base={yoMiembro.base}
+          hrefYo={`/dev/demo/yo?u=${yo}`}
+          onCerrar={() => {
+            setBienvenidaCerrada(true);
+            marcarBienvenida(yo);
+          }}
         />
       )}
       {revelada && <RevelacionPersonaje revelacion={revelada} onCerrar={() => setRevelada(null)} />}
@@ -125,6 +148,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
                   nombre={m?.nombre ?? c.personaId}
                   base={m?.base ?? "persona-sol"}
                   estado={estadoDe(c.personaId)}
+                  accesorio={SKINS[skinDe(m?.skinActivo)].accesorio}
                   reserva={reservaDeCuenta(c, registros, yo)}
                   onPagar={() => setHoja(c.personaId)}
                   onCancelar={() => cancelarA(c.personaId)}
@@ -151,7 +175,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso }: ResumenInici
           <ul className="mt-2 flex flex-col gap-2">
             {resumen.teDeben.map((c) => {
               const m = miembro(c.personaId);
-              return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={estadoDe(c.personaId)} reserva={null} />;
+              return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={estadoDe(c.personaId)} accesorio={SKINS[skinDe(m?.skinActivo)].accesorio} reserva={null} />;
             })}
           </ul>
         </details>

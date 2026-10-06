@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { crearAlmacenDemo } from "./almacenDemo";
 import type { EstadoAvatar } from "@/lib/game/avatar";
 import type { InstantaneaPersonaje } from "@/lib/game/revelacion";
 
@@ -11,7 +12,6 @@ import type { InstantaneaPersonaje } from "@/lib/game/revelacion";
 export type VistoPorPersona = Readonly<Record<string, InstantaneaPersonaje>>;
 
 const LLAVE = "cc_demo_visto_v1";
-const EVENTO = "cc-demo-visto";
 const VACIO: VistoPorPersona = {};
 const ESTADOS: readonly EstadoAvatar[] = ["clean", "mild", "rekt"];
 
@@ -25,52 +25,12 @@ function limpiar(datos: unknown): VistoPorPersona {
   return limpio;
 }
 
-let enMemoria: VistoPorPersona | null = null;
-let crudo: string | null = null;
-let analizado: VistoPorPersona = VACIO;
-
-function leer(): VistoPorPersona {
-  if (enMemoria) return enMemoria;
-  let texto: string | null = null;
-  try {
-    texto = window.localStorage.getItem(LLAVE);
-  } catch {
-    return VACIO;
-  }
-  if (texto === crudo) return analizado;
-  crudo = texto;
-  try {
-    analizado = texto ? limpiar(JSON.parse(texto)) : VACIO;
-  } catch {
-    analizado = VACIO;
-  }
-  return analizado;
-}
-
-function escribir(siguiente: VistoPorPersona) {
-  enMemoria = siguiente;
-  try {
-    window.localStorage.setItem(LLAVE, JSON.stringify(siguiente));
-    enMemoria = null;
-  } catch {
-    /* sin almacenamiento: queda en memoria */
-  }
-  window.dispatchEvent(new Event(EVENTO));
-}
-
-function suscribir(avisar: () => void) {
-  window.addEventListener(EVENTO, avisar);
-  window.addEventListener("storage", avisar);
-  return () => {
-    window.removeEventListener(EVENTO, avisar);
-    window.removeEventListener("storage", avisar);
-  };
-}
+const almacen = crearAlmacenDemo<VistoPorPersona>(LLAVE, VACIO, limpiar);
 
 export function useVistoDemo() {
-  const visto = useSyncExternalStore(suscribir, leer, () => VACIO);
-  const marcar = useCallback((id: string, instantanea: InstantaneaPersonaje) => escribir({ ...leer(), [id]: instantanea }), []);
-  const reiniciar = useCallback(() => escribir({}), []);
+  const { valor: visto, escribir, leer } = almacen.useAlmacen();
+  const marcar = useCallback((id: string, instantanea: InstantaneaPersonaje) => escribir({ ...leer(), [id]: instantanea }), [escribir, leer]);
+  const reiniciar = useCallback(() => escribir({}), [escribir]);
   return { visto, marcar, reiniciar };
 }
 
