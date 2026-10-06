@@ -6,6 +6,24 @@ import type { GastoCalculable } from "@/lib/splits/tipos";
 import { xpPorPago } from "./xp";
 
 export type ResultadoDeclaracion = { ok: true; pares: Pago[] } | { ok: false };
+export type ResultadoPagoDirecto = { ok: true; pares: Pago[] } | { ok: false; disponibleCentavos: number };
+
+/**
+ * Pago directo de `yo` a `acreedorId` por `centavos` (total o abono) sobre la deuda directa que todavía no está en camino
+ * (`vigentes` = confirmados + pendientes + en disputa). Nunca deja pagar más de lo que se debe: devuelve cuánto queda por pagar.
+ */
+export function declararPagoDirecto<T extends GastoCalculable & { fecha: string }>(
+  gastos: readonly T[],
+  vigentes: readonly Pago[],
+  yo: string,
+  acreedorId: string,
+  centavos: number,
+): ResultadoPagoDirecto {
+  const deuda = deudasEntrePersonas(aplicarPagos(gastos, vigentes)).find((d) => d.deudorId === yo && d.acreedorId === acreedorId);
+  const disponibleCentavos = deuda?.centavos ?? 0;
+  if (!Number.isSafeInteger(centavos) || centavos <= 0 || centavos > disponibleCentavos) return { ok: false, disponibleCentavos };
+  return { ok: true, pares: [{ deudorId: yo, acreedorId, centavos }] };
+}
 
 /**
  * Convierte "yo le pago `centavos` a `acreedorId`" (una transferencia del plan) en pagos por pares sobre las deudas

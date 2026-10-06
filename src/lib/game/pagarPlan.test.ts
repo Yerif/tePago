@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { declararPagoPlan, xpAlConfirmar } from "./pagarPlan";
+import { declararPagoDirecto, declararPagoPlan, xpAlConfirmar } from "./pagarPlan";
 
 const ahora = new Date("2026-10-06T12:00:00Z");
 const horas = (h: number) => new Date(ahora.getTime() - h * 3_600_000).toISOString();
@@ -12,6 +12,24 @@ const gasto = (id: string, pagadoPor: string, deudor: string, centavos: number, 
     { userId: pagadoPor, centavos: 0, saldado: true },
     { userId: deudor, centavos, saldado: false },
   ],
+});
+
+describe("declararPagoDirecto", () => {
+  const g = [gasto("1", "b", "a", 200, 5)];
+  it("paga el total o un abono", () => {
+    expect(declararPagoDirecto(g, [], "a", "b", 200)).toEqual({ ok: true, pares: [{ deudorId: "a", acreedorId: "b", centavos: 200 }] });
+    expect(declararPagoDirecto(g, [], "a", "b", 50)).toMatchObject({ ok: true });
+  });
+  it("no deja pagar de más ni lo que ya está en camino, y dice cuánto queda", () => {
+    expect(declararPagoDirecto(g, [], "a", "b", 201)).toEqual({ ok: false, disponibleCentavos: 200 });
+    const camino = [{ deudorId: "a", acreedorId: "b", centavos: 150 }];
+    expect(declararPagoDirecto(g, camino, "a", "b", 100)).toEqual({ ok: false, disponibleCentavos: 50 });
+  });
+  it("monto inválido o sin deuda", () => {
+    expect(declararPagoDirecto(g, [], "a", "b", 0)).toEqual({ ok: false, disponibleCentavos: 200 });
+    expect(declararPagoDirecto(g, [], "a", "b", 1.5)).toEqual({ ok: false, disponibleCentavos: 200 });
+    expect(declararPagoDirecto(g, [], "b", "a", 10)).toEqual({ ok: false, disponibleCentavos: 0 });
+  });
 });
 
 describe("declararPagoPlan", () => {
