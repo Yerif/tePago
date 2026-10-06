@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { repartirAbonoEntreGrupos, resumenPorPersona } from "./resumen";
+import { declararPago, responderPago } from "./confirmacion";
+import { repartirAbonoEntreGrupos, reservaDeCuenta, resumenPorPersona } from "./resumen";
 
 const ahora = new Date("2026-10-06T12:00:00Z");
 const hace = (h: number) => new Date(ahora.getTime() - h * 3_600_000).toISOString();
@@ -74,5 +75,24 @@ describe("repartirAbonoEntreGrupos", () => {
     expect(() => repartirAbonoEntreGrupos(desglose, 0)).toThrow(RangeError);
     expect(() => repartirAbonoEntreGrupos(desglose, 1.5)).toThrow(RangeError);
     expect(() => repartirAbonoEntreGrupos(desglose, 451)).toThrow(/excede/);
+  });
+});
+
+describe("reservaDeCuenta", () => {
+  const cuentaB = resumenPorPersona(grupos, "a", ahora).debes[0]!; // b: g1 150 + g2 300
+  const pago = (id: string, grupoId: string, centavos: number) =>
+    declararPago([], { id, grupoId, deId: "a", aId: "b", centavos, pares: [{ deudorId: "a", acreedorId: "b", centavos }], creadoIso: ahora.toISOString() });
+  it("sin pagos todo está disponible", () => {
+    expect(reservaDeCuenta(cuentaB, [], "a")).toEqual({
+      disponibles: [{ grupoId: "g1", centavos: 150 }, { grupoId: "g2", centavos: 300 }],
+      disponibleCentavos: 450,
+      pendienteCentavos: 0,
+      disputaCentavos: 0,
+    });
+  });
+  it("lo pendiente y lo que está en disputa no se puede volver a pagar", () => {
+    const registros = [...pago("p1", "g1", 150), ...responderPago(pago("p2", "g2", 100), "p2", "b", "rechazado")];
+    const r = reservaDeCuenta(cuentaB, registros, "a");
+    expect(r).toEqual({ disponibles: [{ grupoId: "g2", centavos: 200 }], disponibleCentavos: 200, pendienteCentavos: 150, disputaCentavos: 100 });
   });
 });

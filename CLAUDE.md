@@ -509,7 +509,7 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 |---|---|---|---|
 | 1 | Auth y perfil | Perfil con personaje, skins y badges en el demo | Supabase Auth |
 | 2 | Grupos | Home y detalle del grupo en el demo | Invite codes, selector, onboarding |
-| 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio con "Debes / Te deben", pagos del plan y bandeja de confirmación de pagos (pendiente → confirmado/rechazado por quien recibe), Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
+| 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio por persona (debes / te deben, desglose por grupo, antigüedad), hoja de pago con Deshacer, bandeja de confirmación (multi-persona, rechazo reversible, cancelar), "Pagar menos veces" opcional, barra inferior, Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
 | 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |

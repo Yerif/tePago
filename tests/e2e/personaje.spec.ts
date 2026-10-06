@@ -49,14 +49,12 @@ test.describe("personaje 3D", () => {
 
     await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
     const beto = page.getByTestId(ids.personaje.raiz);
-    await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("100");
-    await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
-    await page.getByTestId(ids.saldar.todo("beto", "ferni")).click();
+    await page.getByTestId(ids.cuenta.pagar("ferni")).click();
+    await page.getByTestId(ids.hoja.confirmar).click();
     // Pagar solo deja pendiente: el personaje no festeja hasta que Ferni lo confirme.
     await expect(beto).toHaveAttribute(ids.personaje.celebraciones, "0");
 
     await page.goto("/dev/demo?u=ferni");
-    await page.locator(ids.pagos.confirmar).first().click();
     await page.locator(ids.pagos.confirmar).first().click();
 
     await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");

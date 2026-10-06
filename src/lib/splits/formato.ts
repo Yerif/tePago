@@ -32,3 +32,11 @@ export function parsearPorcentaje(texto: string): number | null {
   const puntos = Number(entero) * 100 + Number(decimales.padEnd(2, "0"));
   return puntos <= 10_000 ? puntos : null;
 }
+
+/** Centavos → texto editable sin símbolo ni comas: 228335 → "2283.35", 150000 → "1500". */
+export function centavosATexto(centavos: number): string {
+  if (!Number.isSafeInteger(centavos) || centavos < 0) throw new RangeError("centavos debe ser un entero >= 0");
+  const pesos = Math.floor(centavos / 100);
+  const resto = centavos % 100;
+  return resto === 0 ? String(pesos) : `${pesos}.${String(resto).padStart(2, "0")}`;
+}

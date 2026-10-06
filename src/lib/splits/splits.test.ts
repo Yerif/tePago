@@ -136,3 +136,15 @@ describe("balancesNetos", () => {
     expect(balancesNetos([])).toEqual({});
   });
 });
+
+describe("centavosATexto", () => {
+  it("pesos enteros sin decimales y con 2 decimales si hay centavos", async () => {
+    const { centavosATexto } = await import("./formato");
+    expect(centavosATexto(150000)).toBe("1500");
+    expect(centavosATexto(228335)).toBe("2283.35");
+    expect(centavosATexto(5)).toBe("0.05");
+    expect(centavosATexto(0)).toBe("0");
+    expect(() => centavosATexto(-1)).toThrow(RangeError);
+    expect(() => centavosATexto(1.5)).toThrow(RangeError);
+  });
+});

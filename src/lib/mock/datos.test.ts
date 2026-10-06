@@ -3,7 +3,7 @@ import { badgesValidos, estaDesbloqueada } from "@/lib/game/skins";
 import { balancesNetos } from "@/lib/splits/balances";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { planDePagos } from "@/lib/splits/plan";
-import { resumenPersona } from "@/lib/splits/resumen";
+import { resumenPorPersona } from "@/lib/splits/resumen";
 import { BADGES_DEMO, crearGrupos, YO } from "./datos";
 
 const ahora = new Date("2026-09-29T12:00:00Z");
@@ -75,11 +75,17 @@ describe("datos de ejemplo", () => {
   it("escenarios para probar a fondo", () => {
     const grupo = (id: string) => grupos.find((g) => g.id === id)!;
     const plan = (id: string) => planDePagos(balancesNetos(grupo(id).gastos));
-    // Ana le debe (en el plan) a gente de 4 grupos distintos y le deben en 2.
-    const resumen = resumenPersona(grupos, YO);
-    expect(resumen.porGrupo.map((g) => g.grupoId)).toEqual(["oaxaca", "roomies", "playa", "peda", "oficina", "abuela"]);
-    expect(resumen.debesCentavos).toBe(482_139);
-    expect(resumen.teDebenCentavos).toBe(224_000);
+    // Ana le debe a 7 personas (suma de sus deudas directas por grupo, sin netear entre grupos) y le deben 4.
+    const resumen = resumenPorPersona(grupos, YO, ahora);
+    expect(resumen.debes.map((c) => c.personaId)).toEqual(["nico", "pau", "ferni", "rafa", "caro", "sofi", "luis"]);
+    expect(resumen.debesCentavos).toBe(563_168);
+    expect(resumen.teDeben.map((c) => c.personaId).sort()).toEqual(["beto", "dani", "mari", "nico"]);
+    expect(resumen.teDebenCentavos).toBe(305_029);
+    // Nico aparece una sola vez aunque le debe en dos grupos (playa $991.67 + peda $300), y también le debe a Ana en Oficina.
+    expect(resumen.debes[0]?.porGrupo.map((g) => [g.grupoId, g.centavos])).toEqual([["playa", 99_167], ["peda", 30_000]]);
+    expect(resumen.teDeben.find((c) => c.personaId === "nico")?.centavos).toBe(50_000);
+    // La deuda más vieja es de 100 h (la renta de la playa).
+    expect(Math.round(resumen.masViejaHoras ?? 0)).toBe(100);
     // La playa tiene 6 personas con deudas cruzadas: el plan nunca pide más de n − 1 pagos.
     expect(plan("playa").length).toBeLessThanOrEqual(5);
     // Peda: Ana y Dani se deben $120 mutuamente; el neteo por pares los deja a mano.

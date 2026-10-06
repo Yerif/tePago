@@ -1,3 +1,4 @@
+import { centavosEnDisputa, centavosPendientes, type PagoRegistrado } from "./confirmacion";
 import { deudasEntrePersonas } from "./deudas";
 import type { GastoCalculable } from "./tipos";
 
@@ -101,4 +102,31 @@ export function repartirAbonoEntreGrupos(desglose: readonly Pick<DesgloseGrupo, 
     falta -= tramo;
   }
   return tramos;
+}
+
+export interface ReservaDeCuenta {
+  /** Por grupo, lo que todavía se puede pagar (deuda − pendiente − en disputa), solo grupos con algo por pagar. */
+  disponibles: { grupoId: string; centavos: number }[];
+  disponibleCentavos: number;
+  pendienteCentavos: number;
+  disputaCentavos: number;
+}
+
+/**
+ * De lo que `yo` le debe a una persona, cuánto ya está "en camino" (pendiente por confirmar o en disputa) y cuánto
+ * se puede pagar todavía. Así no se paga dos veces lo mismo y la fila puede decir "⏳ por confirmar".
+ */
+export function reservaDeCuenta(cuenta: CuentaConPersona, registros: readonly PagoRegistrado[], yo: string): ReservaDeCuenta {
+  let pendienteCentavos = 0;
+  let disputaCentavos = 0;
+  const disponibles: { grupoId: string; centavos: number }[] = [];
+  for (const g of cuenta.porGrupo) {
+    const pendiente = centavosPendientes(registros, g.grupoId, yo, cuenta.personaId);
+    const disputa = centavosEnDisputa(registros, g.grupoId, yo, cuenta.personaId);
+    pendienteCentavos += pendiente;
+    disputaCentavos += disputa;
+    const libre = g.centavos - pendiente - disputa;
+    if (libre > 0) disponibles.push({ grupoId: g.grupoId, centavos: libre });
+  }
+  return { disponibles, disponibleCentavos: disponibles.reduce((s, d) => s + d.centavos, 0), pendienteCentavos, disputaCentavos };
 }
