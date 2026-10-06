@@ -18,6 +18,7 @@ import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
+import { planDePagos } from "@/lib/splits/plan";
 import { aplicarPagos, partesQueSeSaldan, type Pago } from "@/lib/splits/pagos";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +63,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
   const nombres = Object.fromEntries(grupo.miembros.map((m) => [m.id, m.nombre]));
   const balances = balancesNetos(grupoVista.gastos);
   const deudas = deudasEntrePersonas(grupoVista.gastos);
+  const plan = planDePagos(balances);
   const gastos = [...grupo.gastos].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const pendientesDe = (gastoId: string) =>
     Object.fromEntries(grupoVista.gastos.find((g) => g.id === gastoId)?.partes.map((p) => [p.userId, p.saldado ? 0 : p.centavos]) ?? []);
@@ -204,6 +206,31 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
               {error}
             </p>
           ) : null}
+        </Card>
+      </section>
+
+      <section data-testid="como-pagarse">
+        <h2 className="font-display text-xl font-bold">Cómo pagarse 🪄</h2>
+        <Card size="sm" className="mt-2">
+          {plan.length === 0 ? (
+            <p className="text-muted-foreground">Nadie tiene que pagarle a nadie. ¡Todo en orden! 🌻</p>
+          ) : (
+            <>
+              <p className="mb-2 text-sm text-muted-foreground">
+                La forma más sencilla de dejar todo en cero: {plan.length === 1 ? "1 pago" : `${plan.length} pagos`} en total.
+              </p>
+              <ul className="flex flex-col gap-2">
+                {plan.map((t) => (
+                  <li key={`${t.deId}>${t.aId}`} className="flex items-center justify-between" data-testid={`plan-${t.deId}-${t.aId}`}>
+                    <span>
+                      {nombres[t.deId] ?? t.deId} → {nombres[t.aId] ?? t.aId}
+                    </span>
+                    <span className="font-display font-bold">{formatoMXN(t.centavos)}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </Card>
       </section>
 
