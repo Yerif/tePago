@@ -13,13 +13,13 @@ import { Card } from "@/components/ui/Card";
 import { apariencia } from "@/lib/game/apariencia";
 import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
 import { progresoNivel, xpAcumuladaParaNivel } from "@/lib/game/levels";
+import { pagarDelPlan as pagarPlan } from "@/lib/game/pagarPlan";
 import { xpPorPago } from "@/lib/game/xp";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
 import { planDePagos } from "@/lib/splits/plan";
-import { rutaDePago } from "@/lib/splits/ruta";
 import { aplicarPagos, partesQueSeSaldan, type Pago } from "@/lib/splits/pagos";
 import { cn } from "@/lib/utils";
 
@@ -105,26 +105,18 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
 
   /** Paga una transferencia del plan: se convierte en pagos por pares (si hay cadena A→B→C, A paga a B y B a C). */
   function pagarDelPlan(acreedorId: string, centavos: number) {
-    const ruta = rutaDePago(deudas, yo, acreedorId, centavos);
-    if (ruta.sobranteCentavos > 0) return setError("Este pago todavía no se puede hacer desde aquí. Paga la deuda directa.");
+    const r = pagarPlan(grupo!.gastos, pagosDe(grupoId), yo, acreedorId, centavos, ahora);
+    if (!r.ok) return setError("Este pago todavía no se puede hacer desde aquí. Paga la deuda directa.");
     setError(null);
-    let acumulados: readonly PagoDemo[] = pagosDe(grupoId);
-    let xp = 0;
-    for (const pago of ruta.pagos) {
-      // Solo cuentan las deudas tuyas que se terminan de saldar (las de otros no dan XP en el demo).
-      const saldadas = partesQueSeSaldan(grupo!.gastos, acumulados, pago).filter((x) => x.userId === yo);
-      xp += xpPorPago(saldadas, ahora);
-      acumulados = [...acumulados, { ...pago, grupoId }];
-    }
-    const siguientes = [...pagos, ...ruta.pagos.map((pago) => ({ ...pago, grupoId }))];
+    const siguientes = [...pagos, ...r.pagos.map((pago) => ({ ...pago, grupoId }))];
     const nivelAntes = progreso.nivel;
-    const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + xp).nivel;
+    const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + r.xp).nivel;
     setPagos(siguientes);
-    if (xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
-    setXpGanada((x) => x + xp);
+    if (r.xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
+    setXpGanada((x) => x + r.xp);
     setReaccion({
       texto: `Pagaste ${formatoMXN(centavos)} a ${nombres[acreedorId]} desde el plan 🪄`,
-      xp,
+      xp: r.xp,
       subioNivel: nivelDespues > nivelAntes,
       estado: estadoDe(yo, siguientes),
     });
