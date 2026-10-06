@@ -43,7 +43,7 @@ test.describe("pestaña Yo: editar nombre y personaje", () => {
     await expect(page.getByTestId(ids.perfil.base("gato"))).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("mis-badges")).toContainText("Jardinero");
     await expect(page.getByTestId("skin-jardinero")).toBeEnabled(); // las skins siguen siendo suyas
-    await expect(page.getByText("Nivel 3")).toBeVisible();
+    await expect(page.getByTestId("xp-nivel")).toHaveText("Nivel 3");
   });
 
   test("«Reiniciar» también borra los perfiles editados", async ({ page }) => {

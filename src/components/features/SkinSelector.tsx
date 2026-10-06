@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Pill } from "@/components/cozy/Pill";
-import { Personaje } from "@/components/personaje/Personaje";
-import { apariencia } from "@/lib/game/apariencia";
-import type { EstadoAvatar } from "@/lib/game/avatar";
-import { SKIN_SLUGS, type SkinSlug } from "@/lib/game/skins";
+import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
 
 export interface SkinOpcion {
@@ -18,37 +14,33 @@ export interface SkinOpcion {
 }
 
 export interface SkinSelectorProps {
-  base: string;
-  nivel: number;
-  estado: EstadoAvatar;
   skins: SkinOpcion[];
-  activaInicial: string;
+  activa: string;
+  /** Skin bloqueada que se está probando (vista previa de unos segundos), si hay. */
+  probando: string | null;
+  onElegir: (slug: string) => void;
+  /** Probar una skin bloqueada sobre tu personaje: solo vista previa, no se activa ni se guarda. */
+  onProbar: (slug: string) => void;
 }
 
-const skinSlug = (slug: string): SkinSlug => SKIN_SLUGS.find((s) => s === slug) ?? "clasico";
-
-/** Elige la skin activa. En la demo solo cambia el estado local: guardar la elección es un ticket con backend. */
-export function SkinSelector({ base, nivel, estado, skins, activaInicial }: SkinSelectorProps) {
-  const [activa, setActiva] = useState(activaInicial);
-  const actual = skins.find((s) => s.slug === activa);
-
+/**
+ * Las skins como tarjetas: se elige la activa y las bloqueadas se pueden PROBAR unos segundos sobre el héroe (no cambia la
+ * regla de que se ganan). El personaje vive en el héroe de la pantalla (un solo canvas 3D), no aquí.
+ */
+export function SkinSelector({ skins, activa, probando, onElegir, onProbar }: SkinSelectorProps) {
   return (
-    <section data-component="SkinSelector" className="flex flex-col items-center gap-4">
-      <Personaje apariencia={apariencia({ base, estado, skin: skinSlug(activa), nivel })} estado={estado} />
-      <p data-testid="skin-activa" className="font-display text-lg font-bold">
-        {actual?.nombre ?? "Clásico"}
-      </p>
+    <section data-component="SkinSelector" className="flex flex-col gap-3">
       <ul className="grid w-full grid-cols-2 gap-3">
         {skins.map((s) => (
-          <li key={s.slug}>
+          <li key={s.slug} className="flex flex-col gap-2">
             <button
               type="button"
               data-testid={`skin-${s.slug}`}
               aria-pressed={s.slug === activa}
               disabled={!s.desbloqueada}
-              onClick={() => setActiva(s.slug)}
+              onClick={() => onElegir(s.slug)}
               className={cn(
-                "flex h-full w-full flex-col items-center gap-1 rounded-card-sm border-[2.5px] p-3 text-center",
+                "flex min-h-11 w-full flex-1 flex-col items-center gap-1 rounded-card-sm border-[2.5px] p-3 text-center",
                 s.slug === activa ? "border-grass bg-grass-soft" : "border-border bg-card",
                 !s.desbloqueada && "opacity-70",
               )}
@@ -60,6 +52,11 @@ export function SkinSelector({ base, nivel, estado, skins, activaInicial }: Skin
               <span className="text-xs text-muted-foreground">{s.requisito}</span>
               {!s.desbloqueada && <Pill variant="neutral">Bloqueada</Pill>}
             </button>
+            {!s.desbloqueada && (
+              <Button size="sm" variant="outline" data-testid={`skin-probar-${s.slug}`} aria-pressed={probando === s.slug} onClick={() => onProbar(s.slug)}>
+                {probando === s.slug ? "Probando…" : "Probar 3 s"}
+              </Button>
+            )}
           </li>
         ))}
       </ul>

@@ -46,7 +46,7 @@ export function ModoPorPersona({ modo, personas, valores, salida, onCambio }: Mo
       <legend className="mb-1 text-sm text-muted-foreground">{ayuda.pista}</legend>
       {personas.map((p) => (
         <div key={p.id} className="flex items-center gap-2">
-          <Avatar base={p.base} estado={p.estado} size="sm" compacto className="size-9" />
+          <Avatar base={p.base} estado={p.estado} size="sm" compacto neutro className="size-9" />
           <label htmlFor={`valor-${p.id}`} className="min-w-0 flex-1 truncate text-sm font-semibold">
             {p.nombre}
           </label>

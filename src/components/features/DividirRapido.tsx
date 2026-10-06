@@ -227,7 +227,7 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
                     dentro ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground line-through",
                   )}
                 >
-                  <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-9" />
+                  <Avatar base={m.base} estado={m.estado} size="sm" compacto neutro className="size-9" />
                   {m.nombre}
                 </button>
               );
