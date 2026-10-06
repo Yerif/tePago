@@ -179,8 +179,11 @@ item_assignments (group_id, item_id, user_id, partes int check (partes >= 1), cr
 expense_shares (group_id, expense_id, user_id, monto numeric(12,2), parametro int null, created_at)
                                                             -- lo que cada quien debe del gasto; `parametro` guarda lo que se capturó
                                                             -- (puntos base, partes o ajuste en centavos) para poder re-editar
-settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0), created_at)
-                                                            -- pagos y abonos: ÚNICA fuente de verdad de lo saldado
+settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0),
+                estado check in ('pendiente','confirmado','rechazado') not null default 'pendiente',
+                pares jsonb,                                -- pagos por pares en que se descompone (ver `rutaDePago`)
+                resuelto_at, created_at)                    -- solo `a_user` puede pasarlo a confirmado/rechazado
+                                                            -- pagos y abonos: ÚNICA fuente de verdad de lo saldado (solo los confirmados)
 user_badges    (group_id, user_id, badge_slug, earned_at, revoked_at)
 
 -- SISTEMA
@@ -192,7 +195,7 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)   -
 
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
-- **Saldado:** no hay `settled_at`. Lo pendiente de cada deuda se deriva aplicando `settlements` a `expense_shares` (PEPS, `lib/splits/pagos.ts`), igual que en el demo.
+- **Saldado:** no hay `settled_at`. Lo pendiente de cada deuda se deriva aplicando los `settlements` **confirmados** a `expense_shares` (PEPS, `lib/splits/pagos.ts`), igual que en el demo.
 - Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Decisión (D7, Yerif 2026-10-02):** al borrar una cuenta desaparecen sus deudas (y las que otros tenían con ella); los balances del resto se recalculan. La UI de borrar cuenta debe avisarlo con claridad antes de confirmar.
 - **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, saldado parcial con `settlements` como fuente de verdad, idempotencia de XP, `created_at` e índices). Las cascadas ya están decididas (D7).
 
@@ -278,6 +281,11 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
   - **Igual + ajustes** (`repartirConAjustes`): primero se resta la suma de ajustes (pueden ser negativos: "Beto +$60"), el resto se divide igual entre los participantes y a cada quien se le suma su ajuste. Ningún reparto puede quedar negativo.
   - **Por producto** (itemizado): captura manual rápida de renglones (nombre, precio, quiénes) y "lo demás entre todos"; usa `repartirItemizado`.
 - **Deudas entre personas**: se netean de dos en dos (A↔B): si A le debe $200 a B y B le debe $50 a A, la app solo muestra que A le paga $150 a B (`deudasEntrePersonas`). **Cómo pagarse** (decisión de Yerif, 2026-10-06): además, el detalle del grupo muestra el **plan de pagos más sencillo para todos** (`planDePagos`): a partir de los saldos netos de cada persona, el mínimo de transferencias (≤ personas − 1) que deja a todos en cero. Es una **sugerencia**: el registro de deudas sigue siendo por pares; los pagos del plan se registran como pagos entre las personas que los hacen (`settlements` acepta cualquier par del grupo) y bajan el saldo neto de ambas. **Inicio** (decisión de Yerif, 2026-10-06): lo primero que ve la persona es cuánto debe, cuánto le deben y los pagos concretos del plan de cada grupo, con botón "Pagar" ahí mismo (`resumenPersona`, `pagarDelPlan`); los grupos no se compensan entre sí. Cada pago del plan se convierte en pagos por pares (`rutaDePago`): si A le debe a B y B a C, "A le paga a C" equivale a que A pague a B y B pague a C, así los saldos quedan igual que con una transferencia directa y el saldado PEPS sigue siendo por pares. Si no hay cadena de deudas entre ambos, el botón no lo permite (se paga la deuda directa). En el demo cada quien paga desde "Cómo pagarse" lo suyo; el XP solo cuenta las deudas propias que se terminan de saldar.
+- **Confirmación de pagos** (decisión de Yerif, 2026-10-06). Un pago (total, abono o del plan) **no salda nada por sí solo**: quien debe lo declara ("ya pagué") y queda **pendiente por confirmar**; quien recibe lo ve en su pantalla de inicio y responde "Sí, me llegó" o "No me llegó".
+  - **Pendiente:** la deuda sigue contando (balances, plan, estado del personaje) pero se marca "pendiente por confirmar ⏳"; ese monto no se puede volver a pagar. No hay XP, festejo ni cambio de personaje.
+  - **Confirmado** (solo por quien recibe): la deuda se salda (los pagos por pares se aplican PEPS), el XP se otorga a quien pagó con la antigüedad medida **al momento en que declaró el pago** (no se penaliza la demora de quien confirma) y a quien pagó se le avisa en su inicio: "¡X confirmó tu pago!".
+  - **Rechazado:** nada cambia en la deuda y a quien pagó se le avisa; puede volver a intentarlo.
+  - Ni quien paga puede confirmar su propio pago ni un tercero: solo `a_user`. En SQL, la función `security definer` que confirma otorga el XP con `ref_id` = id del `settlement` (idempotente). Demo: se guarda en `localStorage` (solo dev/preview) para probar los dos lados cambiando de persona (`?u=`). Pendiente de decidir: confirmación automática tras N horas, cancelar un pago pendiente y recordatorios.
 - **Invariante con test obligatorio**: Σ partes = total, en cada modo, con casos de borde (1 persona, fracciones de 1/3, propina 0, montos de 1 centavo).
 
 ### Reglas derivadas (implementadas; D1–D4 confirmadas por Yerif el 2026-10-02)
@@ -496,7 +504,7 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 |---|---|---|---|
 | 1 | Auth y perfil | Perfil con personaje, skins y badges en el demo | Supabase Auth |
 | 2 | Grupos | Home y detalle del grupo en el demo | Invite codes, selector, onboarding |
-| 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio con "Debes / Te deben" y pagos del plan, Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
+| 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio con "Debes / Te deben", pagos del plan y bandeja de confirmación de pagos (pendiente → confirmado/rechazado por quien recibe), Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
 | 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |

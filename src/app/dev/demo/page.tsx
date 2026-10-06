@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Pill } from "@/components/cozy/Pill";
 import { Card } from "@/components/ui/Card";
 import { ListaGrupos } from "@/components/features/ListaGrupos";
+import { ReiniciarDemo } from "@/components/features/ReiniciarDemo";
 import { ResumenInicio } from "@/components/features/ResumenInicio";
 import { crearGrupos, YO } from "@/lib/mock/datos";
 
@@ -21,7 +22,7 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
         Datos de ejemplo · sin Supabase
       </Pill>
       <p className="text-muted-foreground">
-        Pantallas con datos ficticios para probar la UI desde el celular. Nada se guarda: al recargar vuelve todo a como estaba.
+        Pantallas con datos ficticios para probar la UI desde el celular. Los pagos se guardan solo en este navegador (para probar los dos lados cambiando de persona); usa «Reiniciar» para empezar de cero.
       </p>
 
       <nav aria-label="Probar como" className="flex flex-wrap gap-2">
@@ -32,8 +33,10 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
         ))}
       </nav>
 
+      <ReiniciarDemo />
+
       <h2 className="mt-2 font-display text-xl font-bold">Hola, {miembros.get(yo)?.nombre} 👋</h2>
-      <ResumenInicio key={yo} grupos={grupos} yo={yo} base="/dev/demo/g" ahoraIso={new Date().toISOString()} />
+      <ResumenInicio key={yo} grupos={grupos} yo={yo} base="/dev/demo/g" />
 
       <h2 className="mt-2 font-display text-xl font-bold">Home de grupo</h2>
       <ListaGrupos grupos={grupos} yo={yo} base="/dev/demo/g" />

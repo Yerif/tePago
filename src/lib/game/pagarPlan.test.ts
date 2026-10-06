@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pagarDelPlan } from "./pagarPlan";
+import { declararPagoPlan, xpAlConfirmar } from "./pagarPlan";
 
 const ahora = new Date("2026-10-06T12:00:00Z");
 const horas = (h: number) => new Date(ahora.getTime() - h * 3_600_000).toISOString();
@@ -14,33 +14,50 @@ const gasto = (id: string, pagadoPor: string, deudor: string, centavos: number, 
   ],
 });
 
-describe("pagarDelPlan", () => {
-  it("pago directo que salda la deuda: da el XP de la antigüedad (< 24 h = 50)", () => {
-    const r = pagarDelPlan([gasto("1", "b", "a", 200, 5)], [], "a", "b", 200, ahora);
-    expect(r).toEqual({ ok: true, pagos: [{ deudorId: "a", acreedorId: "b", centavos: 200 }], xp: 50 });
+describe("declararPagoPlan", () => {
+  it("pago directo: un solo par", () => {
+    expect(declararPagoPlan([gasto("1", "b", "a", 200, 5)], [], "a", "b", 150)).toEqual({ ok: true, pares: [{ deudorId: "a", acreedorId: "b", centavos: 150 }] });
   });
-  it("un abono no da XP", () => {
-    const r = pagarDelPlan([gasto("1", "b", "a", 200, 5)], [], "a", "b", 100, ahora);
-    expect(r).toMatchObject({ ok: true, xp: 0 });
+  it("lo que ya está en camino no se puede pagar otra vez", () => {
+    const vigentes = [{ deudorId: "a", acreedorId: "b", centavos: 150 }];
+    expect(declararPagoPlan([gasto("1", "b", "a", 200, 5)], vigentes, "a", "b", 100)).toEqual({ ok: false });
+    expect(declararPagoPlan([gasto("1", "b", "a", 200, 5)], vigentes, "a", "b", 50)).toMatchObject({ ok: true });
   });
-  it("respeta los pagos previos", () => {
-    const previos = [{ deudorId: "a", acreedorId: "b", centavos: 100 }];
-    const r = pagarDelPlan([gasto("1", "b", "a", 200, 5)], previos, "a", "b", 100, ahora);
-    expect(r).toMatchObject({ ok: true, xp: 50 });
-  });
-  it("cadena A→B→C: paga en dos tramos y el XP solo cuenta las deudas de A", () => {
+  it("cadena A→B→C en dos pares", () => {
     const gastos = [gasto("1", "b", "a", 100, 5), gasto("2", "c", "b", 100, 5)];
-    const r = pagarDelPlan(gastos, [], "a", "c", 100, ahora);
-    expect(r).toEqual({
+    expect(declararPagoPlan(gastos, [], "a", "c", 100)).toEqual({
       ok: true,
-      pagos: [
+      pares: [
         { deudorId: "a", acreedorId: "b", centavos: 100 },
         { deudorId: "b", acreedorId: "c", centavos: 100 },
       ],
-      xp: 50,
     });
   });
-  it("sin cadena que lo cubra no se puede", () => {
-    expect(pagarDelPlan([gasto("1", "b", "a", 100, 5)], [], "a", "c", 100, ahora)).toEqual({ ok: false });
+  it("sin cadena no se puede", () => {
+    expect(declararPagoPlan([gasto("1", "b", "a", 100, 5)], [], "a", "c", 100)).toEqual({ ok: false });
+  });
+});
+
+describe("xpAlConfirmar", () => {
+  const registro = (pares: { deudorId: string; acreedorId: string; centavos: number }[], haceHoras: number) => ({ deId: "a", pares, creadoIso: horas(haceHoras) });
+  it("saldar por completo: XP según la antigüedad al declarar", () => {
+    const g = [gasto("1", "b", "a", 200, 30)];
+    // La deuda tenía 30 h cuando se declaró el pago (hace 5 h → 25 h al declarar) → 30 XP (< 48 h).
+    expect(xpAlConfirmar(g, [], registro([{ deudorId: "a", acreedorId: "b", centavos: 200 }], 5))).toBe(30);
+  });
+  it("un abono no da XP", () => {
+    expect(xpAlConfirmar([gasto("1", "b", "a", 200, 5)], [], registro([{ deudorId: "a", acreedorId: "b", centavos: 100 }], 1))).toBe(0);
+  });
+  it("respeta los pagos ya confirmados", () => {
+    const previos = [{ deudorId: "a", acreedorId: "b", centavos: 100 }];
+    expect(xpAlConfirmar([gasto("1", "b", "a", 200, 5)], previos, registro([{ deudorId: "a", acreedorId: "b", centavos: 100 }], 1))).toBe(50);
+  });
+  it("cadena: solo cuentan las deudas de quien pagó", () => {
+    const gastos = [gasto("1", "b", "a", 100, 5), gasto("2", "c", "b", 100, 5)];
+    const pares = [
+      { deudorId: "a", acreedorId: "b", centavos: 100 },
+      { deudorId: "b", acreedorId: "c", centavos: 100 },
+    ];
+    expect(xpAlConfirmar(gastos, [], registro(pares, 1))).toBe(50);
   });
 });

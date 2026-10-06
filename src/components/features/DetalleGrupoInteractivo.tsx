@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { nuevoId, usePagosDemo } from "@/components/features/usePagosDemo";
 import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { XPBar } from "@/components/cozy/XPBar";
@@ -13,22 +14,18 @@ import { Card } from "@/components/ui/Card";
 import { apariencia } from "@/lib/game/apariencia";
 import { estadoAvatar, situacionEnGrupo } from "@/lib/game/avatar";
 import { progresoNivel, xpAcumuladaParaNivel } from "@/lib/game/levels";
-import { pagarDelPlan as pagarPlan } from "@/lib/game/pagarPlan";
-import { xpPorPago } from "@/lib/game/xp";
+import { declararPagoPlan } from "@/lib/game/pagarPlan";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
 import { planDePagos } from "@/lib/splits/plan";
-import { aplicarPagos, partesQueSeSaldan, type Pago } from "@/lib/splits/pagos";
+import { avisosParaPagador, centavosPendientes, paresConfirmados, paresVigentes, xpPorPagosConfirmados } from "@/lib/splits/confirmacion";
+import { aplicarPagos, type Pago } from "@/lib/splits/pagos";
 import { cn } from "@/lib/utils";
-
-type PagoDemo = Pago & { grupoId: string };
 
 interface Reaccion {
   texto: string;
-  xp: number;
-  subioNivel: boolean;
   estado: "clean" | "mild" | "rekt";
 }
 
@@ -40,27 +37,31 @@ export interface DetalleGrupoInteractivoProps {
   ahoraIso: string;
 }
 
-/** Detalle del grupo con "Pagar": abonos y pagos totales en memoria, con XP, nivel y personaje reaccionando. */
+/** Detalle del grupo: pagar (abonos o todo) deja el pago pendiente hasta que quien recibe lo confirma (CLAUDE.md §7). */
 export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: DetalleGrupoInteractivoProps) {
   const ahora = new Date(ahoraIso);
-  const [pagos, setPagos] = useState<PagoDemo[]>([]);
-  const [xpGanada, setXpGanada] = useState(0);
+  const { registros, declarar } = usePagosDemo();
   const [reaccion, setReaccion] = useState<Reaccion | null>(null);
   const [festejos, setFestejos] = useState(0);
   const [montos, setMontos] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
 
+  // Solo los pagos CONFIRMADOS saldan deudas, cambian balances y personaje.
+  const vista = grupos.map((g) => ({ ...g, gastos: aplicarPagos(g.gastos, paresConfirmados(registros, g.id)) }));
+  const estadoDe = (id: string) =>
+    estadoAvatar(vista.filter((g) => g.miembros.some((m) => m.id === id)).map((g) => situacionEnGrupo(g.gastos, id, ahora)));
+  const hayConfirmacionSinVer = avisosParaPagador(registros, yo).some((r) => r.estado === "confirmado" && r.xp > 0 && r.grupoId === grupoId);
+
+  // Si alguien confirmó un pago tuyo y aún no lo has visto en el inicio, el personaje festeja al entrar.
+  useEffect(() => {
+    if (hayConfirmacionSinVer) setFestejos((n) => (n === 0 ? 1 : n));
+  }, [hayConfirmacionSinVer]);
+
   const grupo = grupos.find((g) => g.id === grupoId);
   const yoBase = grupo?.miembros.find((m) => m.id === yo);
-  if (!grupo || !yoBase) return null;
+  const grupoVista = vista.find((g) => g.id === grupoId);
+  if (!grupo || !yoBase || !grupoVista) return null;
 
-  const pagosDe = (id: string, extra: readonly PagoDemo[] = pagos) => extra.filter((p) => p.grupoId === id);
-  const vista = (extra: readonly PagoDemo[] = pagos) => grupos.map((g) => ({ ...g, gastos: aplicarPagos(g.gastos, pagosDe(g.id, extra)) }));
-  const estadoDe = (id: string, extra: readonly PagoDemo[] = pagos) =>
-    estadoAvatar(vista(extra).filter((g) => g.miembros.some((m) => m.id === id)).map((g) => situacionEnGrupo(g.gastos, id, ahora)));
-
-  const grupoVista = vista().find((g) => g.id === grupoId);
-  if (!grupoVista) return null;
   const nombres = Object.fromEntries(grupo.miembros.map((m) => [m.id, m.nombre]));
   const balances = balancesNetos(grupoVista.gastos);
   const deudas = deudasEntrePersonas(grupoVista.gastos);
@@ -68,8 +69,9 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
   const gastos = [...grupo.gastos].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const pendientesDe = (gastoId: string) =>
     Object.fromEntries(grupoVista.gastos.find((g) => g.id === gastoId)?.partes.map((p) => [p.userId, p.saldado ? 0 : p.centavos]) ?? []);
+  const pendienteA = (aId: string) => centavosPendientes(registros, grupoId, yo, aId);
 
-  const progreso = progresoNivel(xpAcumuladaParaNivel(yoBase.nivel) + yoBase.xp + xpGanada);
+  const progreso = progresoNivel(xpAcumuladaParaNivel(yoBase.nivel) + yoBase.xp + xpPorPagosConfirmados(registros, yo));
   const estadoYo = estadoDe(yo);
 
   const frase = (deudor: string, acreedor: string, monto: string) => {
@@ -78,48 +80,26 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
     return `${nombres[deudor]} le debe ${monto} a ${nombres[acreedor]}`;
   };
 
-  function pagar(acreedorId: string, deudaCentavos: number, centavos: number | null) {
+  function avisar(acreedorId: string, centavos: number, pares: Pago[]) {
+    declarar({ id: nuevoId(), grupoId, deId: yo, aId: acreedorId, centavos, pares, creadoIso: new Date().toISOString() });
+    setReaccion({ texto: `Avisamos a ${nombres[acreedorId]} para que confirme tu pago de ${formatoMXN(centavos)} ⏳`, estado: estadoYo });
+  }
+
+  function pagar(acreedorId: string, disponibleCentavos: number, centavos: number | null) {
     if (centavos === null || centavos <= 0) return setError("Escribe un monto válido, por ejemplo 150 o 150.50");
-    if (centavos > deudaCentavos) return setError(`Solo debes ${formatoMXN(deudaCentavos)}: no pagues de más 🙂`);
+    if (centavos > disponibleCentavos)
+      return setError(`Solo puedes pagar ${formatoMXN(disponibleCentavos)} (lo demás ya está por confirmar): no pagues de más 🙂`);
     setError(null);
-    const pago: Pago = { deudorId: yo, acreedorId, centavos };
-    const saldadas = partesQueSeSaldan(grupo!.gastos, pagosDe(grupoId), pago);
-    const xp = xpPorPago(saldadas, ahora);
-    const siguientes = [...pagos, { ...pago, grupoId }];
-    const nivelAntes = progreso.nivel;
-    const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + xp).nivel;
-    const quedaDeuda = deudaCentavos - centavos > 0;
-    setPagos(siguientes);
-    if (xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
-    setXpGanada((x) => x + xp);
     setMontos((m) => ({ ...m, [acreedorId]: "" }));
-    setReaccion({
-      texto: quedaDeuda
-        ? `Abonaste ${formatoMXN(centavos)} a ${nombres[acreedorId]}. Te faltan ${formatoMXN(deudaCentavos - centavos)} 🌱`
-        : `¡Saldaste con ${nombres[acreedorId]}! 🎉`,
-      xp,
-      subioNivel: nivelDespues > nivelAntes,
-      estado: estadoDe(yo, siguientes),
-    });
+    avisar(acreedorId, centavos, [{ deudorId: yo, acreedorId, centavos }]);
   }
 
   /** Paga una transferencia del plan: se convierte en pagos por pares (si hay cadena A→B→C, A paga a B y B a C). */
   function pagarDelPlan(acreedorId: string, centavos: number) {
-    const r = pagarPlan(grupo!.gastos, pagosDe(grupoId), yo, acreedorId, centavos, ahora);
+    const r = declararPagoPlan(grupo!.gastos, paresVigentes(registros, grupoId), yo, acreedorId, centavos);
     if (!r.ok) return setError("Este pago todavía no se puede hacer desde aquí. Paga la deuda directa.");
     setError(null);
-    const siguientes = [...pagos, ...r.pagos.map((pago) => ({ ...pago, grupoId }))];
-    const nivelAntes = progreso.nivel;
-    const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + r.xp).nivel;
-    setPagos(siguientes);
-    if (r.xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
-    setXpGanada((x) => x + r.xp);
-    setReaccion({
-      texto: `Pagaste ${formatoMXN(centavos)} a ${nombres[acreedorId]} desde el plan 🪄`,
-      xp: r.xp,
-      subioNivel: nivelDespues > nivelAntes,
-      estado: estadoDe(yo, siguientes),
-    });
+    avisar(acreedorId, centavos, r.pares);
   }
 
   return (
@@ -149,7 +129,12 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
       </nav>
 
       <Card size="sm" className="flex items-center gap-4" data-testid="mi-personaje">
-        <Personaje celebrar={festejos} className="h-28 w-28 shrink-0" apariencia={apariencia({ base: yoBase.base, estado: estadoYo, skin: yoBase.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
+        <Personaje
+          celebrar={festejos}
+          className="h-28 w-28 shrink-0"
+          apariencia={apariencia({ base: yoBase.base, estado: estadoYo, skin: yoBase.skinActivo, nivel: progreso.nivel })}
+          estado={estadoYo}
+        />
         <div className="min-w-0 flex-1">
           <Pill variant={estadoYo === "clean" ? "grass" : estadoYo === "mild" ? "lemon" : "rose"} data-testid="mi-estado">
             {ETIQUETA_ESTADO[estadoYo]}
@@ -161,15 +146,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
       {reaccion ? (
         <Card size="sm" data-testid="reaccion" role="status" className="flex flex-col gap-1">
           <p className="font-semibold">{reaccion.texto}</p>
-          {reaccion.xp > 0 ? (
-            <p data-testid="reaccion-xp" className="text-grass-text">
-              +{reaccion.xp} XP ⚡
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">El XP llega cuando una deuda queda saldada por completo.</p>
-          )}
-          {reaccion.subioNivel ? <p data-testid="reaccion-nivel">¡Subiste de nivel! 🎊</p> : null}
-          <p className="text-sm text-muted-foreground">Tu personaje: {ETIQUETA_ESTADO[reaccion.estado].toLowerCase()}</p>
+          <p className="text-sm text-muted-foreground">Tu deuda sigue igual hasta que lo confirme; el XP llega cuando lo haga.</p>
         </Card>
       ) : null}
 
@@ -183,17 +160,24 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
               {deudas.map((d) => {
                 const llave = `${d.deudorId}-${d.acreedorId}`;
                 const mia = d.deudorId === yo;
+                const pendiente = mia ? pendienteA(d.acreedorId) : 0;
+                const disponible = d.centavos - pendiente;
                 return (
                   <li key={llave} data-testid={`deuda-${llave}`} className="flex flex-col gap-2">
                     <span className={cn(mia && "font-semibold text-rose-text", d.acreedorId === yo && "font-semibold text-grass-text")}>
                       {frase(d.deudorId, d.acreedorId, formatoMXN(d.centavos))}
                     </span>
-                    {mia ? (
+                    {pendiente > 0 ? (
+                      <Pill variant="lemon" className="self-start" data-testid={`pendiente-${llave}`}>
+                        ⏳ {formatoMXN(pendiente)} por confirmar por {nombres[d.acreedorId]}
+                      </Pill>
+                    ) : null}
+                    {mia && disponible > 0 ? (
                       <form
                         className="flex flex-wrap items-center gap-2"
                         onSubmit={(e) => {
                           e.preventDefault();
-                          pagar(d.acreedorId, d.centavos, parsearMonto(montos[d.acreedorId] ?? ""));
+                          pagar(d.acreedorId, disponible, parsearMonto(montos[d.acreedorId] ?? ""));
                         }}
                       >
                         <label className="sr-only" htmlFor={`monto-${llave}`}>
@@ -211,7 +195,13 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
                         <Button type="submit" size="md" variant="outline" data-testid={`pagar-abonar-${llave}`}>
                           Abonar
                         </Button>
-                        <Button type="button" size="md" variant="grass" data-testid={`pagar-todo-${llave}`} onClick={() => pagar(d.acreedorId, d.centavos, d.centavos)}>
+                        <Button
+                          type="button"
+                          size="md"
+                          variant="grass"
+                          data-testid={`pagar-todo-${llave}`}
+                          onClick={() => pagar(d.acreedorId, disponible, disponible)}
+                        >
                           Pagar todo
                         </Button>
                       </form>
@@ -240,21 +230,30 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
                 La forma más sencilla de dejar todo en cero: {plan.length === 1 ? "1 pago" : `${plan.length} pagos`} en total.
               </p>
               <ul className="flex flex-col gap-2">
-                {plan.map((t) => (
-                  <li key={`${t.deId}>${t.aId}`} className="flex items-center justify-between" data-testid={`plan-${t.deId}-${t.aId}`}>
-                    <span>
-                      {nombres[t.deId] ?? t.deId} → {nombres[t.aId] ?? t.aId}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="font-display font-bold">{formatoMXN(t.centavos)}</span>
-                      {t.deId === yo && (
-                        <Button size="sm" data-testid={`plan-pagar-${t.deId}-${t.aId}`} onClick={() => pagarDelPlan(t.aId, t.centavos)}>
-                          Pagar
-                        </Button>
-                      )}
-                    </span>
-                  </li>
-                ))}
+                {plan.map((t) => {
+                  const pendiente = t.deId === yo ? pendienteA(t.aId) : 0;
+                  const restante = t.centavos - pendiente;
+                  return (
+                    <li key={`${t.deId}>${t.aId}`} className="flex items-center justify-between" data-testid={`plan-${t.deId}-${t.aId}`}>
+                      <span>
+                        {nombres[t.deId] ?? t.deId} → {nombres[t.aId] ?? t.aId}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <span className="font-display font-bold">{formatoMXN(t.centavos)}</span>
+                        {pendiente > 0 && (
+                          <Pill variant="lemon" data-testid={`plan-pendiente-${t.deId}-${t.aId}`}>
+                            ⏳ por confirmar
+                          </Pill>
+                        )}
+                        {t.deId === yo && restante > 0 && (
+                          <Button size="sm" data-testid={`plan-pagar-${t.deId}-${t.aId}`} onClick={() => pagarDelPlan(t.aId, restante)}>
+                            Pagar
+                          </Button>
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </>
           )}
@@ -266,7 +265,12 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
         <Card size="sm" className="mt-2">
           <ul className="divide-y-2 divide-border">
             {grupo.miembros.map((m) => (
-              <FriendRow key={m.id} miembro={{ ...m, estado: m.id === yo ? estadoYo : estadoDe(m.id) }} balanceCentavos={balances[m.id] ?? 0} esYo={m.id === yo} />
+              <FriendRow
+                key={m.id}
+                miembro={{ ...m, estado: m.id === yo ? estadoYo : estadoDe(m.id) }}
+                balanceCentavos={balances[m.id] ?? 0}
+                esYo={m.id === yo}
+              />
             ))}
           </ul>
         </Card>

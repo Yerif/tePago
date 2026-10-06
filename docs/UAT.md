@@ -61,11 +61,12 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 | T6 | "Mira tu perfil. ¿Qué te falta para la siguiente skin?" | Claridad de nivel, badges y skins | Responde bien |
 | T8 | "Fueron 4 y uno pidió un postre de $200 que nadie más comió. Divide los $1,000 para que se lo cobren solo a él." Luego: "¿Cuál es la forma más sencilla de que se paguen todos en el grupo de Oaxaca?" | ¿Encuentra "Por producto" y "Cómo pagarse"? | Sin ayuda |
 | T9 | "Abre la app como Ana. ¿Cuánto debes y a quién le tienes que pagar? Págalo." (inicio del demo, `?u=ana`) | ¿Encuentra qué pagar sin navegar? | Sin ayuda y en ≤ 3 toques |
+| T10 | En dos celulares (o cambiando de persona con `?u=`): "Ana le paga a Luis y avisa en la app. Luis: confirma el pago." Después: "Ana, ¿qué pasó con tu deuda y tus puntos?" | ¿Entiende que el pago queda pendiente hasta que se confirma? ¿Encuentra la confirmación en el inicio? | Sin ayuda; Ana explica que los puntos llegaron al confirmarse |
 | T7 | "Cambia a modo claro." | Toggle | Sin ayuda |
 
 ### Datos del demo para probar a fondo
 
-7 grupos y 11 personas de ejemplo (`lib/mock/datos.ts`). Entra a `/dev/demo?u=<persona>` para ver el inicio como esa persona. Como **Ana** (`?u=ana`): debe $4,821.39 en 4 grupos y le deben $2,240.00 en 2.
+7 grupos y 11 personas de ejemplo (`lib/mock/datos.ts`). Entra a `/dev/demo?u=<persona>` para ver el inicio como esa persona. Los pagos del demo se guardan en el navegador (para probar los dos lados); «Reiniciar pagos del demo» en el inicio los borra. Como **Ana** (`?u=ana`): debe $4,821.39 en 4 grupos y le deben $2,240.00 en 2.
 
 | Grupo | Para probar |
 |---|---|

@@ -84,18 +84,29 @@ test.describe("flujos críticos del demo", () => {
     const antes = await botones.count();
     expect(antes).toBeGreaterThan(0);
     await botones.first().click();
-    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("desde el plan");
+    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("Avisamos a");
     await expect(botones).toHaveCount(antes - 1);
   });
 
-  test("inicio: Ana ve cuánto debe y le paga a Luis desde el inicio", async ({ page }) => {
+  test("inicio: Ana paga a Luis, queda pendiente y se salda solo cuando Luis lo confirma", async ({ page }) => {
     await page.goto("/dev/demo");
     await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,821.39");
     await expect(page.getByTestId(ids.inicio_resumen.teDeben)).toHaveText("$2,240.00");
     await page.getByTestId(ids.inicio_resumen.pagar("roomies", "luis")).click();
-    await expect(page.getByTestId(ids.inicio_resumen.aviso)).toContainText("Pagaste $218.04 a Luis");
-    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,603.35");
+    await expect(page.getByTestId(ids.inicio_resumen.aviso)).toContainText("Avisamos a Luis");
+    // Pendiente: la deuda sigue igual y no se puede pagar otra vez.
+    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,821.39");
+    await expect(page.getByTestId(ids.pagos.pendienteInicio("roomies", "luis"))).toContainText("$218.04");
     await expect(page.getByTestId(ids.inicio_resumen.pagar("roomies", "luis"))).toHaveCount(0);
+
+    await page.goto("/dev/demo?u=luis");
+    await expect(page.getByTestId(ids.pagos.porConfirmar)).toContainText("Ana dice que ya te pagó $218.04");
+    await page.locator(ids.pagos.confirmar).click();
+
+    await page.goto("/dev/demo");
+    await expect(page.getByTestId(ids.pagos.avisos)).toContainText("Luis confirmó tu pago de $218.04");
+    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,603.35");
+    await expect(page.getByTestId(ids.pagos.pendienteInicio("roomies", "luis"))).toHaveCount(0);
   });
 
   test("inicio: quien no debe nada ve todo en orden", async ({ page }) => {
@@ -111,21 +122,52 @@ test.describe("flujos críticos del demo", () => {
     await expect(page.getByTestId(ids.confirmar.guardado)).toBeVisible();
   });
 
-  test("saldar: un abono no da XP; pagar todo sí y el personaje reacciona", async ({ page }) => {
+  test("saldar: el pago queda pendiente y solo quien recibe lo confirma; ahí llega el XP", async ({ page }) => {
     await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
     await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Deteriorado");
 
+    // Un abono: queda pendiente, nada cambia todavía.
     await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("100");
     await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("Te faltan $210.00");
-    await expect(page.getByTestId(ids.saldar.xp)).toHaveCount(0);
+    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("Avisamos a Ferni");
+    await expect(page.getByTestId(ids.pagos.pendienteDetalle("beto", "ferni"))).toContainText("$100.00");
+    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Deteriorado");
 
+    // Quien paga no ve nada por confirmar; Ferni sí, en su inicio.
+    await page.goto("/dev/demo?u=beto");
+    await expect(page.getByTestId(ids.pagos.porConfirmar)).toHaveCount(0);
+    await page.goto("/dev/demo?u=ferni");
+    await expect(page.getByTestId(ids.pagos.porConfirmar)).toContainText("Beto dice que ya te pagó $100.00");
+    await page.locator(ids.pagos.confirmar).click();
+    await expect(page.getByTestId(ids.pagos.porConfirmar)).toHaveCount(0);
+
+    // Beto se entera en su inicio; un abono no da XP.
+    await page.goto("/dev/demo?u=beto");
+    await expect(page.getByTestId(ids.pagos.avisos)).toContainText("Ferni confirmó tu pago de $100.00");
+    await expect(page.locator(ids.pagos.avisoXp)).toHaveCount(0);
+    await page.locator(ids.pagos.avisoOk).click();
+    await expect(page.getByTestId(ids.pagos.avisos)).toHaveCount(0);
+
+    // Paga lo que falta ($210): pendiente → Ferni confirma → +50 XP.
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
     await page.getByTestId(ids.saldar.todo("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.xp)).toHaveText("+50 XP ⚡");
+    await page.goto("/dev/demo?u=ferni");
+    await page.locator(ids.pagos.confirmar).click();
+    await page.goto("/dev/demo?u=beto");
+    await expect(page.locator(ids.pagos.avisoXp)).toHaveText("+50 XP ⚡");
+  });
 
-    await page.getByTestId(ids.saldar.todo("beto", "caro")).click();
-    await page.getByTestId(ids.saldar.todo("beto", "ana")).click();
-    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Radiante");
+  test("rechazar un pago no cambia la deuda y se le avisa a quien pagó", async ({ page }) => {
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    await page.getByTestId(ids.saldar.todo("beto", "ferni")).click();
+    await page.goto("/dev/demo?u=ferni");
+    await page.locator(ids.pagos.rechazar).click();
+    await page.goto("/dev/demo?u=beto");
+    await expect(page.getByTestId(ids.pagos.avisos)).toContainText("no le ha llegado tu pago de $310.00");
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    await expect(page.getByTestId("deuda-beto-ferni")).toContainText("$310.00");
+    await expect(page.getByTestId(ids.pagos.pendienteDetalle("beto", "ferni"))).toHaveCount(0);
+    await expect(page.getByTestId(ids.saldar.todo("beto", "ferni"))).toBeVisible();
   });
 
   test("saldar valida el monto", async ({ page }) => {
