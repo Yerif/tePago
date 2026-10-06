@@ -19,6 +19,7 @@ import { balancesNetos } from "@/lib/splits/balances";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
 import { planDePagos } from "@/lib/splits/plan";
+import { rutaDePago } from "@/lib/splits/ruta";
 import { aplicarPagos, partesQueSeSaldan, type Pago } from "@/lib/splits/pagos";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +97,33 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
       texto: quedaDeuda
         ? `Abonaste ${formatoMXN(centavos)} a ${nombres[acreedorId]}. Te faltan ${formatoMXN(deudaCentavos - centavos)} 🌱`
         : `¡Saldaste con ${nombres[acreedorId]}! 🎉`,
+      xp,
+      subioNivel: nivelDespues > nivelAntes,
+      estado: estadoDe(yo, siguientes),
+    });
+  }
+
+  /** Paga una transferencia del plan: se convierte en pagos por pares (si hay cadena A→B→C, A paga a B y B a C). */
+  function pagarDelPlan(acreedorId: string, centavos: number) {
+    const ruta = rutaDePago(deudas, yo, acreedorId, centavos);
+    if (ruta.sobranteCentavos > 0) return setError("Este pago todavía no se puede hacer desde aquí. Paga la deuda directa.");
+    setError(null);
+    let acumulados: readonly PagoDemo[] = pagosDe(grupoId);
+    let xp = 0;
+    for (const pago of ruta.pagos) {
+      // Solo cuentan las deudas tuyas que se terminan de saldar (las de otros no dan XP en el demo).
+      const saldadas = partesQueSeSaldan(grupo!.gastos, acumulados, pago).filter((x) => x.userId === yo);
+      xp += xpPorPago(saldadas, ahora);
+      acumulados = [...acumulados, { ...pago, grupoId }];
+    }
+    const siguientes = [...pagos, ...ruta.pagos.map((pago) => ({ ...pago, grupoId }))];
+    const nivelAntes = progreso.nivel;
+    const nivelDespues = progresoNivel(xpAcumuladaParaNivel(yoBase!.nivel) + yoBase!.xp + xpGanada + xp).nivel;
+    setPagos(siguientes);
+    if (xp > 0 || nivelDespues > nivelAntes) setFestejos((n) => n + 1);
+    setXpGanada((x) => x + xp);
+    setReaccion({
+      texto: `Pagaste ${formatoMXN(centavos)} a ${nombres[acreedorId]} desde el plan 🪄`,
       xp,
       subioNivel: nivelDespues > nivelAntes,
       estado: estadoDe(yo, siguientes),
@@ -225,7 +253,14 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
                     <span>
                       {nombres[t.deId] ?? t.deId} → {nombres[t.aId] ?? t.aId}
                     </span>
-                    <span className="font-display font-bold">{formatoMXN(t.centavos)}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="font-display font-bold">{formatoMXN(t.centavos)}</span>
+                      {t.deId === yo && (
+                        <Button size="sm" data-testid={`plan-pagar-${t.deId}-${t.aId}`} onClick={() => pagarDelPlan(t.aId, t.centavos)}>
+                          Pagar
+                        </Button>
+                      )}
+                    </span>
                   </li>
                 ))}
               </ul>

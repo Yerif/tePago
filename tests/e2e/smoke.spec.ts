@@ -78,6 +78,16 @@ test.describe("flujos críticos del demo", () => {
     await expect(page.getByTestId(ids.modos.comoPagarse)).toContainText("más sencilla");
   });
 
+  test("cómo pagarse: pagar desde el plan registra el pago y baja lo que debes", async ({ page }) => {
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    const botones = page.locator('[data-testid^="plan-pagar-beto-"]');
+    const antes = await botones.count();
+    expect(antes).toBeGreaterThan(0);
+    await botones.first().click();
+    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("desde el plan");
+    await expect(botones).toHaveCount(antes - 1);
+  });
+
   test("confirmar lo que entendió la app y guardar", async ({ page }) => {
     await page.goto("/dev/demo/ia?c=b1-05-cena-detalle");
     await expect(page.getByTestId(ids.confirmar.resultado)).toBeVisible();
