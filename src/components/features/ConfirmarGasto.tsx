@@ -170,7 +170,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
                     const dentro = r.reparto.some((x) => x.userId === m.id);
                     return (
                       <button key={m.id} type="button" aria-pressed={dentro} data-testid={`ia-renglon-${i}-${m.id}`} onClick={() => alternarEnRenglon(i, m.id)} className={chip(dentro)}>
-                        <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8" />
+                        <Avatar base={m.base} estado={m.estado} size="sm" compacto neutro className="size-8" />
                         {m.nombre}
                       </button>
                     );
@@ -190,7 +190,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
               const dentro = (restoEntre ?? []).includes(m.id);
               return (
                 <button key={m.id} type="button" aria-pressed={dentro} data-testid={`ia-resto-${m.id}`} onClick={() => setRestoEntre((prev) => alternar(prev ?? [], m.id))} className={chip(dentro)}>
-                  <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8" />
+                  <Avatar base={m.base} estado={m.estado} size="sm" compacto neutro className="size-8" />
                   {m.nombre}
                 </button>
               );

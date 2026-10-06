@@ -22,21 +22,6 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
   return (
     <main data-component="YoDemoPage" className="mx-auto flex max-w-md flex-col gap-5 p-6">
       <DebugDatos usuario={`${yo.nombre} (demo)`} estadoAvatar={yo.estado} />
-      <h1 className="font-display text-3xl font-bold">Yo 🌻</h1>
-      <Pill variant="lemon" className="self-start">
-        Datos de ejemplo · sin Supabase
-      </Pill>
-
-      <nav aria-label="Probar como" className="flex flex-wrap gap-2">
-        {[...miembros.values()].map((m) => (
-          <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`} className="inline-flex min-h-11 items-center">
-            <Pill variant={m.id === yo.id ? "grass" : "neutral"}>
-              <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8 border-0 bg-transparent" /> {m.nombre}
-            </Pill>
-          </Link>
-        ))}
-      </nav>
-
       <PerfilYo
         key={yo.id}
         id={yo.id}
@@ -45,6 +30,24 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
         skins={SKIN_SLUGS.map((slug) => ({ slug, nombre: SKINS[slug].nombre, accesorio: SKINS[slug].accesorio, requisito: requisitoSkin(slug) }))}
         badges={yo.badges.map((b) => ({ slug: b, nombre: BADGES_DEMO[b]?.nombre ?? b, variant: BADGES_DEMO[b]?.variant ?? "neutral" }))}
       />
+
+      <details data-testid="herramientas-demo" className="rounded-3xl border-[2.5px] border-dashed border-border p-4">
+        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">🧪 Herramientas de prueba</summary>
+        <div className="mt-3 flex flex-col gap-3">
+          <Pill variant="lemon" className="self-start">
+            Datos de ejemplo · sin Supabase
+          </Pill>
+      <nav aria-label="Probar como" className="flex flex-wrap gap-2">
+            {[...miembros.values()].map((m) => (
+              <Link key={m.id} href={`/dev/demo/yo?u=${m.id}`} aria-current={m.id === yo.id ? "page" : undefined} data-testid={`probar-${m.id}`} className="inline-flex min-h-11 items-center">
+                <Pill variant={m.id === yo.id ? "grass" : "neutral"}>
+                  <Avatar base={m.base} estado={m.estado} size="sm" compacto className="size-8 border-0 bg-transparent" /> {m.nombre}
+                </Pill>
+              </Link>
+            ))}
+          </nav>
+        </div>
+      </details>
     </main>
   );
 }
