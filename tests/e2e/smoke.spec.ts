@@ -90,11 +90,11 @@ test.describe("flujos críticos del demo", () => {
 
   test("inicio: Ana ve cuánto debe y le paga a Luis desde el inicio", async ({ page }) => {
     await page.goto("/dev/demo");
-    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$218.04");
-    await expect(page.getByTestId(ids.inicio_resumen.teDeben)).not.toHaveText("$0.00");
+    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,821.39");
+    await expect(page.getByTestId(ids.inicio_resumen.teDeben)).toHaveText("$2,240.00");
     await page.getByTestId(ids.inicio_resumen.pagar("roomies", "luis")).click();
     await expect(page.getByTestId(ids.inicio_resumen.aviso)).toContainText("Pagaste $218.04 a Luis");
-    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$0.00");
+    await expect(page.getByTestId(ids.inicio_resumen.debes)).toHaveText("$4,603.35");
     await expect(page.getByTestId(ids.inicio_resumen.pagar("roomies", "luis"))).toHaveCount(0);
   });
 

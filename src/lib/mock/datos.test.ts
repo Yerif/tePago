@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { badgesValidos, estaDesbloqueada } from "@/lib/game/skins";
 import { balancesNetos } from "@/lib/splits/balances";
+import { deudasEntrePersonas } from "@/lib/splits/deudas";
+import { planDePagos } from "@/lib/splits/plan";
+import { resumenPersona } from "@/lib/splits/resumen";
 import { BADGES_DEMO, crearGrupos, YO } from "./datos";
 
 const ahora = new Date("2026-09-29T12:00:00Z");
@@ -11,8 +14,8 @@ describe("datos de ejemplo", () => {
     expect(crearGrupos(ahora)).toEqual(grupos);
   });
 
-  it("hay 2 grupos y yo estoy en ambos", () => {
-    expect(grupos).toHaveLength(2);
+  it("hay 7 grupos y yo estoy en todos", () => {
+    expect(grupos.map((g) => g.id)).toEqual(["oaxaca", "roomies", "playa", "peda", "oficina", "cocina", "abuela"]);
     for (const g of grupos) expect(g.miembros.map((m) => m.id)).toContain(YO);
   });
 
@@ -48,17 +51,48 @@ describe("datos de ejemplo", () => {
   });
 
   it("estado del avatar derivado de las deudas (esperado a mano, CLAUDE.md §7)", () => {
-    // ana: en Roomies debe $218.04 netos (200 de internet + 400 de cumple − 381.96 del súper), hace ≤ 12 h → mild.
-    // ferni y caro: saldo a favor. beto: debe $1,725.12 (y una deuda de 120 h). luis: saldo a favor. mari: debe $3,381.96 → rekt.
+    // ana: debe $4,821.39 repartidos en 4 grupos (con deudas de hasta 100 h) → rekt.
+    // beto: debe $1,845.12 en Oaxaca (y una deuda de 120 h) → rekt. mari: debe $3,381.96 → rekt.
+    // pau (−$1,033.33), rafa (−$1,733.33) y dani (−$1,108.33) en la playa, con deudas de ≥ 70 h → rekt.
+    // nico: solo debe $125 en Oficina (60 h) y en la playa va a favor → mild. sofi: debe $75 en Oficina (18 h) → mild.
+    // ferni, caro y luis: saldo a favor en todos sus grupos → clean.
     const estado = (id: string) => grupos.flatMap((g) => g.miembros).find((m) => m.id === id)?.estado;
-    expect(["ana", "ferni", "caro", "beto", "luis", "mari"].map(estado)).toEqual([
-      "mild",
+    expect(["ana", "ferni", "caro", "beto", "luis", "mari", "nico", "pau", "rafa", "sofi", "dani"].map(estado)).toEqual([
+      "rekt",
       "clean",
       "clean",
       "rekt",
       "clean",
+      "rekt",
+      "mild",
+      "rekt",
+      "rekt",
+      "mild",
       "rekt",
     ]);
+  });
+
+  it("escenarios para probar a fondo", () => {
+    const grupo = (id: string) => grupos.find((g) => g.id === id)!;
+    const plan = (id: string) => planDePagos(balancesNetos(grupo(id).gastos));
+    // Ana le debe (en el plan) a gente de 4 grupos distintos y le deben en 2.
+    const resumen = resumenPersona(grupos, YO);
+    expect(resumen.porGrupo.map((g) => g.grupoId)).toEqual(["oaxaca", "roomies", "playa", "peda", "oficina", "abuela"]);
+    expect(resumen.debesCentavos).toBe(482_139);
+    expect(resumen.teDebenCentavos).toBe(224_000);
+    // La playa tiene 6 personas con deudas cruzadas: el plan nunca pide más de n − 1 pagos.
+    expect(plan("playa").length).toBeLessThanOrEqual(5);
+    // Peda: Ana y Dani se deben $120 mutuamente; el neteo por pares los deja a mano.
+    const entre = deudasEntrePersonas(grupo("peda").gastos);
+    expect(entre.some((d) => [d.deudorId, d.acreedorId].sort().join() === "ana,dani" && d.centavos > 4000)).toBe(false);
+    // Clases de cocina está al corriente.
+    expect(plan("cocina")).toEqual([]);
+    // Abuela: Ana le debe a 3 personas distintas.
+    expect(plan("abuela").map((t) => t.aId).sort()).toEqual(["caro", "ferni", "luis"]);
+    // Hay deudas viejas (> 72 h) y recientes (< 24 h).
+    const horas = grupos.flatMap((g) => g.gastos.map((e) => (ahora.getTime() - new Date(e.fecha).getTime()) / 3_600_000));
+    expect(Math.max(...horas)).toBeGreaterThan(120);
+    expect(Math.min(...horas)).toBeLessThan(10);
   });
 
   it("una persona tiene el mismo estado en todos sus grupos", () => {
