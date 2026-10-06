@@ -63,6 +63,22 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 | T9 | "Abre la app como Ana. ¿Cuánto debes y a quién le tienes que pagar? Págalo." (inicio del demo, `?u=ana`) | ¿Encuentra qué pagar sin navegar? | Sin ayuda y en ≤ 3 toques |
 | T7 | "Cambia a modo claro." | Toggle | Sin ayuda |
 
+### Datos del demo para probar a fondo
+
+7 grupos y 11 personas de ejemplo (`lib/mock/datos.ts`). Entra a `/dev/demo?u=<persona>` para ver el inicio como esa persona. Como **Ana** (`?u=ana`): debe $4,821.39 en 4 grupos y le deben $2,240.00 en 2.
+
+| Grupo | Para probar |
+|---|---|
+| Viaje a Oaxaca | Beto debe a 3 personas (flujo T5: abonos y pagar todo); Ana es acreedora |
+| Roomies | Cadena de deudas (Mari → Luis, Ana → Luis) y reparto con residuo de centavos |
+| Casa en la playa | 6 personas con deudas cruzadas, repartos desiguales, deudas de hasta 100 h; Ana debe a Nico, Pau, Rafa y Sofi |
+| Peda del viernes | Deudas recientes (< 24 h) y pares que se compensan (Ana ↔ Dani) |
+| Oficina | Ana es acreedora de 3 personas; Sofi y Nico en `mild` |
+| Clases de cocina | Todo saldado: "Todo en orden" |
+| Cumple de la abuela | Ana le debe a 3 personas distintas a la vez (Caro, Ferni, Luis) |
+
+Estados del personaje: Ana, Beto, Mari, Pau, Rafa y Dani `rekt`; Nico y Sofi `mild`; Ferni, Caro y Luis `clean`.
+
 ## 5. Preguntas al final (5 minutos)
 
 Mismas que `docs/FEEDBACK.md`, más:
