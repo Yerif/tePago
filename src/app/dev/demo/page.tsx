@@ -33,7 +33,7 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
       </nav>
 
       <h2 className="mt-2 font-display text-xl font-bold">Hola, {miembros.get(yo)?.nombre} 👋</h2>
-      <ResumenInicio grupos={grupos} yo={yo} base="/dev/demo/g" />
+      <ResumenInicio key={yo} grupos={grupos} yo={yo} base="/dev/demo/g" ahoraIso={new Date().toISOString()} />
 
       <h2 className="mt-2 font-display text-xl font-bold">Home de grupo</h2>
       <ListaGrupos grupos={grupos} yo={yo} base="/dev/demo/g" />
