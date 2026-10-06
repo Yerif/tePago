@@ -21,7 +21,7 @@ UAT-1 **no** valida: login, grupos reales, invitaciones, persistencia, IA real, 
 1. Vercel → proyecto → **Settings → Deployment Protection**: si "Vercel Authentication" aplica a previews, la banda tendría que iniciar sesión con Vercel. Como el demo no tiene datos sensibles, se puede desactivar **solo para previews**. Si no se quiere, UAT-1 se hace con cuentas de Vercel invitadas (peor).
 2. **Ninguna llave real en el scope Preview** (`ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`). Las llaves reales viven solo en Production (CLAUDE.md §9).
 3. La URL estable es la de la rama: Vercel → Deployments → rama `develop` → "Domains". Mandar esa, no la de un commit.
-4. Entrar por `/dev/demo` (la raíz `/` en preview muestra el botón "Ver demo con datos de ejemplo").
+4. Entrar por `/dev/demo`: abre directo en el inicio de pagos de Ana. Pedir que lo abran en **Chrome o Safari**, no en el visor integrado de WhatsApp o Instagram (puede cambiar WebGL y `localStorage`, donde el demo guarda los pagos).
 5. Pedir que la abran en el celular y la agreguen a la pantalla de inicio (cuando UAT-05 esté listo).
 
 ## 3. Criterios de entrada
@@ -67,7 +67,7 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 
 ### Datos del demo para probar a fondo
 
-7 grupos y 11 personas de ejemplo (`lib/mock/datos.ts`). Entra a `/dev/demo?u=<persona>` para ver el inicio como esa persona. Los pagos del demo se guardan en el navegador (para probar los dos lados); «Reiniciar pagos del demo» en el inicio los borra. Como **Ana** (`?u=ana`): debe $4,821.39 en 4 grupos y le deben $2,240.00 en 2.
+7 grupos y 11 personas de ejemplo (`lib/mock/datos.ts`). Entra a `/dev/demo?u=<persona>` para ver el inicio como esa persona. Los pagos del demo se guardan en el navegador (para probar los dos lados); «Reiniciar pagos del demo» en el inicio los borra. Como **Ana** (`?u=ana`): el inicio suma sus deudas directas por persona: debe $5,631.68 a 7 personas y le deben $3,050.29 (4 personas).
 
 | Grupo | Para probar |
 |---|---|
@@ -116,4 +116,4 @@ UAT-2 añade: semana 2 con ≥ 60 % de la banda activa (≥ 1 gasto o pago por s
 
 > ¡Hola! Estoy armando **Cuentas Conmigo**, una app para dividir gastos donde tu personaje brilla si pagas rápido 🌻
 > Todavía es un prototipo con datos de ejemplo (no se guarda nada), y quiero ver qué tan natural se siente. ¿Me das 10 minutos desde tu celular?
-> Abre este enlace: {{URL}} y toca "Ver demo con datos de ejemplo". Te voy a pedir hacer unas 6 cosas chiquitas; no hay respuestas malas. 🙌
+> Abre este enlace en Chrome o Safari: {{URL}}/dev/demo. Te voy a pedir hacer unas 6 cosas chiquitas; no hay respuestas malas. 🙌
