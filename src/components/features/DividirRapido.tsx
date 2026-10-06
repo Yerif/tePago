@@ -63,6 +63,7 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
   const [guardados, setGuardados] = useState<GuardadoDemo[]>([]);
   const [aviso, setAviso] = useState<string | null>(null);
   const [modo, setModo] = useState<Modo>("igual");
+  const [otrasFormas, setOtrasFormas] = useState(false);
   // Lo capturado por modo: al cambiar de modo y volver no se pierde nada.
   const [valores, setValores] = useState<Partial<Record<ModoDividir, Record<string, string>>>>({});
   const [renglones, setRenglones] = useState<RenglonProducto[]>([]);
@@ -188,26 +189,24 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
           />
         </div>
 
-        <fieldset>
-          <legend className="mb-2 text-sm text-muted-foreground">Grupo</legend>
-          <div className="flex flex-wrap gap-2">
+        <div>
+          <label htmlFor="grupo" className="mb-1 block text-sm text-muted-foreground">
+            Grupo
+          </label>
+          <select
+            id="grupo"
+            data-testid="dividir-grupo"
+            value={grupo.id}
+            onChange={(e) => cambiarGrupo(e.target.value)}
+            className="min-h-11 w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2"
+          >
             {grupos.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                aria-pressed={g.id === grupo.id}
-                data-testid={`grupo-${g.id}`}
-                onClick={() => cambiarGrupo(g.id)}
-                className={cn(
-                  "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
-                  g.id === grupo.id ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
-                )}
-              >
+              <option key={g.id} value={g.id}>
                 {g.icono} {g.nombre}
-              </button>
+              </option>
             ))}
-          </div>
-        </fieldset>
+          </select>
+        </div>
 
         <fieldset>
           <legend className="mb-2 text-sm text-muted-foreground">Entre quiénes (toca para quitar)</legend>
@@ -234,26 +233,33 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
           </div>
         </fieldset>
 
-        <fieldset>
-          <legend className="mb-2 text-sm text-muted-foreground">¿Cómo lo dividimos?</legend>
-          <div className="flex flex-wrap gap-2">
-            {MODOS.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                aria-pressed={m.id === modo}
-                data-testid={`modo-${m.id}`}
-                onClick={() => setModo(m.id)}
-                className={cn(
-                  "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
-                  m.id === modo ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
-                )}
-              >
-                {m.etiqueta}
-              </button>
-            ))}
-          </div>
-        </fieldset>
+        <div>
+          <Button variant="ghost" size="md" aria-expanded={otrasFormas || modo !== "igual"} data-testid="otras-formas" onClick={() => setOtrasFormas((v) => !v)} className="-ml-4">
+            {otrasFormas || modo !== "igual" ? "Otras formas de dividir ▴" : "Otras formas de dividir ▾"}
+          </Button>
+          {(otrasFormas || modo !== "igual") && (
+            <fieldset className="mt-2">
+              <legend className="sr-only">¿Cómo lo dividimos?</legend>
+              <div className="flex flex-wrap gap-2">
+                {MODOS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    aria-pressed={m.id === modo}
+                    data-testid={`modo-${m.id}`}
+                    onClick={() => setModo(m.id)}
+                    className={cn(
+                      "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
+                      m.id === modo ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
+                    )}
+                  >
+                    {m.etiqueta}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </div>
 
         {modo !== "igual" && modo !== "producto" && (
           <ModoPorPersona
@@ -315,9 +321,11 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
         )}
       </Card>
 
-      <Button size="lg" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
-        Confirmar gasto
-      </Button>
+      <div className="sticky bottom-20 z-30 -mx-2 bg-background/90 px-2 py-2 backdrop-blur">
+        <Button size="lg" className="w-full" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
+          Confirmar gasto
+        </Button>
+      </div>
 
       {aviso && (
         <Pill variant="grass" data-testid="dividir-aviso" className="self-start">

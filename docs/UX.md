@@ -1,5 +1,6 @@
 # Análisis UX/UI — "doy mil vueltas para pagar o ver a quién le debo"
 
+> **Estado (2026-10-06): UX-01 a UX-09 implementados** (decisiones de §5 aprobadas por Yerif; además, un pago rechazado se puede aprobar más tarde y quien pagó puede cancelarlo). UX-10 queda post-MVP.
 > Fecha: 2026-10-06 · Medido sobre la preview de `develop` (demo de 7 grupos, 375×812 px, dark). Solo análisis: no cambia código.
 > Las propuestas de §4 no son MVP nuevo, son la **forma** de las pantallas que ya existen; las que cambian una regla de producto (§5) esperan decisión de Yerif.
 
