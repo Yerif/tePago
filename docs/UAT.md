@@ -60,6 +60,7 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 | T5 | "Eres Beto y le debes a tres amigos. Paga lo que debes: primero un abono y luego el resto." (en el detalle del grupo Oaxaca, `?u=beto` o la pill de Beto) | ¿Entiende qué cambió en su personaje? | Dice con sus palabras qué ganó o recuperó |
 | T6 | "Mira tu perfil. ¿Qué te falta para la siguiente skin?" | Claridad de nivel, badges y skins | Responde bien |
 | T8 | "Fueron 4 y uno pidió un postre de $200 que nadie más comió. Divide los $1,000 para que se lo cobren solo a él." Luego: "¿Cuál es la forma más sencilla de que se paguen todos en el grupo de Oaxaca?" | ¿Encuentra "Por producto" y "Cómo pagarse"? | Sin ayuda |
+| T9 | "Abre la app como Ana. ¿Cuánto debes y a quién le tienes que pagar? Págalo." (inicio del demo, `?u=ana`) | ¿Encuentra qué pagar sin navegar? | Sin ayuda y en ≤ 3 toques |
 | T7 | "Cambia a modo claro." | Toggle | Sin ayuda |
 
 ## 5. Preguntas al final (5 minutos)

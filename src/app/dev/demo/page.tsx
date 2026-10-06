@@ -3,13 +3,17 @@ import Link from "next/link";
 import { Pill } from "@/components/cozy/Pill";
 import { Card } from "@/components/ui/Card";
 import { ListaGrupos } from "@/components/features/ListaGrupos";
+import { ResumenInicio } from "@/components/features/ResumenInicio";
 import { crearGrupos, YO } from "@/lib/mock/datos";
 
 export const metadata: Metadata = { title: "Demo · Cuentas Conmigo" };
 export const dynamic = "force-dynamic"; // las fechas de ejemplo son relativas a "ahora"
 
-export default function DemoIndexPage() {
+export default async function DemoIndexPage({ searchParams }: { searchParams: Promise<{ u?: string }> }) {
+  const { u } = await searchParams;
   const grupos = crearGrupos(new Date());
+  const miembros = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
+  const yo = u && miembros.has(u) ? u : YO;
   return (
     <main data-component="DemoIndexPage" className="mx-auto flex max-w-md flex-col gap-4 p-6">
       <h1 className="font-display text-3xl font-bold">Demo 🌻</h1>
@@ -20,8 +24,19 @@ export default function DemoIndexPage() {
         Pantallas con datos ficticios para probar la UI desde el celular. Nada se guarda: al recargar vuelve todo a como estaba.
       </p>
 
+      <nav aria-label="Probar como" className="flex flex-wrap gap-2">
+        {[...miembros.values()].map((m) => (
+          <Link key={m.id} href={`/dev/demo?u=${m.id}`} aria-current={m.id === yo ? "page" : undefined} data-testid={`inicio-probar-${m.id}`} className="inline-flex min-h-11 items-center">
+            <Pill variant={m.id === yo ? "grass" : "neutral"}>{m.nombre}</Pill>
+          </Link>
+        ))}
+      </nav>
+
+      <h2 className="mt-2 font-display text-xl font-bold">Hola, {miembros.get(yo)?.nombre} 👋</h2>
+      <ResumenInicio grupos={grupos} yo={yo} base="/dev/demo/g" />
+
       <h2 className="mt-2 font-display text-xl font-bold">Home de grupo</h2>
-      <ListaGrupos grupos={grupos} yo={YO} base="/dev/demo/g" />
+      <ListaGrupos grupos={grupos} yo={yo} base="/dev/demo/g" />
 
       <h2 className="mt-2 font-display text-xl font-bold">Dividir</h2>
       <Link href="/dev/demo/dividir" data-testid="demo-dividir">

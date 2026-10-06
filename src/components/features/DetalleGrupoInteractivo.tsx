@@ -237,7 +237,7 @@ export function DetalleGrupoInteractivo({ grupos, grupoId, yo, ahoraIso }: Detal
         </Card>
       </section>
 
-      <section data-testid="como-pagarse">
+      <section id="como-pagarse" data-testid="como-pagarse">
         <h2 className="font-display text-xl font-bold">Cómo pagarse 🪄</h2>
         <Card size="sm" className="mt-2">
           {plan.length === 0 ? (

@@ -16,6 +16,7 @@ export const ids = {
     parte: (id: string) => `parte-${id}`,
     comoPagarse: "como-pagarse",
   },
+  inicio_resumen: { debes: "inicio-debes", teDeben: "inicio-te-deben", enOrden: "inicio-en-orden", pagar: (g: string, a: string) => `inicio-pagar-${g}-${a}`, probar: (id: string) => `inicio-probar-${id}` },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },
   personaje: { raiz: "personaje", canvas: "personaje-canvas", respaldo: "personaje-respaldo", estado: (e: string) => `estado-${e}`, base: (b: string) => `base-${b}`, skin: (s: string) => `skin-${s}`, nivel: "nivel", festejar: "festejar", celebraciones: "data-celebraciones" },
   saldar: {

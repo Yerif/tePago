@@ -87,6 +87,7 @@ export function crearGrupos(ahora: Date): GrupoDemo[] {
         gasto({ id: "e2", descripcion: "Mezcal y chelas", categoria: "fiesta", totalCentavos: 86050, pagadoPor: "caro", participantes: oaxaca, saldados: ["ferni", "ana"], haceHoras: 44 }, ahora),
         gasto({ id: "e3", descripcion: "Airbnb 3 noches", categoria: "hospedaje", totalCentavos: 480000, pagadoPor: "ana", participantes: oaxaca, saldados: ["ferni", "caro"], haceHoras: 120 }, ahora),
         gasto({ id: "e4", descripcion: "Taxi al aeropuerto", categoria: "transporte", totalCentavos: 38000, pagadoPor: "beto", participantes: ["ana", "beto", "ferni"], saldados: ["ana", "ferni"], haceHoras: 6 }, ahora),
+        gasto({ id: "e5", descripcion: "Desayuno en el mercado", categoria: "comida", totalCentavos: 48000, pagadoPor: "caro", participantes: oaxaca, haceHoras: 30 }, ahora),
       ],
     },
     {
@@ -98,6 +99,8 @@ export function crearGrupos(ahora: Date): GrupoDemo[] {
         gasto({ id: "r1", descripcion: "Renta de octubre", categoria: "hogar", totalCentavos: 900000, pagadoPor: "luis", participantes: roomies, saldados: ["ana"], haceHoras: 60 }, ahora),
         gasto({ id: "r2", descripcion: "Súper de la semana", categoria: "super", totalCentavos: 114590, pagadoPor: "ana", participantes: roomies, saldados: ["luis"], haceHoras: 30 }, ahora),
         gasto({ id: "r3", descripcion: "Luz", categoria: "hogar", totalCentavos: 48000, pagadoPor: "mari", participantes: roomies, saldados: ["ana", "luis"], haceHoras: 10 }, ahora),
+        gasto({ id: "r4", descripcion: "Internet y streaming", categoria: "hogar", totalCentavos: 60000, pagadoPor: "mari", participantes: roomies, haceHoras: 12 }, ahora),
+        gasto({ id: "r5", descripcion: "Cena de cumple de Luis", categoria: "fiesta", totalCentavos: 120000, pagadoPor: "luis", participantes: roomies, haceHoras: 8 }, ahora),
       ],
     },
   ];

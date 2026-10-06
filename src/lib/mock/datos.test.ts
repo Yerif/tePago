@@ -48,13 +48,13 @@ describe("datos de ejemplo", () => {
   });
 
   it("estado del avatar derivado de las deudas (esperado a mano, CLAUDE.md §7)", () => {
-    // ana y ferni: sin deudas. caro: debe $94.88 hace 20 h. beto: debe $1,725.12 (y una deuda de 120 h).
-    // luis: sin deudas. mari: debe $3,381.96 → rekt.
+    // ana: en Roomies debe $218.04 netos (200 de internet + 400 de cumple − 381.96 del súper), hace ≤ 12 h → mild.
+    // ferni y caro: saldo a favor. beto: debe $1,725.12 (y una deuda de 120 h). luis: saldo a favor. mari: debe $3,381.96 → rekt.
     const estado = (id: string) => grupos.flatMap((g) => g.miembros).find((m) => m.id === id)?.estado;
     expect(["ana", "ferni", "caro", "beto", "luis", "mari"].map(estado)).toEqual([
-      "clean",
-      "clean",
       "mild",
+      "clean",
+      "clean",
       "rekt",
       "clean",
       "rekt",
