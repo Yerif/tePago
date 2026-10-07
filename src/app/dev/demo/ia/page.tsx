@@ -5,6 +5,7 @@ import { Pill } from "@/components/cozy/Pill";
 import { ConfirmarGasto } from "@/components/features/ConfirmarGasto";
 import { borradorDesdeB1 } from "@/lib/ai/aBorrador";
 import { avisosDeB1 } from "@/lib/ai/avisos";
+import { ejemploMasParecido } from "@/lib/ai/ejemploParecido";
 import { CasoB1 } from "@/lib/ai/evals";
 import casosJson from "../../../../../evals/b1/casos.json";
 
@@ -13,9 +14,12 @@ export const metadata: Metadata = { title: "Confirmar gasto (demo)" };
 const BASES_EJEMPLO = ["oso", "zorro", "conejo", "rana"];
 const casos = z.array(CasoB1).parse(casosJson).filter((c) => c.tipo === "normal" && c.esperado);
 
-export default async function ConfirmarDemoPage({ searchParams }: { searchParams: Promise<{ c?: string }> }) {
-  const { c } = await searchParams;
-  const caso = casos.find((x) => x.id === c) ?? casos[0];
+export default async function ConfirmarDemoPage({ searchParams }: { searchParams: Promise<{ c?: string; t?: string }> }) {
+  const { c, t } = await searchParams;
+  // Con una frase propia (`t`) se usa el ejemplo más parecido; sin llamadas reales todavía, así se ve la pantalla de revisión.
+  const frase = t?.trim().slice(0, 280) ?? "";
+  const idParecido = frase ? ejemploMasParecido(frase, casos.map((x) => ({ id: x.id, texto: x.entrada.texto }))) : null;
+  const caso = casos.find((x) => x.id === (c ?? idParecido)) ?? casos[0];
   if (!caso?.esperado) return null;
 
   const miembros = caso.entrada.miembros.map((m, i) => ({ id: m.alias, nombre: m.nombre, base: BASES_EJEMPLO[i] ?? "gato", estado: "clean" as const }));
@@ -23,15 +27,15 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
 
   return (
     <main data-component="ConfirmarDemoPage" className="mx-auto flex max-w-md flex-col gap-4 p-6">
-      <Link href="/dev/demo" className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
-        ← Demo
+      <Link href={frase ? "/dev/demo/dividir" : "/dev/demo"} className="inline-flex min-h-11 items-center text-sm text-muted-foreground underline">
+        {frase ? "← Dividir" : "← Demo"}
       </Link>
       <h1 className="font-display text-3xl font-bold">Confirmar gasto ✅</h1>
       <Pill variant="lemon" className="self-start">
         Ejemplos de prueba · sin llamadas a la API
       </Pill>
       <p className="text-sm text-muted-foreground">
-        Elige un mensaje: la pantalla muestra cómo se revisa lo que se entendió antes de guardar. Cada ejemplo sale de los casos de <code>evals/</code>.
+        {frase ? "Todavía no leo frases nuevas: te muestro el ejemplo más parecido a lo que escribiste. " : ""}Elige un mensaje: la pantalla muestra cómo se revisa lo que se entendió antes de guardar. Cada ejemplo sale de los casos de <code>evals/</code>.
       </p>
 
       <nav aria-label="Ejemplos" className="flex flex-wrap gap-2">
@@ -46,7 +50,7 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
         key={caso.id}
         miembros={miembros}
         quienEscribeId="m1"
-        textoOriginal={caso.entrada.texto}
+        textoOriginal={frase || caso.entrada.texto}
         borradorInicial={borradorDesdeB1(caso.esperado, alias)}
         avisos={avisosDeB1(caso.esperado)}
       />
