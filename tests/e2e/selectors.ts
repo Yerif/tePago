@@ -55,7 +55,7 @@ export const ids = {
     herramientas: "herramientas-demo",
   },
   perfil: { nombre: "perfil-nombre", guardar: "perfil-guardar", error: "perfil-error", guardado: "perfil-guardado", actual: "perfil-nombre-actual", base: (b: string) => `perfil-base-${b}` },
-  inicio_hero: { raiz: "inicio-hero", globo: "inicio-globo", camino: "inicio-camino" },
+  inicio_hero: { raiz: "inicio-hero", globo: "inicio-globo", camino: "inicio-camino", toque: "inicio-personaje-toque" },
   revelacion: { raiz: "revelacion", xp: "revelacion-xp", nivel: "revelacion-nivel", estado: "revelacion-estado", ok: "revelacion-ok" },
   yo: { heroe: "perfil-heroe", meta: "perfil-meta", skinActiva: "skin-activa", probar: (s: string) => `skin-probar-${s}`, banda: "perfil-banda" },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },

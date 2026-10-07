@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { DURACION_PARPADEO_S, esperaParpadeo } from "@/lib/game/vivo";
 import { useEffect, useRef, useState } from "react";
 import type { Group, Scene } from "three";
 import type { Accesorio, Apariencia, BaseSlug, Efecto } from "@/lib/game/apariencia";
@@ -95,28 +96,51 @@ const CONTRASTE_MINIMO_CARA = 3.5;
  * Cara: ojos con un brillo, cejas y boca. Si el cuerpo es oscuro (o se oscurece al deteriorarse) los ojos llevan esclera
  * clara y las cejas y la boca se vuelven claras, para que la cara —el canal emocional— se lea en las 9 bases (PX-12).
  */
-function Cara({ animo, fondo }: { animo: Apariencia["animo"]; fondo: string }) {
+function Cara({ animo, fondo, parpadear }: { animo: Apariencia["animo"]; fondo: string; parpadear: boolean }) {
+  const clock = useThree((st) => st.clock);
+  const ojos = useRef<Group[]>([]);
+  const proximo = useRef<number | null>(null);
+  // Parpadeo: cada 3–6 s los ojos se aplastan 0.14 s. Sin ritmo (movimiento reducido) no parpadea.
+  useFrame(() => {
+    const t = clock.getElapsedTime();
+    proximo.current ??= t + esperaParpadeo(Math.random()) / 1000;
+    let k = 1;
+    if (parpadear && t >= proximo.current) {
+      const dt = t - proximo.current;
+      if (dt >= DURACION_PARPADEO_S) proximo.current = t + esperaParpadeo(Math.random()) / 1000;
+      else k = 1 - 0.9 * Math.sin((dt / DURACION_PARPADEO_S) * Math.PI);
+    }
+    for (const o of ojos.current) o.scale.y = k;
+  });
   const ojoY = animo === "triste" ? 1.0 : 1.06;
   const oscuro = contraste(OSCURO, fondo) < CONTRASTE_MINIMO_CARA;
   const trazo = oscuro ? CLARO : OSCURO;
   return (
     <group position={[0, 0, 0.62]}>
-      {[-0.22, 0.22].map((x) => (
+      {[-0.22, 0.22].map((x, i) => (
         <group key={x}>
-          {oscuro ? (
-            <mesh position={[x, ojoY, 0.03]} scale={[1, 1.15, 0.6]}>
-              <sphereGeometry args={[0.115, 16, 12]} />
-              <meshStandardMaterial color={CLARO} />
+          {/* Ojo (esclera, pupila y brillo) en su propio grupo para poder aplastarlo al parpadear. */}
+          <group
+            ref={(g) => {
+              if (g) ojos.current[i] = g;
+            }}
+            position={[x, ojoY, 0]}
+          >
+            {oscuro ? (
+              <mesh position={[0, 0, 0.03]} scale={[1, 1.15, 0.6]}>
+                <sphereGeometry args={[0.115, 16, 12]} />
+                <meshStandardMaterial color={CLARO} />
+              </mesh>
+            ) : null}
+            <mesh position={[0, 0, 0.07]}>
+              <sphereGeometry args={[oscuro ? 0.062 : 0.075, 14, 12]} />
+              <meshStandardMaterial color={OSCURO} />
             </mesh>
-          ) : null}
-          <mesh position={[x, ojoY, 0.07]}>
-            <sphereGeometry args={[oscuro ? 0.062 : 0.075, 14, 12]} />
-            <meshStandardMaterial color={OSCURO} />
-          </mesh>
-          <mesh position={[x + 0.025, ojoY + 0.03, 0.125]}>
-            <sphereGeometry args={[0.02, 8, 8]} />
-            <meshBasicMaterial color="#FFFFFF" />
-          </mesh>
+            <mesh position={[0.025, 0.03, 0.125]}>
+              <sphereGeometry args={[0.02, 8, 8]} />
+              <meshBasicMaterial color="#FFFFFF" />
+            </mesh>
+          </group>
           {animo !== "contento" ? (
             // Cejas de pena: el extremo de adentro sube (más inclinadas si está triste).
             <mesh position={[x, ojoY + 0.19, 0.05]} rotation={[0, 0, (x > 0 ? -1 : 1) * (animo === "triste" ? 0.5 : 0.28)]}>
@@ -307,6 +331,7 @@ function useSuave(objetivo: number, ms: number): number {
 }
 
 const DURACION_FESTEJO = 1.6;
+const DURACION_SALUDO = 0.5;
 const VUELTA_FESTEJO = 0.6;
 const CONFETI = ["#FF8FAB", "#FFE566", "#7DDEC8", "#C4A8E8", "#74C2E8", "#FFB085"];
 
@@ -341,10 +366,11 @@ function Confeti({ inicio }: { inicio: React.RefObject<number | null> }) {
   );
 }
 
-function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
+function Modelo({ a, celebrar, saludar }: { a: Apariencia; celebrar: number; saludar: number }) {
   const raiz = useRef<Group>(null);
   const clock = useThree((s) => s.clock);
   const inicioFestejo = useRef<number | null>(null);
+  const inicioSaludo = useRef<number | null>(null);
   const ms = a.ritmo === 0 ? 0 : 700;
   // Todo lo que cambia con el estado se mueve de forma gradual (clean ↔ mild ↔ rekt).
   const saturacion = useSuave(a.saturacion, ms);
@@ -359,6 +385,10 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
   useEffect(() => {
     if (celebrar > 0 && ritmoActual.current > 0) inicioFestejo.current = clock.getElapsedTime();
   }, [celebrar, clock]);
+  // Saludo / reacción al toque: un brinquito (0.5 s). Con ritmo 0 (movimiento reducido) no se mueve.
+  useEffect(() => {
+    if (saludar > 0 && ritmoActual.current > 0) inicioSaludo.current = clock.getElapsedTime();
+  }, [saludar, clock]);
 
   const colores = COLORES[a.base];
   const cuerpo = tono(colores.cuerpo, saturacion);
@@ -383,6 +413,11 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
         const t = Math.min(1, dt / VUELTA_FESTEJO);
         giro += (1 - Math.pow(1 - t, 3)) * Math.PI * 2;
       }
+    }
+    if (inicioSaludo.current !== null) {
+      const dt = clock.getElapsedTime() - inicioSaludo.current;
+      if (dt >= DURACION_SALUDO) inicioSaludo.current = null;
+      else brinco += Math.abs(Math.sin((dt / DURACION_SALUDO) * Math.PI * 2)) * 0.32 * (1 - dt / DURACION_SALUDO);
     }
     raiz.current.position.y = BASE_Y + brinco;
     raiz.current.rotation.y = giro;
@@ -419,7 +454,7 @@ function Modelo({ a, celebrar }: { a: Apariencia; celebrar: number }) {
             <meshStandardMaterial color={cuerpo} />
           </mesh>
           <Orejas base={a.base} color={cuerpo} detalle={detalle} />
-          <Cara animo={a.animo} fondo={`#${cuerpo.getHexString()}`} />
+          <Cara animo={a.animo} fondo={`#${cuerpo.getHexString()}`} parpadear={a.ritmo > 0} />
           {a.accesorios.map((acc) => (
             <PiezaAccesorio key={acc.slug} a={acc} />
           ))}
@@ -470,24 +505,28 @@ export interface Personaje3DProps {
   distancia?: number;
   /** Cada vez que sube este número, el personaje festeja (pago, nivel nuevo). Con movimiento reducido no hace nada. */
   celebrar?: number;
+  /** Cada vez que sube, el personaje da un brinquito (saludo, reacción al toque). Con movimiento reducido no hace nada. */
+  saludar?: number;
+  /** Fuera de pantalla: no se dibuja nada (ahorra batería). */
+  pausado?: boolean;
 }
 
 /** Un solo canvas 3D por pantalla (CLAUDE.md §7). Con ritmo 0 no anima: dibuja a demanda y no gasta batería. */
-export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0, onListo, onEscena, medir = false }: Personaje3DProps) {
+export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0, saludar = 0, pausado = false, onListo, onEscena, medir = false }: Personaje3DProps) {
   const t0 = useRef(performance.now());
   // Mientras festeja hay que dibujar cada cuadro aunque el resto del tiempo esté quieto (ritmo 0 = a demanda).
   const [festejando, setFestejando] = useState(false);
   useEffect(() => {
-    if (celebrar === 0 || apariencia.ritmo === 0) return;
+    if ((celebrar === 0 && saludar === 0) || apariencia.ritmo === 0) return;
     setFestejando(true);
-    const id = setTimeout(() => setFestejando(false), (DURACION_FESTEJO + 0.2) * 1000);
+    const id = setTimeout(() => setFestejando(false), (Math.max(DURACION_FESTEJO, DURACION_SALUDO) + 0.2) * 1000);
     return () => clearTimeout(id);
-  }, [celebrar, apariencia.ritmo]);
+  }, [celebrar, saludar, apariencia.ritmo]);
   return (
     <Canvas
       data-testid="personaje-canvas"
       dpr={[1, 2]}
-      frameloop={apariencia.ritmo === 0 && !festejando ? "demand" : "always"}
+      frameloop={pausado ? "never" : apariencia.ritmo === 0 && !festejando ? "demand" : "always"}
       camera={{ position: [0, 0, distancia], fov: 34 }}
       gl={{ alpha: true, antialias: true, powerPreference: "low-power" }}
       aria-label="Personaje"
@@ -495,7 +534,7 @@ export default function Personaje3D({ apariencia, distancia = 6, celebrar = 0, o
       <ambientLight intensity={1.05} />
       <hemisphereLight args={["#ffffff", "#8C93AE", 0.7]} />
       <directionalLight position={[3, 5, 4]} intensity={1.6} />
-      <Modelo a={apariencia} celebrar={celebrar} />
+      <Modelo a={apariencia} celebrar={celebrar} saludar={saludar} />
       <Sensor t0={t0.current} onListo={onListo} onEscena={onEscena} medir={medir} />
     </Canvas>
   );
