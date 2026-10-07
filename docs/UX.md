@@ -48,7 +48,7 @@ Prioridad: **P0** bloquea la tarea principal o genera desconfianza con dinero ·
 
 ### P2
 
-- **H11. Objetivos táctiles < 44 px:** `Button size="sm"` mide 36 px (Pagar, Entendido, Reiniciar, Abonar). CLAUDE.md §11 pide ≥ 44 px. Los enlaces de grupo dentro de la tarjeta de deuda también son pequeños.
+- **H11 (resuelto: UX-08, `tests/e2e/tactil.spec.ts` lo vigila). Objetivos táctiles < 44 px:** `Button size="sm"` mide 36 px (Pagar, Entendido, Reiniciar, Abonar). CLAUDE.md §11 pide ≥ 44 px. Los enlaces de grupo dentro de la tarjeta de deuda también son pequeños.
 - **H12. Íconos de grupo en lugar de la persona.** El renglón empieza con el emoji del grupo; a quien se le paga es una persona (el Avatar compacto ya existe).
 - **H13. Color y jerarquía:** el verde es a la vez "dinero que me deben" y botón primario "Pagar", y el rojo es "debo" pero también estados negativos; los totales "Debes" y "Te deben" pesan igual. Pagar debería ser la acción más prominente de la pantalla cuando hay deuda.
 - **H14. Textos largos del demo** ("Los pagos se guardan solo en este navegador…") empujan el contenido; deberían vivir en un panel de herramientas de prueba.
