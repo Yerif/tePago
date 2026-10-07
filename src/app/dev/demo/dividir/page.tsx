@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DividirRapido } from "@/components/features/DividirRapido";
+import { EscribirGasto } from "@/components/features/EscribirGasto";
 import { crearGrupos, YO } from "@/lib/mock/datos";
 
 export const metadata: Metadata = { title: "Dividir (demo)" };
@@ -24,6 +25,7 @@ export default async function DividirDemoPage({ searchParams }: { searchParams: 
           miembros: miembros.map(({ id: mid, nombre: mn, base, estado }) => ({ id: mid, nombre: mn, base, estado })),
         }))}
       />
+      <EscribirGasto yo={yo} />
     </main>
   );
 }
