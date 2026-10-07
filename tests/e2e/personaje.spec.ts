@@ -39,4 +39,25 @@ test.describe("personaje 3D", () => {
     await expect(page.getByTestId(ids.personaje.raiz)).toHaveAttribute("data-modo", "3d");
     await expect(page.locator("canvas")).toHaveCount(1);
   });
+
+  test("festeja al pedirlo y cuando confirman el pago de una deuda completa, no al pagar", async ({ page }) => {
+    await page.goto("/dev/personaje");
+    const raiz = page.getByTestId(ids.personaje.raiz);
+    await expect(raiz).toHaveAttribute(ids.personaje.celebraciones, "0");
+    await page.getByTestId(ids.personaje.festejar).click();
+    await expect(raiz).toHaveAttribute(ids.personaje.celebraciones, "1");
+
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    const beto = page.getByTestId(ids.personaje.raiz);
+    await page.getByTestId(ids.cuenta.pagar("ferni")).click();
+    await page.getByTestId(ids.hoja.confirmar).click();
+    // Pagar solo deja pendiente: el personaje no festeja hasta que Ferni lo confirme.
+    await expect(beto).toHaveAttribute(ids.personaje.celebraciones, "0");
+
+    await page.goto("/dev/demo?u=ferni");
+    await page.locator(ids.pagos.confirmar).first().click();
+
+    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
+    await expect(page.getByTestId(ids.personaje.raiz)).toHaveAttribute(ids.personaje.celebraciones, "1");
+  });
 });

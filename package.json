@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
-    "check:secrets": "node scripts/check-secrets.mjs"
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "personajes:miniaturas": "node scripts/generar-miniaturas.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",

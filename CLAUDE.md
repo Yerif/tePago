@@ -93,7 +93,7 @@ DEBUG=                             # opcional: namespaces con logs de debug en e
 - **`group_id` denormalizado** en tablas hijas (`expense_items`, `item_assignments`, `expense_shares`) para que cada política RLS sea un check simple sin joins.
 - **Integridad entre tenants** con FKs compuestas: `(expense_id, group_id) → expenses(id, group_id)`. Es imposible que un item apunte a un gasto de otro grupo.
 - **Un solo helper para RLS**: `is_group_member(gid uuid)` (`security definer`, `stable`, `search_path = ''`). Todas las políticas lo usan. En políticas, `auth.uid()` va envuelto en `(select auth.uid())` por rendimiento.
-- **Índices** `(group_id, created_at desc)` en toda tabla de tenant; `group_members(user_id)` para listar mis grupos.
+- **Índices** `(group_id, created_at desc)` en toda tabla de tenant (en `group_members` y `user_badges`, sobre `joined_at` y `earned_at`); `group_members(user_id)` para listar mis grupos.
 - **Storage por tenant**: `tickets/{group_id}/{expense_id}.webp`; la política valida el primer segmento de la ruta contra la membresía.
 - **Rate limits** con llave por usuario, por tenant y por IP (invite codes).
 - **Crecimiento futuro sin re-arquitectura**: una tabla `orgs` encima de `groups` para espacios/white-label; particionar por `group_id` si un tenant crece mucho.
@@ -128,7 +128,7 @@ src/                          # "· pendiente" = aún no existe
   middleware.ts               # HOY: corta /dev/* con 404 en producción. Después: sesión de Supabase (en Next 16+ se llama proxy.ts)
   components/
     ui/                       # Button, Card (más Dialog… cuando se necesiten)
-    cozy/                     # Avatar (2D, para listas), XPBar, GrassDivider, Pill, ThemeToggle
+    cozy/                     # Avatar (miniatura del personaje, para listas), XPBar, GrassDivider, Pill, ThemeToggle
     personaje/                # Personaje (carga diferida + respaldo 2D), Personaje3D (React Three Fiber), PersonajeLab; dibujan la `Apariencia` de lib/game
     features/                 # ConfirmarGasto, DividirRapido, ExpenseCard, FriendRow, GastoDetalle, SkinSelector
     theme/                    # ThemeProvider (next-themes)
@@ -161,7 +161,7 @@ evals/                        # datasets (b1, b3, b4, b5; b2 espera fotos) y REA
 ```sql
 -- GLOBALES (por usuario)
 profiles       (id uuid PK → auth.users, username unique, display_name,
-                avatar_base, skin_activo, nivel int, xp int, created_at)
+                avatar_base, skin_activo, xp int, created_at)   -- el nivel se deriva de xp (progresoNivel)
 user_skins     (user_id, skin_slug, unlocked_at)          -- PK (user_id, skin_slug)
 
 -- TENANT (group_id NOT NULL en todas)
@@ -169,22 +169,34 @@ groups         (id, nombre, icono, invite_code unique, invite_revoked_at,
                 created_by, created_at)                    -- el tenant en sí
 group_members  (group_id, user_id, rol check in ('owner','member'), joined_at)
 expenses       (id, group_id, descripcion, total numeric(12,2), moneda default 'MXN',
-                pagado_por, categoria, split_mode check in ('igual','itemizado'),
+                pagado_por, categoria,
+                split_mode check in ('igual','montos','porcentajes','partes','ajustes','itemizado'),
+                sin_asignar numeric(12,2) not null default 0,   -- lo que "Montos" no cubrió (ver §7)
+                sin_asignar_resolucion check in ('absorbido','mio') null,
                 receipt_path, created_by, created_at)      -- unique (id, group_id)
-expense_items  (id, group_id, expense_id, nombre, precio numeric(12,2), cantidad int)
-item_assignments (group_id, item_id, user_id, fraccion numeric)
-expense_shares (group_id, expense_id, user_id, monto numeric(12,2), settled_at)
-settlements    (id, group_id, de_user, a_user, monto numeric(12,2), created_at)
+expense_items  (id, group_id, expense_id, nombre, precio numeric(12,2), cantidad int, created_at)
+item_assignments (group_id, item_id, user_id, partes int check (partes >= 1), created_at)   -- fracción = partes / Σ partes
+expense_shares (group_id, expense_id, user_id, monto numeric(12,2), parametro int null, created_at)
+                                                            -- lo que cada quien debe del gasto; `parametro` guarda lo que se capturó
+                                                            -- (puntos base, partes o ajuste en centavos) para poder re-editar
+settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0),
+                estado check in ('pendiente','confirmado','rechazado','cancelado') not null default 'pendiente',
+                pares jsonb,                                -- pagos por pares en que se descompone (ver `rutaDePago`)
+                requeridos uuid[], respuestas jsonb,        -- quiénes deben confirmar y qué respondió cada quien
+                resuelto_at, created_at)                    -- solo las personas requeridas responden; `de_user` puede cancelar
+                                                            -- pagos y abonos: ÚNICA fuente de verdad de lo saldado (solo los confirmados)
 user_badges    (group_id, user_id, badge_slug, earned_at, revoked_at)
 
 -- SISTEMA
-xp_events      (id, user_id, group_id null, cantidad int, razon, created_at)
+xp_events      (id, user_id, group_id null, cantidad int, razon, ref_id, created_at)
+                                                            -- unique (user_id, razon, ref_id): el mismo evento nunca da XP dos veces
 rate_limits    (key text, window_start timestamptz, count int)
-weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
+weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)   -- unique (user_id, week_start)
 ```
 
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
+- **Saldado:** no hay `settled_at`. Lo pendiente de cada deuda se deriva aplicando los `settlements` **confirmados** a `expense_shares` (PEPS, `lib/splits/pagos.ts`), igual que en el demo.
 - Borrar cuenta = borrar datos: cascadas definidas desde el esquema inicial. **Decisión (D7, Yerif 2026-10-02):** al borrar una cuenta desaparecen sus deudas (y las que otros tenían con ella); los balances del resto se recalculan. La UI de borrar cuenta debe avisarlo con claridad antes de confirmar.
 - **Estado:** el esquema aún no está migrado; el prototipo corre con `lib/mock`. Antes de la primera migración (A5) se resuelven los 7 puntos de `docs/AUDITORIA.md` §6 (partes enteras en lugar de `fraccion`, saldado parcial con `settlements` como fuente de verdad, idempotencia de XP, `created_at` e índices). Las cascadas ya están decididas (D7).
 
@@ -194,11 +206,13 @@ weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)
 
 ### Estados del avatar (derivados, nunca almacenados)
 
-| Estado | Condición | Visual |
+| Estado | Condición | Etiqueta visible · visual |
 |---|---|---|
-| `clean` | balance ≥ 0 en todos sus grupos | Radiante |
-| `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | Apagado, preocupado |
-| `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | Deteriorado |
+| `clean` | balance ≥ 0 en todos sus grupos | **Radiante** · radiante |
+| `mild` | debe > 0 y (< $500 MXN y ≤ 72 h) | **Nublado** · apagado, preocupado |
+| `rekt` | debe ≥ $500 MXN o alguna deuda > 72 h | **Bajo la lluvia** · deteriorado |
+
+Las claves (`clean`, `mild`, `rekt`) no cambian; las **etiquetas de clima** son las que se ven (decisión de Yerif, 2026-10-06): la broma es del personaje, nunca de la persona ("Beto anda con nubes ☁️", no "Beto está deteriorado"). El prompt B4 del resumen semanal aún usa "radiante / apagado / deteriorado": se alinea con una versión B4 v2 cuando haya llave de Anthropic para correr sus evals (no hay resumen en la UI todavía).
 
 Lo que debes se suma **entre grupos**; lo que te deben en un grupo no compensa lo que debes en otro. $500 exactos es `rekt`; 72 h exactas sigue siendo `mild`. Persona nueva (sin grupos) = `clean`. Implementado en `lib/game/avatar.ts`.
 
@@ -238,10 +252,15 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 - **Personaje 3D** con React Three Fiber, estilo *low-poly cozy* (formas redondas, paleta de §10). Es la base del juego.
 - **Bases de arranque:** personitas y animalitos. Después, personalización (ropa, colores, piezas).
 - **Lógica ≠ dibujo:** `lib/game/apariencia.ts` (TS puro, 100 % testeado) convierte estado, nivel y skin en una `Apariencia` (base, accesorios, animación, saturación, efectos, postura). `components/personaje/` solo la dibuja. El mismo descriptor sirve para el 3D, para las miniaturas 2D de las listas y para React Native en v2.
-- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas.
-- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia.
-- **Rendimiento:** un solo canvas 3D por pantalla (Home del grupo, Yo, detalle). En listas, avatar 2D derivado de la misma `Apariencia` hasta tener miniaturas o vistas compartidas. Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
-- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. Cualquier costo de diseño se aprueba antes.
+- **Skins = accesorios** que se enganchan a puntos del personaje (cabeza, pecho, mano). Agregar una skin no cambia las reglas. **Se ven** también en las miniaturas (overlay 2D del accesorio sobre la miniatura de la base) y las bloqueadas se pueden **probar 3 s** sobre tu personaje (solo vista previa: no se activan, no se guardan y la regla de que se ganan no cambia).
+- **Estados** sobre cualquier base y skin: `clean` brinca y brilla; `mild` va más lento, ladeado y con gota de sudor; `rekt` encorvado, desaturado y con nubecita de lluvia. Los cambios de estado son graduales (≈ 0.7 s: color, postura y ritmo). **Festejo** (confeti, saltos y una vuelta de 1.6 s) al saldar una deuda completa o subir de nivel; un abono no festeja. Con movimiento reducido no hay transición ni festejo. **La recompensa llega al abrir la app**: si desde la última vez que viste tu personaje cambió su estado, subió de nivel o ganó XP, el Inicio lo revela (transición, festejo, XP que sube, nivel) sin depender de otra pantalla; un abono, cancelar o rechazar tienen una reacción pequeña, no festejo.
+- **Rendimiento:** un solo canvas 3D por pantalla (**Inicio**, Home del grupo, Yo, detalle). El **héroe del Inicio** (128 px, con globo de una frase, nivel/XP y "si pagas a X pasas a Y") pinta primero la miniatura PNG de la misma figura y la cambia por el 3D con un fundido solo si hay WebGL, no hay ahorro de datos y llegó el primer cuadro; sin 3D, la miniatura se mueve con CSS. En listas y chips, **miniaturas generadas desde el mismo modelo 3D** (`public/personajes/{base}-{estado}.png`, 27 archivos de 256 px, ~540 KB; llevan margen para la nube de la lluvia y el accesorio de la skin se dibuja encima como sello 2D): `npm run personajes:miniaturas` las regenera con la app corriendo, y un test exige que existan todas. **Cada vez que cambie un modelo o se agregue una base, hay que regenerarlas.** Respeta `prefers-reduced-motion` y muestra respaldo 2D mientras carga.
+- **Perfil editable** (decisión de Yerif, 2026-10-06): en la pestaña Yo la persona puede cambiar su **nombre** (`profiles.display_name`: 1–24 caracteres, sin espacios de sobra) y su **personaje** (`profiles.avatar_base`, una de las bases). Cambiar de personaje no cuesta nada ni pierde nada: nivel, XP, badges y skins son de la persona, no de la base, y el estado (radiante/apagado/deteriorado) se aplica a la nueva base. El cambio se ve en todo el demo y lo ven los demás en su grupo. En el demo se guarda en `localStorage` (solo dev/preview); con Supabase será un `update` de la propia fila protegido por RLS.
+- **Modelos:** el arranque es procedural (geometrías de three, sin archivos ni licencias). Los modelos glTF definitivos (Blender o encargo) se cambian sin tocar `lib/game`. **Yerif quiere explorar modelos finales hechos por nosotros** (procedurales mejorados o glTF diseñados por el equipo, sin costo externo): el spike PX-17 (`docs/MODELOS-FINALES.md`) probó el camino completo `.glb` (exportar el procedural, cargarlo y optimizarlo: ~40 KB por base) y propone un piloto con una base después de UAT-1. Cualquier costo de diseño externo se aprueba antes.
+
+### Reputación pública (decisión de Yerif, 2026-10-06)
+
+Lo que ve la banda de ti es el personaje, el nivel, los badges y tu saldo del grupo. Salvaguardas: **una sola señal negativa por persona** en las listas públicas (el estado o el badge Fantasma, nunca ambos junto al monto en rojo; lo positivo va primero); los **avatares son neutros** (sin aro de estado ni nube) donde no se habla de reputación (Dividir, Confirmar gasto, selector de personaje); los montos de terceros van en neutro y solo los de tu relación llevan color y acción; el Fantasma dice "se esfuma al pagar".
 
 ### Skins
 
@@ -262,7 +281,23 @@ Se ganan, no se compran (monetización ≠ MVP). Nombres propios, sin referencia
 - **Itemizado**: cada renglón (precio × cantidad) se reparte por **partes enteras** (`partes / Σ partes`, nunca decimales): "3 chelas mías y 1 de Ferni" = partes 3 y 1. El residuo de cada renglón lo absorbe el pagador. Impuestos y propina se reparten **proporcionalmente al consumo** de cada quien, nunca en partes iguales; su residuo también es del pagador.
 - **Propina e impuestos se suman encima del total capturado**; "IVA incluido" no genera ajuste.
 - **Saldado parcial (D6, aprobado 2026-10-02):** se puede pagar una parte de una deuda. El XP por saldar se calcula sobre la antigüedad de la deuda y se otorga al quedar saldada por completo (regla por definir con el ticket de saldar: no dar XP por cada abono para evitar farming).
-- **Deudas entre personas**: se netean de dos en dos (A↔B). La simplificación en cadena (A→B→C) sigue siendo post-MVP.
+- **Modos de dividir** (decisión de Yerif, 2026-10-06). "Igual" es el predeterminado y se registra en ≤ 3 interacciones; los demás viven tras el selector "¿Cómo lo dividimos?" de Dividir, y al cambiar de modo se conservan los datos capturados. En todos, propina e impuestos van **proporcionales** a lo que le toca a cada quien (D4), el residuo de redondeo es del pagador y Σ partes = total:
+  - **Igual**: `total / n` entre los participantes.
+  - **Montos** (`repartirPorMontos`): se captura cuánto debe cada quien y se muestra en vivo "Faltan $X" / "Te pasaste $X". **No bloquea guardar**: lo que no se asignó queda con el pagador como **deuda sin pagador actual** (`sin_asignar`), visible en el gasto, y el pagador elige **absorberla** (es un costo suyo, nadie la debe) o **marcarla como suya** (cuenta como su consumo). Mientras esté pendiente no genera deuda para nadie. Si se asignó de más, no se puede guardar.
+  - **Porcentajes** (`repartirPorPorcentajes`): puntos base (10 000 = 100 %); deben sumar 100 %, con atajo "repartir lo que falta". El residuo de redondeo es del pagador.
+  - **Por partes** (`repartirPorPartes`): cada quien lleva N partes enteras ("3 noches / 2 / 2", o una pareja que cuenta como 2); partes ≥ 0 y al menos una > 0; es el mismo mecanismo que el itemizado, aplicado a todo el total.
+  - **Igual + ajustes** (`repartirConAjustes`): primero se resta la suma de ajustes (pueden ser negativos: "Beto +$60"), el resto se divide igual entre los participantes y a cada quien se le suma su ajuste. Ningún reparto puede quedar negativo.
+  - **Por producto** (itemizado): captura manual rápida de renglones (nombre, precio, quiénes) y "lo demás entre todos"; usa `repartirItemizado`.
+- **Deudas entre personas** (decisión de Yerif, 2026-10-06): por defecto se muestran las **deudas directas**: dentro de cada grupo se netean de dos en dos (A↔B): si A le debe $200 a B y B le debe $50 a A, la app solo muestra que A le paga $150 a B (`deudasEntrePersonas`). Para pagar, **hay una sola cifra por pago**: lo que ves en el renglón es lo que pagas y lo que le llega a esa persona. Nunca se netea entre grupos.
+- **Pagar menos veces** (opcional, `planDePagos` + `rutaDePago`): a partir de los saldos netos de cada persona, el mínimo de transferencias (≤ personas − 1) que deja a todos en cero. Se ofrece solo como botón explícito en el detalle del grupo, con la explicación de a quién le llega el dinero y por cuenta de quién ("Nico se lo pasará a Sofi"). Cada pago del plan se convierte en pagos por pares: si A le debe a B y B a C, "A le paga a C" equivale a que A pague a B y B pague a C (saldado PEPS por pares). **Lo deben confirmar todas las personas que quedan como acreedoras en esos pares** (en el ejemplo, C y B si B recibe algo), no solo quien recibe el dinero. Si no hay cadena de deudas, no se ofrece.
+- **Inicio** (decisión de Yerif, 2026-10-06): la primera pantalla responde "¿qué hago con mi dinero?": cuánto debes en total (con a cuántas personas y la deuda más vieja), los pagos por confirmar y los resultados de tus pagos (siempre arriba), **una fila por persona** a la que le debes (suma de sus deudas directas por grupo, con desglose plegable; no se netea entre grupos), ordenadas por antigüedad y luego por monto, y lo que te deben abajo y plegado (`resumenPorPersona`). Los grupos viven en su propia pestaña. Navegación persistente inferior: Inicio · Dividir (al centro) · Grupos · Yo, con indicador de pagos por confirmar.
+- **Pagar** abre una **hoja de pago** (monto editable = abono, "Ya le pagué"): 2 toques y, tras declararlo, **Deshacer** 8 s. Las herramientas de demo (probar como, reiniciar) viven en un panel aparte, no en el producto.
+- **Confirmación de pagos** (decisión de Yerif, 2026-10-06). Un pago (total, abono o "pagar menos veces") **no salda nada por sí solo**: quien debe lo declara ("ya pagué") y queda **pendiente por confirmar**; cada persona que debe confirmarlo (`requeridos`: los acreedores de sus pares) lo ve en su pantalla de inicio y responde "Sí, me llegó" o "No me llegó".
+  - **Pendiente:** la deuda sigue contando (balances, plan, estado del personaje) pero se marca "pendiente por confirmar ⏳"; ese monto no se puede volver a pagar. No hay XP, festejo ni cambio de personaje.
+  - **Confirmado** (cuando **todas** las personas requeridas confirman): la deuda se salda (pares aplicados PEPS), el XP se otorga a quien pagó con la antigüedad medida **al momento en que declaró el pago** (no se penaliza la demora de quien confirma) y a quien pagó se le avisa en su inicio: "¡X confirmó tu pago!".
+  - **Rechazado ("en disputa"):** si cualquiera de las personas requeridas dice "No me llegó". La deuda no cambia, a quien pagó se le avisa y ese monto **sigue reservado** (no se puede pagar otra vez) hasta que se resuelva. **Es reversible**: quien lo rechazó puede **aprobarlo más tarde** desde su inicio ("Sí me llegó"), y entonces se confirma (y se otorga el XP). Un pago ya confirmado no se puede revertir.
+  - **Cancelado:** quien pagó puede **cancelar** su pago mientras esté pendiente o en disputa (y **Deshacer** justo después de declararlo); libera el monto y desaparece de las bandejas. No da XP.
+  - Solo las personas requeridas pueden responder (ni quien paga ni un tercero). En SQL, la función `security definer` que resuelve otorga el XP con `ref_id` = id del `settlement` (idempotente). Demo: se guarda en `localStorage` (solo dev/preview) para probar los dos lados cambiando de persona (`?u=`). Pendiente de decidir: confirmación automática tras N horas y recordatorios.
 - **Invariante con test obligatorio**: Σ partes = total, en cada modo, con casos de borde (1 persona, fracciones de 1/3, propina 0, montos de 1 centavo).
 
 ### Reglas derivadas (implementadas; D1–D4 confirmadas por Yerif el 2026-10-02)
@@ -336,7 +371,8 @@ LIGHT           background #FFFBF0 · card #FFFFFF · border #E8CF99
 ACENTOS         grass #7DC67E (dark #4A9E6A) · peach #FFB085 · rose #FF8FAB
                 lemon #FFE566 · mint #7DDEC8 · lavender #C4A8E8 · water #74C2E8
 FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #3D1828)
-                en dark, el texto de acento usa el color vivo
+                en dark, el texto de acento usa el color vivo; en light, `rose-text` (#A3224C) y `grass-text` (#1F6B35)
+                son versiones oscuras para montos y estados (AA sobre card, fondo y su fondo suave); los demás usan el color del texto
 ```
 
 `subtle` no llega ni a 3:1 (≈ 3.0:1 en dark y ≈ 2.6:1 en light): solo elementos decorativos, **nunca** texto con información, ni siquiera grande.
@@ -418,6 +454,7 @@ npm run test:coverage        # Vitest + umbrales de cobertura (100 % en módulos
 npm run build                # build de producción
 npm run check:secrets        # bundle del cliente y repo sin llaves + cabeceras de seguridad (corre en CI tras el build)
 npm run test:e2e             # Playwright: levanta el build en modo preview y en modo producción
+npm run personajes:miniaturas  # regenera public/personajes/ desde el modelo 3D (con la app en dev/preview)
 # Pendientes (aún no existen en package.json):
 npm run db:types             # envoltorio del gen types de abajo
 npx supabase start           # stack local
@@ -459,7 +496,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 
 1. Auth (magic link + Google) y perfil con personaje.
 2. Grupos (tenants) con invite code y selector de grupo.
-3. Gasto modo igual (sin IA) y modo itemizado; saldar deudas.
+3. Gasto en varios modos (igual sin IA, montos, porcentajes, partes, igual + ajustes, por producto/itemizado); saldar deudas y ver el plan de pagos más sencillo.
 4. Pantalla Dividir con modo rápido ≤ 3 interacciones.
 5. Smart Split: texto primero, foto de ticket después.
 6. Personaje 3D (personitas y animalitos), XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
@@ -468,7 +505,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 9. Categorización automática de gastos.
 10. Dark/light mode (dark por default).
 
-**Fuera del MVP:** pagos reales, modo familia, simplificación de deudas multi-persona, predicciones, email/push, monetización, app nativa.
+**Fuera del MVP:** pagos reales, modo familia, predicciones, email/push, monetización, app nativa.
 
 ---
 
@@ -480,10 +517,10 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 |---|---|---|---|
 | 1 | Auth y perfil | Perfil con personaje, skins y badges en el demo | Supabase Auth |
 | 2 | Grupos | Home y detalle del grupo en el demo | Invite codes, selector, onboarding |
-| 3 | Gasto igual, itemizado y saldar | `lib/splits` (igual, itemizado, deudas) con cobertura 100 %; Dividir y Confirmar en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
+| 3 | Gasto en varios modos, saldar y plan de pagos | `lib/splits` (igual, montos, porcentajes, partes, ajustes, itemizado, deudas, `planDePagos`) con cobertura 100 %; Inicio por persona (debes / te deben, desglose por grupo, antigüedad), hoja de pago con Deshacer, bandeja de confirmación (multi-persona, rechazo reversible, cancelar), "Pagar menos veces" opcional, barra inferior, Dividir con selector de modos, Confirmar y "Cómo pagarse" en el demo | Persistencia. Saldar (total o por abonos) ya funciona en el demo, en memoria (`/dev/demo/g/oaxaca/detalle?u=beto`) |
 | 4 | Dividir ≤ 3 interacciones | Modo rápido en el demo | Medirlo con personas (UAT-1) |
 | 5 | Smart Split | Prompts B1–B3, validadores, flujo y pantalla de confirmación (con mensajes de ejemplo) | `client.ts`, rutas (A11), foto |
-| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo y UI 2D (Avatar, XPBar, SkinSelector) | **Personaje 3D (requisito de UAT-1)**; funciones `security definer` |
+| 6 | Personaje, XP, badges, skins, estados | `lib/game` completo, personaje 3D con miniaturas, festejo, perfil editable y etiquetas de clima; análisis `docs/UX-PERSONAJE.md` (tickets PX) | Héroe en el Inicio y revelación al abrir (PX-03/04); funciones `security definer` |
 | 7 | Home del grupo | En el demo | Datos reales |
 | 8 | Resumen semanal | Prompt B4 y evals | Cron y almacenamiento |
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |

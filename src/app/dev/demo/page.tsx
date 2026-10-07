@@ -1,76 +1,65 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Pill } from "@/components/cozy/Pill";
-import { Card } from "@/components/ui/Card";
-import { ListaGrupos } from "@/components/features/ListaGrupos";
+import { ReiniciarDemo } from "@/components/features/ReiniciarDemo";
+import { ResumenInicio } from "@/components/features/ResumenInicio";
 import { crearGrupos, YO } from "@/lib/mock/datos";
 
-export const metadata: Metadata = { title: "Demo · Cuentas Conmigo" };
+export const metadata: Metadata = { title: "Inicio (demo) · Cuentas Conmigo" };
 export const dynamic = "force-dynamic"; // las fechas de ejemplo son relativas a "ahora"
 
-export default function DemoIndexPage() {
-  const grupos = crearGrupos(new Date());
+export default async function DemoIndexPage({ searchParams }: { searchParams: Promise<{ u?: string; bienvenida?: string }> }) {
+  const { u, bienvenida } = await searchParams;
+  const ahora = new Date();
+  const grupos = crearGrupos(ahora);
+  const miembros = new Map(grupos.flatMap((g) => g.miembros.map((m) => [m.id, m] as const)));
+  const yo = u && miembros.has(u) ? u : YO;
+
   return (
-    <main data-component="DemoIndexPage" className="mx-auto flex max-w-md flex-col gap-4 p-6">
-      <h1 className="font-display text-3xl font-bold">Demo 🌻</h1>
-      <Pill variant="lemon" className="self-start">
-        Datos de ejemplo · sin Supabase
-      </Pill>
-      <p className="text-muted-foreground">
-        Pantallas con datos ficticios para probar la UI desde el celular. Nada se guarda: al recargar vuelve todo a como estaba.
-      </p>
+    <main data-component="DemoIndexPage" className="mx-auto flex max-w-md flex-col gap-5 p-6">
+      <ResumenInicio key={yo} grupos={grupos} yo={yo} ahoraIso={ahora.toISOString()} forzarBienvenida={bienvenida === "1"} />
 
-      <h2 className="mt-2 font-display text-xl font-bold">Home de grupo</h2>
-      <ListaGrupos grupos={grupos} yo={YO} base="/dev/demo/g" />
-
-      <h2 className="mt-2 font-display text-xl font-bold">Dividir</h2>
-      <Link href="/dev/demo/dividir" data-testid="demo-dividir">
-        <Card size="sm" className="flex items-center gap-3">
-          <span aria-hidden className="text-3xl">
-            ⚡
-          </span>
-          <div>
-            <p className="font-semibold">Modo rápido</p>
-            <p className="text-sm text-muted-foreground">Monto → confirmar. Cuenta las interacciones.</p>
-          </div>
-        </Card>
-      </Link>
-
-      <h2 className="mt-2 font-display text-xl font-bold">Confirmar un gasto</h2>
-      <Link href="/dev/demo/ia" data-testid="demo-ia">
-        <Card size="sm" className="flex items-center gap-3">
-          <span aria-hidden className="text-3xl">
-            ✅
-          </span>
-          <div>
-            <p className="font-semibold">Revisar lo que se entendió</p>
-            <p className="text-sm text-muted-foreground">Corrige monto, quién pagó y entre quiénes antes de guardar.</p>
-          </div>
-        </Card>
-      </Link>
-
-      <h2 className="mt-2 font-display text-xl font-bold">Perfil</h2>
-      <Link href="/dev/demo/yo" data-testid="demo-yo">
-        <Card size="sm" className="flex items-center gap-3">
-          <span aria-hidden className="text-3xl">
-            🐻
-          </span>
-          <div>
-            <p className="font-semibold">Yo: personaje, badges y skins</p>
-            <p className="text-sm text-muted-foreground">Cambia de persona para ver qué skins se desbloquean.</p>
-          </div>
-        </Card>
-      </Link>
-
-      <h2 className="mt-2 font-display text-xl font-bold">Sistema de diseño</h2>
-      <Link href="/dev/ui" data-testid="demo-ui">
-        <Card size="sm" className="flex items-center gap-3">
-          <span aria-hidden className="text-3xl">
-            🎨
-          </span>
-          <p className="font-semibold">Botones, pills, cards y paleta</p>
-        </Card>
-      </Link>
+      <details data-testid="herramientas-demo" className="rounded-3xl border-[2.5px] border-dashed border-border p-4">
+        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">🧪 Herramientas de prueba</summary>
+        <div className="mt-3 flex flex-col gap-4">
+          <Pill variant="lemon" className="self-start">
+            Datos de ejemplo · sin Supabase
+          </Pill>
+          <p className="text-sm text-muted-foreground">
+            Los pagos se guardan solo en este navegador, para probar los dos lados cambiando de persona. «Reiniciar» empieza de cero.
+          </p>
+          <nav aria-label="Probar como" className="flex flex-wrap gap-2">
+            {[...miembros.values()].map((m) => (
+              <Link key={m.id} href={`/dev/demo?u=${m.id}`} aria-current={m.id === yo ? "page" : undefined} data-testid={`inicio-probar-${m.id}`} className="inline-flex min-h-11 items-center">
+                <Pill variant={m.id === yo ? "grass" : "neutral"}>{m.nombre}</Pill>
+              </Link>
+            ))}
+          </nav>
+          <ReiniciarDemo />
+          <ul className="flex flex-col gap-1 text-sm underline">
+            <li>
+              <Link href={`/dev/demo?u=${yo}&bienvenida=1`} data-testid="demo-bienvenida" className="inline-flex min-h-11 items-center">
+                👋 Ver la bienvenida «Conoce a tu personaje»
+              </Link>
+            </li>
+            <li>
+              <Link href="/dev/demo/ia" data-testid="demo-ia" className="inline-flex min-h-11 items-center">
+                ✅ Revisar lo que se entendió (IA de ejemplo)
+              </Link>
+            </li>
+            <li>
+              <Link href="/dev/ui" data-testid="demo-ui" className="inline-flex min-h-11 items-center">
+                🎨 Sistema de diseño
+              </Link>
+            </li>
+            <li>
+              <Link href="/dev/personaje" className="inline-flex min-h-11 items-center">
+                🧸 Laboratorio del personaje
+              </Link>
+            </li>
+          </ul>
+        </div>
+      </details>
     </main>
   );
 }

@@ -5,6 +5,11 @@ import { Avatar } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
+import { ModoPorPersona } from "@/components/features/ModoPorPersona";
+import { ModoProducto, type RenglonProducto } from "@/components/features/ModoProducto";
+import { calcularBorrador } from "@/lib/splits/borrador";
+import { calcularModo, type ModoDividir } from "@/lib/splits/entradaModo";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
 import { repartirIgual } from "@/lib/splits/igual";
 import { cn } from "@/lib/utils";
@@ -12,7 +17,7 @@ import { cn } from "@/lib/utils";
 interface MiembroLite {
   id: string;
   nombre: string;
-  emoji: string;
+  base: string;
   estado: "clean" | "mild" | "rekt";
 }
 interface GrupoLite {
@@ -27,7 +32,21 @@ interface GuardadoDemo {
   grupo: string;
   totalCentavos: number;
   partes: { id: string; nombre: string; centavos: number }[];
+  /** Lo que "Montos" no asignó: se queda con el pagador hasta que decida (CLAUDE.md §7). */
+  sinAsignarCentavos: number;
+  pagadorNombre: string;
+  resolucion: "absorbido" | "mio" | null;
 }
+
+type Modo = ModoDividir | "producto";
+const MODOS: { id: Modo; etiqueta: string }[] = [
+  { id: "igual", etiqueta: "⚖️ Igual" },
+  { id: "montos", etiqueta: "💵 Montos" },
+  { id: "porcentajes", etiqueta: "％ Porcentajes" },
+  { id: "partes", etiqueta: "🍰 Partes" },
+  { id: "ajustes", etiqueta: "➕ Igual + ajustes" },
+  { id: "producto", etiqueta: "🧾 Por producto" },
+];
 
 export interface DividirRapidoProps {
   grupos: GrupoLite[];
@@ -36,7 +55,8 @@ export interface DividirRapidoProps {
 }
 
 /** Modo rápido: abrir → monto → confirmar (≤ 3 interacciones). Todo local, sin backend. */
-export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) {
+export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirRapidoProps) {
+  const grupos = useGruposConPerfiles(gruposBase);
   const [grupoId, setGrupoId] = useState(grupoInicial);
   const [excluidos, setExcluidos] = useState<string[]>([]);
   const [pagador, setPagador] = useState(yo);
@@ -44,16 +64,51 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
   const [descripcion, setDescripcion] = useState("");
   const [guardados, setGuardados] = useState<GuardadoDemo[]>([]);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [modo, setModo] = useState<Modo>("igual");
+  const [otrasFormas, setOtrasFormas] = useState(false);
+  // Lo capturado por modo: al cambiar de modo y volver no se pierde nada.
+  const [valores, setValores] = useState<Partial<Record<ModoDividir, Record<string, string>>>>({});
+  const [renglones, setRenglones] = useState<RenglonProducto[]>([]);
 
   const grupo = grupos.find((g) => g.id === grupoId) ?? grupos[0];
   if (!grupo) return null;
 
   const centavos = parsearMonto(texto);
   const participantes = grupo.miembros.filter((m) => !excluidos.includes(m.id));
-  const partes =
-    centavos !== null && centavos > 0 && participantes.length > 0
-      ? repartirIgual(centavos, participantes.map((m) => m.id), pagador)
-      : null;
+  const idsParticipantes = participantes.map((m) => m.id);
+  const hayMonto = centavos !== null && centavos > 0 && participantes.length > 0;
+  let partes: Record<string, number> | null = null;
+  let sinAsignar = 0;
+  let salida = null as ReturnType<typeof calcularModo> | null;
+  if (hayMonto && modo === "igual") partes = repartirIgual(centavos, idsParticipantes, pagador);
+  else if (hayMonto && modo === "producto") {
+    // Los productos restan del total; lo demás se divide entre todos. Sin renglones es como "igual".
+    const calculo = calcularBorrador(
+      {
+        descripcion: "",
+        categoria: "otros",
+        moneda: "MXN",
+        totalCentavos: centavos,
+        pagadorId: pagador,
+        renglones: renglones.map((r) => ({
+          nombre: r.nombre,
+          cantidad: 1,
+          precioUnitarioCentavos: r.centavos,
+          importeCentavos: r.centavos,
+          reparto: r.quienes.filter((q) => idsParticipantes.includes(q)).map((userId) => ({ userId, partes: 1 })),
+        })),
+        restoEntre: idsParticipantes,
+        propina: null,
+        impuestos: null,
+      },
+      pagador,
+    );
+    if (calculo.resultado) partes = Object.fromEntries(Object.entries(calculo.resultado.porPersona).map(([id, d]) => [id, d.totalCentavos]));
+  } else if (hayMonto && modo !== "producto") {
+    salida = calcularModo({ modo, totalCentavos: centavos, participantes: idsParticipantes, pagadorId: pagador, valores: valores[modo] ?? {} });
+    partes = salida.puedeGuardar ? salida.partes : null;
+    sinAsignar = salida.sinAsignarCentavos;
+  }
   const textoInvalido = texto.trim() !== "" && centavos === null;
   const nombreDe = (id: string) => grupo.miembros.find((m) => m.id === id)?.nombre ?? id;
 
@@ -77,12 +132,21 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
         grupo: grupo.nombre,
         totalCentavos: centavos,
         partes: Object.entries(partes).map(([id, c]) => ({ id, nombre: nombreDe(id), centavos: c })),
+        sinAsignarCentavos: sinAsignar,
+        pagadorNombre: nombreDe(pagador),
+        resolucion: null,
       },
       ...prev,
     ]);
     setAviso(`¡Listo! Guardado en ${grupo.nombre} · +10 XP 🌻 (demo)`);
     setTexto("");
     setDescripcion("");
+    setValores({});
+    setRenglones([]);
+  }
+
+  function resolver(id: number, resolucion: "absorbido" | "mio") {
+    setGuardados((prev) => prev.map((g) => (g.id === id ? { ...g, resolucion } : g)));
   }
 
   return (
@@ -127,26 +191,24 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
           />
         </div>
 
-        <fieldset>
-          <legend className="mb-2 text-sm text-muted-foreground">Grupo</legend>
-          <div className="flex flex-wrap gap-2">
+        <div>
+          <label htmlFor="grupo" className="mb-1 block text-sm text-muted-foreground">
+            Grupo
+          </label>
+          <select
+            id="grupo"
+            data-testid="dividir-grupo"
+            value={grupo.id}
+            onChange={(e) => cambiarGrupo(e.target.value)}
+            className="min-h-11 w-full rounded-2xl border-[2.5px] border-border bg-background px-4 py-2"
+          >
             {grupos.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                aria-pressed={g.id === grupo.id}
-                data-testid={`grupo-${g.id}`}
-                onClick={() => cambiarGrupo(g.id)}
-                className={cn(
-                  "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
-                  g.id === grupo.id ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
-                )}
-              >
+              <option key={g.id} value={g.id}>
                 {g.icono} {g.nombre}
-              </button>
+              </option>
             ))}
-          </div>
-        </fieldset>
+          </select>
+        </div>
 
         <fieldset>
           <legend className="mb-2 text-sm text-muted-foreground">Entre quiénes (toca para quitar)</legend>
@@ -165,13 +227,52 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
                     dentro ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground line-through",
                   )}
                 >
-                  <Avatar emoji={m.emoji} estado={m.estado} size="sm" className="size-8 text-lg" />
+                  <Avatar base={m.base} estado={m.estado} size="sm" compacto neutro className="size-9" />
                   {m.nombre}
                 </button>
               );
             })}
           </div>
         </fieldset>
+
+        <div>
+          <Button variant="ghost" size="md" aria-expanded={otrasFormas || modo !== "igual"} data-testid="otras-formas" onClick={() => setOtrasFormas((v) => !v)} className="-ml-4">
+            {otrasFormas || modo !== "igual" ? "Otras formas de dividir ▴" : "Otras formas de dividir ▾"}
+          </Button>
+          {(otrasFormas || modo !== "igual") && (
+            <fieldset className="mt-2">
+              <legend className="sr-only">¿Cómo lo dividimos?</legend>
+              <div className="flex flex-wrap gap-2">
+                {MODOS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    aria-pressed={m.id === modo}
+                    data-testid={`modo-${m.id}`}
+                    onClick={() => setModo(m.id)}
+                    className={cn(
+                      "min-h-11 rounded-full border-2 px-4 py-1 text-sm font-semibold",
+                      m.id === modo ? "border-grass bg-grass-soft text-grass-text" : "border-border bg-card text-muted-foreground",
+                    )}
+                  >
+                    {m.etiqueta}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </div>
+
+        {modo !== "igual" && modo !== "producto" && (
+          <ModoPorPersona
+            modo={modo}
+            personas={participantes}
+            valores={valores[modo] ?? {}}
+            salida={salida ?? { partes: null, sinAsignarCentavos: 0, faltan: 0, sobran: 0, puedeGuardar: false, mensaje: null }}
+            onCambio={(id, t) => setValores((prev) => ({ ...prev, [modo]: { ...prev[modo], [id]: t } }))}
+          />
+        )}
+        {modo === "producto" && <ModoProducto personas={participantes} renglones={renglones} onCambio={setRenglones} />}
 
         <div>
           <label htmlFor="pagador" className="mb-1 block text-sm text-muted-foreground">
@@ -202,6 +303,12 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
                 <span className="font-display font-bold">{formatoMXN(c)}</span>
               </li>
             ))}
+            {sinAsignar > 0 && (
+              <li className="flex items-center justify-between text-peach-text" data-testid="dividir-sin-asignar">
+                <span>Sin asignar (se queda con {nombreDe(pagador)})</span>
+                <span className="font-display font-bold">{formatoMXN(sinAsignar)}</span>
+              </li>
+            )}
             <li className="flex items-center justify-between border-t-2 border-border pt-2 text-muted-foreground">
               <span>Total</span>
               <span data-testid="dividir-total" className="font-display font-bold">
@@ -216,9 +323,11 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
         )}
       </Card>
 
-      <Button size="lg" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
-        Confirmar gasto
-      </Button>
+      <div className="sticky bottom-20 z-30 -mx-2 bg-background/90 px-2 py-2 backdrop-blur">
+        <Button size="lg" className="w-full" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
+          Confirmar gasto
+        </Button>
+      </div>
 
       {aviso && (
         <Pill variant="grass" data-testid="dividir-aviso" className="self-start">
@@ -240,6 +349,27 @@ export function DividirRapido({ grupos, yo, grupoInicial }: DividirRapidoProps) 
               <p className="mt-1 text-sm text-muted-foreground">
                 {g.partes.map((p) => `${p.nombre} ${formatoMXN(p.centavos)}`).join(" · ")}
               </p>
+              {g.sinAsignarCentavos > 0 && (
+                <div className="mt-2 flex flex-col gap-2" data-testid={`sin-asignar-${g.id}`}>
+                  <p className="text-sm text-peach-text">
+                    {g.resolucion === "absorbido"
+                      ? `${g.pagadorNombre} absorbió ${formatoMXN(g.sinAsignarCentavos)} 🌻`
+                      : g.resolucion === "mio"
+                        ? `${formatoMXN(g.sinAsignarCentavos)} marcados como de ${g.pagadorNombre}`
+                        : `${formatoMXN(g.sinAsignarCentavos)} sin asignar: nadie los debe todavía.`}
+                  </p>
+                  {g.resolucion === null && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" data-testid={`sin-asignar-absorber-${g.id}`} onClick={() => resolver(g.id, "absorbido")}>
+                        Lo absorbo
+                      </Button>
+                      <Button size="sm" variant="outline" data-testid={`sin-asignar-mio-${g.id}`} onClick={() => resolver(g.id, "mio")}>
+                        Es mío
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </Card>
           ))}
         </div>

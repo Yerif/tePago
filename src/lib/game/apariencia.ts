@@ -82,6 +82,18 @@ export interface EntradaApariencia {
   movimientoReducido?: boolean;
 }
 
+/** Estados que tienen miniatura. */
+export const ESTADOS_MINIATURA = ["clean", "mild", "rekt"] as const satisfies readonly EstadoAvatar[];
+
+/**
+ * Miniatura 2D del personaje para listas y chips (un canvas 3D por pantalla es el tope, CLAUDE.md §7).
+ * Se genera desde el mismo modelo 3D con `npm run personajes:miniaturas`; un test exige que existan todas.
+ * Lleva la base y el ánimo, sin accesorio: el accesorio se ve en el personaje grande.
+ */
+export function rutaMiniatura(base: string | null | undefined, estado: EstadoAvatar): string {
+  return `/personajes/${baseValida(base)}-${estado}.png`;
+}
+
 export function baseValida(base: string | null | undefined): BaseSlug {
   return BASE_SLUGS.find((b) => b === base) ?? BASE_INICIAL;
 }

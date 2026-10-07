@@ -44,6 +44,17 @@ describe.each([
   });
 });
 
+describe("rose-text y grass-text distinguibles en light (debes / te deben)", () => {
+  it("son colores propios, no el texto normal, y cumplen AA sobre card, fondo y su fondo suave", () => {
+    expect(light["rose-text"]).not.toBe(light.foreground);
+    expect(light["grass-text"]).not.toBe(light.foreground);
+    expect(light["rose-text"]).not.toBe(light["grass-text"]);
+    for (const color of ["rose-text", "grass-text"]) {
+      for (const fondo of ["card", "background", "muted"]) expect(contraste(light[color] as string, light[fondo] as string), `${color}/${fondo}`).toBeGreaterThanOrEqual(AA);
+    }
+  });
+});
+
 describe("subtle (solo decorativo)", () => {
   it("documenta que no alcanza AA: no debe usarse para texto", () => {
     expect(contraste(light.subtle as string, light.background as string)).toBeLessThan(AA);

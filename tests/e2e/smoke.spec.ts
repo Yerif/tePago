@@ -1,5 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { ids } from "./selectors";
+
+/** Los modos distintos de "igual" viven tras "Otras formas de dividir". */
+async function elegirModo(page: Page, modo: string) {
+  const chip = page.getByTestId(ids.modos.modo(modo));
+  if (!(await chip.isVisible())) await page.getByTestId(ids.modos.otras).click();
+  await chip.click();
+}
 
 test.describe("flujos críticos del demo", () => {
   test("dividir un gasto simple en 3 interacciones", async ({ page }) => {
@@ -11,6 +18,68 @@ test.describe("flujos críticos del demo", () => {
     await expect(page.getByTestId(ids.dividir.guardados)).toContainText("$850.00");
   });
 
+  test("montos: avisa cuánto falta, deja guardar y el pagador absorbe lo que quedó sin asignar", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await elegirModo(page, "montos");
+    await page.getByTestId(ids.modos.valor("ana")).fill("300");
+    await page.getByTestId(ids.modos.valor("beto")).fill("200");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Faltan $500.00");
+    await expect(page.getByTestId(ids.modos.sinAsignar)).toContainText("$500.00");
+    await page.getByTestId(ids.dividir.confirmar).click();
+    await page.getByTestId(ids.modos.absorber(1)).click();
+    await expect(page.getByTestId(ids.dividir.guardados)).toContainText("absorbió $500.00");
+  });
+
+  test("montos: pasarse del total bloquea guardar", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("100");
+    await elegirModo(page, "montos");
+    await page.getByTestId(ids.modos.valor("ana")).fill("150");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Te pasaste $50.00");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeDisabled();
+  });
+
+  test("porcentajes: deben sumar 100 y hay atajo para repartir lo que falta", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await elegirModo(page, "porcentajes");
+    await page.getByTestId(ids.modos.valor("ana")).fill("50");
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Llevan 50 %");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeDisabled();
+    await page.getByTestId(ids.modos.completar).click();
+    await expect(page.getByTestId(ids.modos.estado)).toContainText("Suma 100 %");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$500.00");
+    await expect(page.getByTestId(ids.dividir.confirmar)).toBeEnabled();
+  });
+
+  test("partes y ajustes; al cambiar de modo se conserva lo capturado", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("700");
+    await elegirModo(page, "partes");
+    await page.getByTestId(ids.modos.valor("ana")).fill("3");
+    await page.getByTestId(ids.modos.valor("beto")).fill("2");
+    await page.getByTestId(ids.modos.valor("caro")).fill("2");
+    await page.getByTestId(ids.modos.valor("ferni")).fill("0");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$300.00");
+    await elegirModo(page, "ajustes");
+    await elegirModo(page, "partes");
+    await expect(page.getByTestId(ids.modos.valor("ana"))).toHaveValue("3");
+  });
+
+  test("por producto: lo que pidió uno solo se le carga a él y lo demás se reparte", async ({ page }) => {
+    await page.goto("/dev/demo/dividir");
+    await page.getByTestId(ids.dividir.monto).fill("1000");
+    await elegirModo(page, "producto");
+    await page.getByTestId(ids.modos.productoNombre).fill("Postre");
+    await page.getByTestId(ids.modos.productoPrecio).fill("200");
+    await page.getByTestId(ids.modos.productoQuien("beto")).click();
+    await page.getByTestId(ids.modos.productoAgregar).click();
+    // 800 restantes entre 4 = 200 c/u; Beto además el postre.
+    await expect(page.getByTestId(ids.modos.parte("beto"))).toContainText("$400.00");
+    await expect(page.getByTestId(ids.modos.parte("ana"))).toContainText("$200.00");
+  });
+
   test("confirmar lo que entendió la app y guardar", async ({ page }) => {
     await page.goto("/dev/demo/ia?c=b1-05-cena-detalle");
     await expect(page.getByTestId(ids.confirmar.resultado)).toBeVisible();
@@ -18,30 +87,4 @@ test.describe("flujos críticos del demo", () => {
     await expect(page.getByTestId(ids.confirmar.guardado)).toBeVisible();
   });
 
-  test("saldar: un abono no da XP; pagar todo sí y el personaje reacciona", async ({ page }) => {
-    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
-    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Deteriorado");
-
-    await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("100");
-    await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.reaccion)).toContainText("Te faltan $210.00");
-    await expect(page.getByTestId(ids.saldar.xp)).toHaveCount(0);
-
-    await page.getByTestId(ids.saldar.todo("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.xp)).toHaveText("+50 XP ⚡");
-
-    await page.getByTestId(ids.saldar.todo("beto", "caro")).click();
-    await page.getByTestId(ids.saldar.todo("beto", "ana")).click();
-    await expect(page.getByTestId(ids.saldar.estado)).toHaveText("Radiante");
-  });
-
-  test("saldar valida el monto", async ({ page }) => {
-    await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
-    await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("12.345");
-    await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.error)).toContainText("monto válido");
-    await page.getByTestId(ids.saldar.monto("beto", "ferni")).fill("99999");
-    await page.getByTestId(ids.saldar.abonar("beto", "ferni")).click();
-    await expect(page.getByTestId(ids.saldar.error)).toContainText("no pagues de más");
-  });
 });

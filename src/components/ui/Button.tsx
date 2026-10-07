@@ -22,7 +22,7 @@ export const buttonVariants = cva(
           "border-transparent bg-transparent text-foreground shadow-none hover:bg-muted active:translate-y-0",
       },
       size: {
-        sm: "h-9 rounded-2xl px-4 text-sm",
+        sm: "h-11 rounded-2xl px-4 text-sm",
         md: "h-11 rounded-2xl px-5 text-base",
         lg: "h-14 rounded-3xl px-7 text-lg",
       },
