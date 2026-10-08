@@ -20,6 +20,9 @@ export const ids = {
   inicio_resumen: {
     debes: "inicio-debes",
     teDeben: "inicio-te-deben",
+    teDebenTexto: "inicio-te-deben-texto",
+    verTeDeben: "inicio-ver-te-deben",
+    teDebenFilas: "inicio-te-deben-filas",
     texto: "inicio-resumen-texto",
     teToca: "inicio-te-toca",
     verTodas: "inicio-ver-todas",

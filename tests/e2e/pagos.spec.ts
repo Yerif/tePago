@@ -193,7 +193,7 @@ test.describe("detalle del grupo", () => {
 
     // Lo que falta ($210): al confirmarse, +50 XP.
     await page.goto("/dev/demo/g/oaxaca/detalle?u=beto");
-    await expect(page.getByTestId(ids.cuenta.pagar("ferni"))).toContainText("$210.00");
+    await expect(page.getByTestId(ids.cuenta.monto("ferni"))).toHaveText("$210.00"); // el monto va a la derecha; el botón solo dice «Pagar»
     await page.getByTestId(ids.cuenta.pagar("ferni")).click();
     await page.getByTestId(ids.hoja.confirmar).click();
     await inicio(page, "ferni");
@@ -214,5 +214,32 @@ test.describe("hoja de pago (UX2-20)", () => {
     await monto.fill("$500");
     await page.getByTestId(ids.hoja.confirmar).click();
     await expect(page.getByTestId(ids.toast.raiz)).toContainText("Avisamos");
+  });
+});
+
+test.describe("«Te deben» en el Inicio (decisión de Yerif, 2026-10-08)", () => {
+  test("un cuadro igual al de «Debes», abajo, con cuántas personas y un botón que despliega sus filas", async ({ page }) => {
+    await inicio(page, "ana");
+    const card = page.getByTestId("inicio-te-deben-card");
+    await expect(card).toBeVisible();
+    await expect(page.getByTestId(ids.inicio_resumen.teDeben)).toHaveText("$3,050.29");
+    await expect(page.getByTestId(ids.inicio_resumen.teDebenTexto)).toContainText(/de \d+ personas · la más vieja hace/);
+
+    // Está debajo de «Debes» y de la lista de a quién le pagas.
+    const debes = await page.getByTestId(ids.inicio_resumen.debes).boundingBox();
+    const teDeben = await page.getByTestId(ids.inicio_resumen.teDeben).boundingBox();
+    expect(teDeben && debes && teDeben.y > debes.y).toBe(true);
+
+    // El botón dice cuántas personas y despliega / pliega las filas (sin botón «Pagar»: nadie le paga a quien cobra).
+    const boton = page.getByTestId(ids.inicio_resumen.verTeDeben);
+    await expect(boton).toContainText(/Ver las \d+ personas que te deben/);
+    await expect(page.getByTestId(ids.inicio_resumen.teDebenFilas)).toHaveCount(0);
+    await boton.click();
+    const filas = page.getByTestId(ids.inicio_resumen.teDebenFilas).locator("> li");
+    expect(await filas.count()).toBeGreaterThan(0);
+    await expect(page.getByTestId(ids.inicio_resumen.teDebenFilas).locator('[data-testid^="cuenta-pagar-"]')).toHaveCount(0);
+    await expect(boton).toContainText("Ver menos");
+    await boton.click();
+    await expect(page.getByTestId(ids.inicio_resumen.teDebenFilas)).toHaveCount(0);
   });
 });
