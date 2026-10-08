@@ -60,6 +60,53 @@ export function BandejaPagos({ grupos: gruposBase, yo }: BandejaPagosProps) {
   }
   const gruposDe = (lote: PagoRegistrado[]) => lote.map((r) => nombreGrupo(r.grupoId)).join(" · ");
 
+  /** Una tarjeta compacta por evento: lo que pasó (con su XP en la misma línea) y, si hace falta, qué hacer. */
+  function aviso(lote: PagoRegistrado[]) {
+    const id = lote[0]?.loteId ?? "";
+    const confirmado = lote.every((r) => r.estado === "confirmado");
+    const xp = lote.reduce((s, r) => s + r.xp, 0);
+    const total = formatoMXN(lote.reduce((s, r) => s + r.centavos, 0));
+    const ids = lote.map((r) => r.id);
+    const quien = nombre(lote[0]?.aId ?? "");
+    return (
+      <li key={id}>
+        <Card size="sm" role="status" className="flex flex-col gap-2" data-testid={`aviso-${id}`}>
+          {confirmado ? (
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-semibold">
+                ¡{quien} confirmó tu pago de {total}! 🎉
+                {xp > 0 ? (
+                  <span className="ml-1 whitespace-nowrap text-grass-text" data-testid={`aviso-xp-${id}`}>
+                    +{xp} XP ⚡
+                  </span>
+                ) : null}
+                {xp === 0 ? <span className="block text-sm font-normal text-muted-foreground">El XP llega cuando una deuda queda saldada por completo.</span> : null}
+              </p>
+              <Button size="sm" variant="outline" className="shrink-0" data-testid={`aviso-ok-${id}`} onClick={() => avisado(ids)}>
+                Entendido
+              </Button>
+            </div>
+          ) : (
+            <>
+              <p className="font-semibold">
+                {quien} dice que no le ha llegado tu pago de {total}.
+              </p>
+              <p className="text-sm text-muted-foreground">Tu deuda sigue igual y ese monto queda reservado: {quien} puede aprobarlo más tarde, o puedes cancelarlo.</p>
+              <div className="flex flex-wrap gap-2">
+                <Button size="md" variant="outline" data-testid={`aviso-cancelar-${id}`} onClick={() => (cancelar(ids, yo), avisado(ids))}>
+                  Cancelar pago
+                </Button>
+                <Button size="md" variant="outline" data-testid={`aviso-ok-${id}`} onClick={() => avisado(ids)}>
+                  Entendido
+                </Button>
+              </div>
+            </>
+          )}
+        </Card>
+      </li>
+    );
+  }
+
   return (
     <section data-component="BandejaPagos" aria-label="Pagos por resolver" className="flex flex-col gap-3">
       {porResponder.length > 0 && (
@@ -100,53 +147,20 @@ export function BandejaPagos({ grupos: gruposBase, yo }: BandejaPagosProps) {
       )}
 
       {avisos.length > 0 && (
-        <ul data-testid="avisos-pago" className="flex flex-col gap-2">
-          {avisos.map((lote) => {
-            const id = lote[0]?.loteId ?? "";
-            const confirmado = lote.every((r) => r.estado === "confirmado");
-            const xp = lote.reduce((s, r) => s + r.xp, 0);
-            const total = formatoMXN(lote.reduce((s, r) => s + r.centavos, 0));
-            const ids = lote.map((r) => r.id);
-            const quien = nombre(lote[0]?.aId ?? "");
-            return (
-              <li key={id}>
-                <Card size="sm" role="status" className="flex flex-col gap-2" data-testid={`aviso-${id}`}>
-                  {confirmado ? (
-                    <>
-                      <p className="font-semibold">
-                        ¡{quien} confirmó tu pago de {total}! 🎉
-                      </p>
-                      {xp > 0 ? (
-                        <p className="text-grass-text" data-testid={`aviso-xp-${id}`}>
-                          +{xp} XP ⚡
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">El XP llega cuando una deuda queda saldada por completo.</p>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <p className="font-semibold">
-                        {quien} dice que no le ha llegado tu pago de {total}.
-                      </p>
-                      <p className="text-sm text-muted-foreground">Tu deuda sigue igual y ese monto queda reservado: {quien} puede aprobarlo más tarde, o puedes cancelarlo.</p>
-                    </>
-                  )}
-                  <div className="flex flex-wrap gap-2">
-                    {!confirmado && (
-                      <Button size="md" variant="outline" data-testid={`aviso-cancelar-${id}`} onClick={() => (cancelar(ids, yo), avisado(ids))}>
-                        Cancelar pago
-                      </Button>
-                    )}
-                    <Button size="md" variant="outline" data-testid={`aviso-ok-${id}`} onClick={() => avisado(ids)}>
-                      Entendido
-                    </Button>
-                  </div>
-                </Card>
-              </li>
-            );
-          })}
-        </ul>
+        <div className="flex flex-col gap-2">
+          <ul data-testid="avisos-pago" className="flex flex-col gap-2">
+            {avisos.slice(0, 1).map(aviso)}
+          </ul>
+          {/* Un solo aviso a la vista: el resto espera plegado para no empujar "Pagar" fuera de la pantalla. */}
+          {avisos.length > 1 && (
+            <details data-testid="avisos-mas">
+              <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
+                Ver {avisos.length - 1} {avisos.length - 1 === 1 ? "aviso más" : "avisos más"} ▾
+              </summary>
+              <ul className="mt-2 flex flex-col gap-2">{avisos.slice(1).map(aviso)}</ul>
+            </details>
+          )}
+        </div>
       )}
     </section>
   );

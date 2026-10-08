@@ -49,18 +49,18 @@ test.describe("héroe del personaje en el Inicio (PX-03)", () => {
 });
 
 test.describe("la recompensa llega al abrir la app (PX-04)", () => {
-  test("Beto abre el Inicio tras la confirmación: ve su XP, su personaje festeja y no depende de «Entendido»", async ({ page }) => {
+  test("Beto abre el Inicio tras la confirmación: un solo aviso con su XP, su personaje festeja y no se repite", async ({ page }) => {
     await betoLePagaA(page, "ferni");
     await confirmaEn(page, "ferni");
 
     await inicio(page, "beto");
-    await expect(page.getByTestId(ids.revelacion.raiz)).toBeVisible();
-    await expect(page.getByTestId(ids.revelacion.xp)).toHaveText("+50 XP ⚡");
+    // Un evento, un aviso (UX2-03): la XP va en «Ferni confirmó tu pago», sin una segunda tarjeta de revelación.
+    await expect(page.getByTestId(ids.revelacion.raiz)).toHaveCount(0);
+    await expect(page.locator(ids.pagos.avisoXp)).toHaveText("+50 XP ⚡");
     await expect(page.getByTestId(ids.inicio_hero.raiz).getByTestId(ids.personaje.raiz)).toHaveAttribute(ids.personaje.celebraciones, "1");
 
-    // Tocar «Entendido» en el aviso no la quita ni la repite.
     await page.locator(ids.pagos.avisoOk).click();
-    await expect(page.getByTestId(ids.revelacion.raiz)).toBeVisible();
+    await expect(page.locator(ids.pagos.avisoXp)).toHaveCount(0);
 
     // La siguiente vez que abre la app ya no se repite.
     await inicio(page, "beto");
