@@ -68,7 +68,7 @@ export function HeroPersonaje({ nombre, apariencia, estado, nivel, xp, xpSiguien
 
   return (
     <section data-component="HeroPersonaje" data-testid="inicio-hero" aria-label="Tu personaje" className="flex flex-col gap-2">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 max-[260px]:flex-col max-[260px]:text-center">
         <button type="button" data-testid="inicio-personaje-toque" aria-label="Saludar a tu personaje" onClick={tocar} className="shrink-0 rounded-3xl">
           <Personaje className="h-32 w-32" apariencia={apariencia} estado={estado} celebrar={celebrar} saludar={saludos} />
         </button>

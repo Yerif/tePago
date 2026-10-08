@@ -251,7 +251,7 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial, grupoPedid
         </fieldset>
 
         <div>
-          <Button variant="ghost" size="md" aria-expanded={otrasFormas || modo !== "igual"} data-testid="otras-formas" onClick={() => setOtrasFormas((v) => !v)} className="-ml-4">
+          <Button variant="ghost" size="md" aria-expanded={otrasFormas || modo !== "igual"} data-testid="otras-formas" onClick={() => setOtrasFormas((v) => !v)} className="-ml-4 h-auto min-h-11 max-w-full whitespace-normal py-2 text-left">
             {otrasFormas || modo !== "igual" ? "Otras formas de dividir ▴" : "Otras formas de dividir ▾"}
           </Button>
           {(otrasFormas || modo !== "igual") && (

@@ -40,7 +40,7 @@ export function HomeGrupoVivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: Hom
   const nombreDe = (id: string) => grupo.miembros.find((m) => m.id === id)?.nombre ?? id;
 
   return (
-    <div data-component="HomeGrupoVivo" className="flex flex-col gap-5 px-6">
+    <div data-component="HomeGrupoVivo" className="flex flex-col gap-5 px-6 max-[360px]:px-3">
       <Card className="flex flex-col items-center gap-4 text-center" data-testid="mi-personaje">
         <Personaje apariencia={apariencia({ base: yoMiembro.base, estado: estadoYo, skin: yoMiembro.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
         <div>

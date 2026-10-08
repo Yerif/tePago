@@ -109,7 +109,7 @@ export function Personaje({ apariencia, estado, celebrar = 0, saludar = 0, class
       data-celebraciones={celebrar}
       data-saludos={saludar}
       data-pausado={modo === "3d" && !enPantalla}
-      className={cn("relative h-56 w-56", className)}
+      className={cn("relative h-56 w-56 max-w-full", className)}
       role="img"
       aria-label={`Personaje ${BASES[apariencia.base].nombre}`}
     >
