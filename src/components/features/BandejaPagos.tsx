@@ -8,6 +8,7 @@ import { avisosParaPagador, paresConfirmados, porConfirmar, porRevisar, type Pag
 import { formatoMXN } from "@/lib/splits/formato";
 import { useGruposConPerfiles } from "./usePerfilesDemo";
 import { usePagosDemo } from "./usePagosDemo";
+import { Chevron } from "@/components/ui/Chevron";
 
 export interface BandejaPagosProps {
   grupos: GrupoDemo[];
@@ -155,7 +156,8 @@ export function BandejaPagos({ grupos: gruposBase, yo }: BandejaPagosProps) {
           {avisos.length > 1 && (
             <details data-testid="avisos-mas">
               <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
-                Ver {avisos.length - 1} {avisos.length - 1 === 1 ? "aviso más" : "avisos más"} ▾
+                Ver {avisos.length - 1} {avisos.length - 1 === 1 ? "aviso más" : "avisos más"}
+                <Chevron />
               </summary>
               <ul className="mt-2 flex flex-col gap-2">{avisos.slice(1).map(aviso)}</ul>
             </details>

@@ -24,6 +24,7 @@ import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN } from "@/lib/splits/formato";
 import type { Pago } from "@/lib/splits/pagos";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
+import { Chevron } from "@/components/ui/Chevron";
 
 export interface DetalleGrupoInteractivoProps {
   grupos: GrupoDemo[];
@@ -171,7 +172,10 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
 
       {planRutas.length > 0 && (
         <details id="como-pagarse" data-testid="como-pagarse" className="rounded-3xl border-[2.5px] border-border bg-card p-4">
-          <summary className="flex min-h-11 cursor-pointer items-center font-display text-lg font-bold">Pagar menos veces 🪄</summary>
+          <summary className="flex min-h-11 cursor-pointer items-center font-display text-lg font-bold">
+            Pagar menos veces 🪄
+            <Chevron />
+          </summary>
           <div className="mt-2 flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
               Si te sirve, puedes saldar todo con menos pagos: el dinero pasa por otras personas y <strong>todas deben confirmarlo</strong>. Ojo: la cifra puede ser distinta a lo que le debes a cada quien.
@@ -231,7 +235,10 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
       </section>
 
       <details data-testid="todas-las-deudas" className="rounded-3xl border-[2.5px] border-border bg-card p-4">
-        <summary className="flex min-h-11 cursor-pointer items-center font-display text-lg font-bold">Todas las deudas del grupo</summary>
+        <summary className="flex min-h-11 cursor-pointer items-center font-display text-lg font-bold">
+          Todas las deudas del grupo
+          <Chevron />
+        </summary>
         {deudas.length === 0 ? (
           <p className="mt-2 text-muted-foreground">Nadie le debe a nadie 🌻</p>
         ) : (

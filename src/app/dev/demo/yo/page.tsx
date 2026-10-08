@@ -7,6 +7,7 @@ import { PerfilYo } from "@/components/features/PerfilYo";
 import { SKIN_SLUGS, SKINS, requisitoSkin } from "@/lib/game/skins";
 import { BADGES_DEMO, crearGrupos, YO } from "@/lib/mock/datos";
 import type { MiembroDemo } from "@/lib/mock/tipos";
+import { Chevron } from "@/components/ui/Chevron";
 
 export const metadata: Metadata = { title: "Yo (demo)" };
 export const dynamic = "force-dynamic";
@@ -32,7 +33,10 @@ export default async function YoDemoPage({ searchParams }: { searchParams: Promi
       />
 
       <details data-testid="herramientas-demo" className="rounded-3xl border-[2.5px] border-dashed border-border p-4">
-        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">🧪 Herramientas de prueba</summary>
+        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
+          🧪 Herramientas de prueba
+          <Chevron />
+        </summary>
         <div className="mt-3 flex flex-col gap-3">
           <Pill variant="lemon" className="self-start">
             Datos de ejemplo · sin Supabase

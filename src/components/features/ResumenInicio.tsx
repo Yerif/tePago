@@ -26,6 +26,7 @@ import { formatoMXN } from "@/lib/splits/formato";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 import { tiempoDesdeHoras } from "@/lib/tiempo";
 import { cn } from "@/lib/utils";
+import { Chevron } from "@/components/ui/Chevron";
 
 export interface ResumenInicioProps {
   grupos: GrupoDemo[];
@@ -174,6 +175,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso, forzarBienveni
             <span data-testid="inicio-te-deben" className="text-grass-text">
               {formatoMXN(resumen.teDebenCentavos)}
             </span>
+            <Chevron className="ml-0" />
           </summary>
           <ul className="mt-2 flex flex-col gap-2">
             {resumen.teDeben.map((c) => {

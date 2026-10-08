@@ -172,3 +172,16 @@
     animation: respirar 3.4s ease-in-out infinite;
   }
 }
+
+/* Plegables (<details>): la flechita gira al abrir. Con movimiento reducido gira de golpe. */
+.chevron-plegable {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chevron-plegable {
+    transition: transform 0.15s ease;
+  }
+}
+details[open] > summary .chevron-plegable {
+  transform: rotate(180deg);
+}

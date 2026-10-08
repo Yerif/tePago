@@ -4,6 +4,7 @@ import { Pill } from "@/components/cozy/Pill";
 import { ReiniciarDemo } from "@/components/features/ReiniciarDemo";
 import { ResumenInicio } from "@/components/features/ResumenInicio";
 import { crearGrupos, YO } from "@/lib/mock/datos";
+import { Chevron } from "@/components/ui/Chevron";
 
 export const metadata: Metadata = { title: "Inicio (demo) · Cuentas Conmigo" };
 export const dynamic = "force-dynamic"; // las fechas de ejemplo son relativas a "ahora"
@@ -20,7 +21,10 @@ export default async function DemoIndexPage({ searchParams }: { searchParams: Pr
       <ResumenInicio key={yo} grupos={grupos} yo={yo} ahoraIso={ahora.toISOString()} forzarBienvenida={bienvenida === "1"} />
 
       <details data-testid="herramientas-demo" className="rounded-3xl border-[2.5px] border-dashed border-border p-4">
-        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">🧪 Herramientas de prueba</summary>
+        <summary className="flex min-h-11 cursor-pointer items-center font-semibold">
+          🧪 Herramientas de prueba
+          <Chevron />
+        </summary>
         <div className="mt-3 flex flex-col gap-4">
           <Pill variant="lemon" className="self-start">
             Datos de ejemplo · sin Supabase

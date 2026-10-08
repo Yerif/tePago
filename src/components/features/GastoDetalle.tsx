@@ -3,6 +3,7 @@ import { EMOJI_CATEGORIA } from "@/lib/categorias";
 import type { GastoDemo } from "@/lib/mock/tipos";
 import { formatoMXN } from "@/lib/splits/formato";
 import { tiempoRelativo } from "@/lib/tiempo";
+import { Chevron } from "@/components/ui/Chevron";
 
 export interface GastoDetalleProps {
   gasto: GastoDemo;
@@ -28,8 +29,12 @@ export function GastoDetalle({ gasto, nombres, ahora, pendientes }: GastoDetalle
             Pagó {nombre(gasto.pagadoPor)} · {tiempoRelativo(gasto.fecha, ahora)}
           </span>
         </span>
-        <span className="font-display text-xl font-bold" data-testid="gasto-total">
-          {formatoMXN(gasto.totalCentavos)}
+        {/* El total y la flechita van apilados: la flechita no le quita ancho al título. */}
+        <span className="flex flex-col items-end">
+          <span className="font-display text-xl font-bold" data-testid="gasto-total">
+            {formatoMXN(gasto.totalCentavos)}
+          </span>
+          <Chevron className="ml-0 pl-0 text-base" />
         </span>
       </summary>
       <ul className="mt-3 flex flex-col gap-2 border-t-2 border-border pt-3">
