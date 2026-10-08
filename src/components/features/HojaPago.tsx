@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
-import { centavosATexto, formatoMXN, parsearMonto } from "@/lib/splits/formato";
+import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
 
 export interface HojaPagoProps {
   titulo: string;
@@ -15,9 +15,9 @@ export interface HojaPagoProps {
   onConfirmar: (centavos: number) => void;
 }
 
-/** Hoja inferior para pagar: monto editable (menos del total = abono) y "Ya le pagué". Dos toques desde la fila (CLAUDE.md §7). */
+/** Hoja inferior para pagar: monto editable (menos del total = abono) y "Ya le pagué". Dos toques desde la fila (CLAUDE.md §7). El monto se muestra como en la fila ("$1,291.67") y no abre el teclado solo: el caso común es pagar todo. */
 export function HojaPago({ titulo, detalle, totalCentavos, editable = true, onCerrar, onConfirmar }: HojaPagoProps) {
-  const [texto, setTexto] = useState(centavosATexto(totalCentavos));
+  const [texto, setTexto] = useState(formatoMXN(totalCentavos));
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -56,7 +56,7 @@ export function HojaPago({ titulo, detalle, totalCentavos, editable = true, onCe
           data-testid="hoja-monto"
           inputMode="decimal"
           autoComplete="off"
-          autoFocus={editable}
+          onFocus={(e) => e.currentTarget.select()}
           readOnly={!editable}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}

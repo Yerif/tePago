@@ -44,7 +44,7 @@ export function FriendRow({ miembro, balanceCentavos, esYo = false }: FriendRowP
           })}
         </div>
         {senales.negativa === "fantasma" && (
-          <p data-testid="friend-fantasma-hint" className="mt-1 text-xs text-muted-foreground">
+          <p data-testid="friend-fantasma-hint" className="mt-1 text-sm text-muted-foreground">
             Se esfuma al pagar 🌬️
           </p>
         )}
@@ -60,7 +60,7 @@ export function FriendRow({ miembro, balanceCentavos, esYo = false }: FriendRowP
         >
           {alCorriente ? "Al corriente ✨" : formatoMXN(Math.abs(balanceCentavos))}
         </p>
-        {!alCorriente && <p className="text-xs text-muted-foreground">{balanceCentavos > 0 ? "le deben" : "debe"}</p>}
+        {!alCorriente && <p className="text-sm text-muted-foreground">{balanceCentavos > 0 ? "le deben" : "debe"}</p>}
       </div>
     </li>
   );

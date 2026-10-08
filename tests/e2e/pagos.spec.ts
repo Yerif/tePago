@@ -56,7 +56,7 @@ test.describe("pagos: inicio, hoja, confirmación y reversa", () => {
   test("la hoja valida el monto y permite abonar", async ({ page }) => {
     await inicio(page, "ana");
     await page.getByTestId(ids.cuenta.pagar("nico")).click();
-    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("1291.67");
+    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("$1,291.67");
     await page.getByTestId(ids.hoja.monto).fill("12.345");
     await page.getByTestId(ids.hoja.confirmar).click();
     await expect(page.getByTestId(ids.hoja.error)).toContainText("monto válido");
@@ -146,7 +146,7 @@ test.describe("detalle del grupo", () => {
     await expect(page.getByTestId(ids.pagos.misCuentas)).toBeVisible();
     await expect(page.getByTestId(ids.cuenta.monto("nico"))).toHaveText("$991.67");
     await page.getByTestId(ids.cuenta.pagar("nico")).click();
-    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("991.67"); // una sola cifra por pago
+    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("$991.67"); // una sola cifra por pago
     await page.getByTestId(ids.hoja.cerrar).click();
     // Todo lo del grupo, plegado.
     await expect(page.getByTestId(ids.pagos.todasLasDeudas)).not.toHaveAttribute("open", "");
@@ -158,7 +158,7 @@ test.describe("detalle del grupo", () => {
     await page.getByTestId(ids.modos.comoPagarse).locator("summary").click();
     await expect(page.getByTestId(ids.pagos.plan("mari", "luis"))).toContainText("$3,381.96");
     await page.getByTestId(ids.pagos.planPagar("mari", "luis")).click();
-    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("3381.96");
+    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("$3,381.96");
     await page.getByTestId(ids.hoja.confirmar).click();
     await expect(page.getByTestId(ids.toast.raiz)).toContainText("Avisamos");
 
@@ -200,5 +200,19 @@ test.describe("detalle del grupo", () => {
     await page.locator(ids.pagos.confirmar).click();
     await inicio(page, "beto");
     await expect(page.locator(ids.pagos.avisoXp)).toHaveText("+50 XP ⚡");
+  });
+});
+
+test.describe("hoja de pago (UX2-20)", () => {
+  test("el monto se lee igual que en la fila, con $ y miles, y no abre el teclado solo", async ({ page }) => {
+    await page.goto("/dev/demo?u=ana");
+    await page.getByTestId(ids.cuenta.pagar("nico")).click();
+    const monto = page.getByTestId(ids.hoja.monto);
+    await expect(monto).toHaveValue("$1,291.67");
+    await expect(monto).not.toBeFocused();
+    // Se puede teclear un abono con o sin "$".
+    await monto.fill("$500");
+    await page.getByTestId(ids.hoja.confirmar).click();
+    await expect(page.getByTestId(ids.toast.raiz)).toContainText("Avisamos");
   });
 });

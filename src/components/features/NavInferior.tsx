@@ -45,7 +45,7 @@ export function NavInferior({ yoPorDefecto, bases }: NavInferiorProps) {
               href={d.href}
               data-testid={`nav-${d.id}`}
               aria-current={d.activo ? "page" : undefined}
-              className={cn("relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs", d.activo ? "font-bold text-grass-text" : "font-semibold text-muted-foreground")}
+              className={cn("relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-[13px]", d.activo ? "font-bold text-grass-text" : "font-semibold text-muted-foreground")}
             >
               {/* Pestaña activa: barra arriba + fondo detrás del ícono + etiqueta en negritas (no depende solo del color).
                   Todas las pestañas, Dividir incluida, se ven igual: ninguna parece "siempre seleccionada". */}
