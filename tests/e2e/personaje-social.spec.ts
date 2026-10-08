@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("reputación pública con humor, sin exhibir (PX-07)", () => {
-  test("La banda: una sola señal negativa por persona (Fantasma o clima), lo positivo primero y montos de otros en neutro", async ({ page }) => {
+  test("El grupo: una sola señal negativa por persona (Fantasma o clima), lo positivo primero y montos de otros en neutro", async ({ page }) => {
     await page.goto("/dev/demo/g/oaxaca?u=ana");
     const beto = page.getByTestId("friend-beto"); // bajo la lluvia + Fantasma + debe
     await expect(beto.getByTestId("friend-badge-fantasma")).toBeVisible();
@@ -36,8 +36,8 @@ test.describe("reputación pública con humor, sin exhibir (PX-07)", () => {
   });
 });
 
-test.describe("las skins que ganaste las ve la banda (PX-09)", () => {
-  test("un sello con el accesorio sobre la miniatura en La banda y en el Inicio; sin skin no hay sello", async ({ page }) => {
+test.describe("las skins que ganaste las ve el grupo (PX-09)", () => {
+  test("un sello con el accesorio sobre la miniatura en El grupo y en el Inicio; sin skin no hay sello", async ({ page }) => {
     await page.goto("/dev/demo/g/oaxaca?u=ana");
     await expect(page.getByTestId("friend-ana").getByTestId("avatar-skin")).toHaveText("👒"); // Jardinero
     await expect(page.getByTestId("friend-ferni").getByTestId("avatar-skin")).toHaveText("🧭"); // Explorador

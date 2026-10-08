@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { esEntornoDev } from "@/lib/entorno";
 import "./globals.css";
 
-const DESCRIPCION = "Divide gastos con tu banda y sube de nivel pagando a tiempo.";
+const DESCRIPCION = "Divide gastos con tu grupo y sube de nivel pagando a tiempo.";
 
 export const metadata: Metadata = {
   // Base de las URLs absolutas (imagen para compartir). En Vercel sale del dominio del despliegue.

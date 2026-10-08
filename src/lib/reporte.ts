@@ -10,7 +10,7 @@ export interface EntradaReporte {
 const MAX_MENSAJE = 300;
 
 /**
- * Texto que la persona pega en el chat de la banda cuando algo se rompe (CLAUDE.md §12). Solo lleva datos
+ * Texto que la persona pega en el chat del grupo cuando algo se rompe (CLAUDE.md §12). Solo lleva datos
  * técnicos: ruta, mensaje recortado, digest, hora y navegador. Sin ids de usuario, sin cuerpos ni cookies.
  */
 export function armarReporte({ ruta, mensaje, digest, ahora, agente }: EntradaReporte): string {

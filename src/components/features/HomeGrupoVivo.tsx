@@ -26,7 +26,7 @@ export interface HomeGrupoVivoProps {
 }
 
 /**
- * Cuerpo del Home del grupo: tu personaje, la banda y los gastos, con los mismos datos vivos que el resto de la app
+ * Cuerpo del Home del grupo: tu personaje, el grupo y los gastos, con los mismos datos vivos que el resto de la app
  * (nombre y personaje elegidos, estado, nivel y XP según los pagos confirmados).
  */
 export function HomeGrupoVivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: HomeGrupoVivoProps) {
@@ -73,7 +73,7 @@ export function HomeGrupoVivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: Hom
       </Link>
 
       <section>
-        <h2 className="font-display text-xl font-bold">La banda</h2>
+        <h2 className="font-display text-xl font-bold">El grupo</h2>
         <Card size="sm" className="mt-2">
           <ul className="divide-y-2 divide-border">
             {grupo.miembros.map((m) => (

@@ -114,7 +114,7 @@ src/                          # "· pendiente" = aún no existe
     (app)/                    # pendiente (necesita Supabase)
       page.tsx                # redirige al último grupo o a onboarding
       g/[groupId]/            # TODO lo de un tenant vive aquí
-        page.tsx              # Home del grupo: tu personaje + la banda
+        page.tsx              # Home del grupo: tu personaje + los integrantes
         gastos/[expenseId]/
       dividir/                # modo rápido (sin grupo) + "guardar en grupo"
       grupos/                 # lista, crear, unirse
@@ -261,7 +261,7 @@ Definiciones (implementadas en `lib/game/badges.ts` y confirmadas, ver "Reglas d
 
 ### Reputación pública (decisión de Yerif, 2026-10-06)
 
-Lo que ve la banda de ti es el personaje, el nivel, los badges y tu saldo del grupo. Salvaguardas: **una sola señal negativa por persona** en las listas públicas (el estado o el badge Fantasma, nunca ambos junto al monto en rojo; lo positivo va primero); los **avatares son neutros** (sin aro de estado ni nube) donde no se habla de reputación (Dividir, Confirmar gasto, selector de personaje); los montos de terceros van en neutro y solo los de tu relación llevan color y acción; el Fantasma dice "se esfuma al pagar".
+Lo que ve el grupo de ti es el personaje, el nivel, los badges y tu saldo del grupo. Salvaguardas: **una sola señal negativa por persona** en las listas públicas (el estado o el badge Fantasma, nunca ambos junto al monto en rojo; lo positivo va primero); los **avatares son neutros** (sin aro de estado ni nube) donde no se habla de reputación (Dividir, Confirmar gasto, selector de personaje); los montos de terceros van en neutro y solo los de tu relación llevan color y acción; el Fantasma dice "se esfuma al pagar".
 
 ### Skins
 
@@ -355,7 +355,7 @@ Reglas:
 6. Hallazgos y decisiones en `docs/SECURITY.md` con fecha y severidad.
 7. **Llaves reales solo en el scope Production de Vercel.** Preview y desarrollo: sin llaves, o las de un proyecto de desarrollo. Las previews muestran `/dev/*` y el DebugPanel; nada sensible debe vivir ahí.
 8. CSP: hoy permite `'unsafe-inline'` en scripts (Next sin nonce). Aceptado hasta la auditoría L8; el nonce exige middleware y páginas dinámicas.
-9. Datos reales de personas (UAT-2 en adelante) requieren un aviso de privacidad mínimo antes de invitar a la banda.
+9. Datos reales de personas (UAT-2 en adelante) requieren un aviso de privacidad mínimo antes de invitar al grupo.
 
 ---
 
@@ -502,7 +502,7 @@ npx supabase gen types typescript --local > src/types/database.ts
 4. Pantalla Dividir con modo rápido ≤ 3 interacciones.
 5. Smart Split: texto primero, foto de ticket después.
 6. Personaje 3D (personitas y animalitos), XP, niveles, 6 badges, 5 skins, 3 estados de avatar.
-7. Home del grupo: personaje + estado de la banda + balances.
+7. Home del grupo: personaje + estado del grupo + balances.
 8. Resumen semanal cozy generado por IA, entregado in-app.
 9. Categorización automática de gastos.
 10. Dark/light mode (dark por default).
@@ -528,4 +528,4 @@ Auditoría completa en `docs/AUDITORIA.md`; guion, entornos y criterios en `docs
 | 9 | Categorización | Catálogo y emojis en `lib/categorias`, prompt B5 y su dataset | Diccionario local y ruta `/api/categorizar` |
 | 10 | Dark/light | Toggle persistente, dark por default | — |
 
-**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02; **sale con el personaje 3D aunque tarde más**, decisión del 2026-10-06) y UAT-2 (producción con Supabase y la banda real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.
+**Dos rondas de UAT.** UAT-1 (prototipo con datos de ejemplo, en la preview estable de `develop`, decidido por Yerif el 2026-10-02; **sale con el personaje 3D aunque tarde más**, decisión del 2026-10-06) y UAT-2 (producción con Supabase y el grupo real). Criterios de entrada y salida en `docs/UAT.md`. Durante una ronda no se agregan features: solo bugs y feedback con ticket, triados los viernes en `docs/FEEDBACK.md`.

@@ -14,7 +14,7 @@ export interface SenalesPublicas {
 }
 
 /**
- * Qué se muestra de una persona en las listas que ve toda la banda, con las salvaguardas de reputación: una sola señal
+ * Qué se muestra de una persona en las listas que ve todo el grupo, con las salvaguardas de reputación: una sola señal
  * negativa (Fantasma o clima, nunca ambas junto al monto en rojo), lo positivo primero y el color del dinero solo en lo tuyo.
  */
 export function senalesPublicas(entrada: { estado: EstadoAvatar; badges: readonly string[]; balanceCentavos: number; esYo: boolean }): SenalesPublicas {

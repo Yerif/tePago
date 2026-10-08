@@ -16,7 +16,7 @@
 ```jsonc
 {
   "id": "b1-05-cena-detalle",     // único; prefijo del prompt
-  "origen": "sintetico",          // "real" si viene de un mensaje de la banda
+  "origen": "sintetico",          // "real" si viene de un mensaje del grupo
   "tipo": "normal",               // "normal" → trae `esperado`; "adversarial" → trae `criterios`
   "tags": ["items", "propina"],   // sirven para filtrar y para los tests de cobertura del dataset
   "entrada": { ... },             // exactamente lo que recibe el prompt (miembros con alias m1, m2…)
@@ -44,7 +44,7 @@ El runner (Promptfoo, ticket aparte) solo llama a estas funciones. Umbrales inic
 
 ## Agregar casos reales (lo más valioso)
 
-Los casos actuales son **sintéticos**: sirven para arrancar, pero los reales de tu banda pesan más. Para agregar uno:
+Los casos actuales son **sintéticos**: sirven para arrancar, pero los reales de tu grupo pesan más. Para agregar uno:
 1. Copia un mensaje real (quita datos sensibles y usa alias `m1…`).
 2. Añade el caso al `casos.json` que corresponda con `"origen": "real"` y su golden.
 3. Corre `npm run test`: si el golden no cumple las reglas, el test te dice cuál.

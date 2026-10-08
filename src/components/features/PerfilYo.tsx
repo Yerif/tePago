@@ -34,7 +34,7 @@ const skinSlug = (slug: string): SkinSlug => SKIN_SLUGS.find((s) => s === slug) 
 
 /**
  * La pestaña Yo, en el orden de lo que importa (PX-05): tu personaje (héroe 3D) con nombre, nivel, XP y la próxima meta →
- * elegir personaje → skins (las bloqueadas se pueden probar 3 s) → nombre → cómo te ve tu banda. Cambiar de personaje no
+ * elegir personaje → skins (las bloqueadas se pueden probar 3 s) → nombre → cómo te ve tu grupo. Cambiar de personaje no
  * pierde nivel, XP, badges ni skins (CLAUDE.md §7, "Perfil editable").
  */
 export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: PerfilYoProps) {
@@ -203,8 +203,8 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
         </form>
       </Card>
 
-      <Card className="flex flex-col gap-3" data-testid="perfil-banda">
-        <h2 className="font-display text-xl font-bold">Así te ve tu banda</h2>
+      <Card className="flex flex-col gap-3" data-testid="perfil-grupo">
+        <h2 className="font-display text-xl font-bold">Así te ve tu grupo</h2>
         <div className="flex items-center gap-3">
           <Avatar base={baseActual} estado={estado} accesorio={SKINS[skinSlug(skinActiva)].accesorio} size="sm" />
           <div className="min-w-0 flex-1">
@@ -220,7 +220,7 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
             </Pill>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">Tu banda ve tu personaje, tu nivel, tus badges y tu saldo del grupo. Nada más.</p>
+        <p className="text-sm text-muted-foreground">Tu grupo ve tu personaje, tu nivel, tus badges y tu saldo. Nada más.</p>
       </Card>
     </div>
   );

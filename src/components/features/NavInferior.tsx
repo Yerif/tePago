@@ -31,7 +31,7 @@ export function NavInferior({ yoPorDefecto, bases }: NavInferiorProps) {
 
   const destinos = [
     { id: "inicio", etiqueta: "Inicio", icono: "🏠", href: `${BASE}${q}`, activo: pathname === BASE },
-    { id: "dividir", etiqueta: "Dividir", icono: "➕", href: `${BASE}/dividir${q}`, activo: pathname.startsWith(`${BASE}/dividir`), destacado: true },
+    { id: "dividir", etiqueta: "Dividir", icono: "➕", href: `${BASE}/dividir${q}`, activo: pathname.startsWith(`${BASE}/dividir`) },
     { id: "grupos", etiqueta: "Grupos", icono: "👥", href: `${BASE}/grupos${q}`, activo: pathname.startsWith(`${BASE}/grupos`) || pathname.startsWith(`${BASE}/g/`) },
     { id: "yo", etiqueta: "Yo", icono: "🐻", href: `${BASE}/yo${q}`, activo: pathname.startsWith(`${BASE}/yo`) },
   ];
@@ -45,15 +45,22 @@ export function NavInferior({ yoPorDefecto, bases }: NavInferiorProps) {
               href={d.href}
               data-testid={`nav-${d.id}`}
               aria-current={d.activo ? "page" : undefined}
-              className={cn("relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-semibold", d.activo ? "text-grass-text" : "text-muted-foreground")}
+              className={cn("relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs", d.activo ? "font-bold text-grass-text" : "font-semibold text-muted-foreground")}
             >
-              {d.id === "yo" && miBase ? (
-                <Avatar base={miBase} estado="clean" neutro compacto size="sm" className="size-8 border-2" />
-              ) : (
-                <span aria-hidden className={cn("text-2xl", d.destacado && "rounded-full border-2 border-grass bg-grass-soft px-3 py-0.5")}>
-                  {d.icono}
-                </span>
-              )}
+              {/* Pestaña activa: barra arriba + fondo detrás del ícono + etiqueta en negritas (no depende solo del color).
+                  Todas las pestañas, Dividir incluida, se ven igual: ninguna parece "siempre seleccionada". */}
+              {d.activo && <span aria-hidden data-testid="nav-activa" className="absolute top-0 h-1 w-10 rounded-b-full bg-grass" />}
+              <span aria-hidden className={cn("flex h-8 min-w-14 items-center justify-center rounded-full", d.activo && "bg-grass-soft")}>
+                {d.id === "yo" && miBase ? (
+                  <Avatar base={miBase} estado="clean" neutro compacto size="sm" className="size-8 border-2" />
+                ) : d.id === "dividir" ? (
+                  <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                    <path d="M12 4v16M4 12h16" />
+                  </svg>
+                ) : (
+                  <span className="text-2xl leading-none">{d.icono}</span>
+                )}
+              </span>
               {d.etiqueta}
               {d.id === "inicio" && pendientes > 0 && (
                 <span data-testid="nav-pendientes" aria-label={`${pendientes} pagos por resolver`} className="absolute top-1 right-[22%] min-w-5 rounded-full bg-rose px-1 text-center text-xs font-bold text-on-accent">

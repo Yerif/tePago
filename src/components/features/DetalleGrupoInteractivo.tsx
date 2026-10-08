@@ -42,7 +42,7 @@ interface PlanElegido {
 
 /**
  * Detalle del grupo. Orden: mis cuentas (lo que pago y lo que me pagan) → pagar menos veces (opcional) → cómo va la
- * banda → gastos → todas las deudas del grupo (plegado). Pagar deja el pago pendiente hasta que quien recibe lo confirma
+ * integrantes → gastos → todas las deudas del grupo (plegado). Pagar deja el pago pendiente hasta que quien recibe lo confirma
  * (CLAUDE.md §7).
  */
 export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: DetalleGrupoInteractivoProps) {
@@ -211,7 +211,7 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
       )}
 
       <section>
-        <h2 className="font-display text-xl font-bold">Cómo va la banda</h2>
+        <h2 className="font-display text-xl font-bold">Cómo va el grupo</h2>
         <Card size="sm" className="mt-2">
           <ul className="divide-y-2 divide-border">
             {grupo.miembros.map((m) => (
