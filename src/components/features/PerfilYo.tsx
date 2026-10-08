@@ -190,7 +190,7 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
           <label htmlFor="perfil-nombre" className="text-sm text-muted-foreground">
             Tu nombre
           </label>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               id="perfil-nombre"
               data-testid="perfil-nombre"

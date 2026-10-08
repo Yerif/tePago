@@ -12,6 +12,7 @@ export function ThemeToggle({ conTexto = false }: { conTexto?: boolean }) {
       size="md"
       aria-label="Cambiar entre tema claro y oscuro"
       data-testid="theme-toggle"
+      className="h-auto min-h-11 max-w-full whitespace-normal py-2"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       <span aria-hidden className="dark:hidden">

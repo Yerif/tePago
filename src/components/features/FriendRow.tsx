@@ -21,10 +21,10 @@ export function FriendRow({ miembro, balanceCentavos, esYo = false }: FriendRowP
   const alCorriente = balanceCentavos === 0;
   const senales = senalesPublicas({ estado: miembro.estado, badges: miembro.badges, balanceCentavos, esYo });
   return (
-    <li data-component="FriendRow" data-testid={`friend-${miembro.id}`} className="flex items-center gap-3 py-3">
+    <li data-component="FriendRow" data-testid={`friend-${miembro.id}`} className="flex flex-wrap items-center gap-3 py-3">
       <Avatar base={miembro.base} estado={miembro.estado} accesorio={SKINS[skinSlug(miembro.skinActivo)].accesorio} size="sm" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">
+      <div className="min-w-24 flex-1">
+        <p className="break-words font-semibold">
           {miembro.nombre}
           {esYo ? " (tú)" : ""}
         </p>

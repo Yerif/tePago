@@ -14,7 +14,7 @@ export function EscribirGasto({ yo }: EscribirGastoProps) {
       <label htmlFor="frase-gasto" className="text-sm text-muted-foreground">
         O cuéntalo con tus palabras
       </label>
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <input
           id="frase-gasto"
           name="t"
@@ -22,7 +22,7 @@ export function EscribirGasto({ yo }: EscribirGastoProps) {
           maxLength={280}
           autoComplete="off"
           placeholder="Cena 840, pagué yo, somos 4"
-          className="min-h-11 min-w-0 flex-1 rounded-2xl border-[2.5px] border-border bg-background px-4"
+          className="min-h-11 min-w-32 flex-1 rounded-2xl border-[2.5px] border-border bg-background px-4"
         />
         <button
           type="submit"

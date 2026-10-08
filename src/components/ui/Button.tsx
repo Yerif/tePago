@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 export const buttonVariants = cva(
   [
     "inline-flex items-center justify-center gap-2 whitespace-nowrap font-semibold",
+    // En pantallas muy angostas (zoom 200 %) el texto del botón puede partirse en lugar de salirse de la pantalla.
+    "max-[360px]:h-auto max-[360px]:min-h-11 max-[360px]:max-w-full max-[360px]:whitespace-normal max-[360px]:py-2",
     "border-[2.5px] border-[color:var(--edge)] shadow-[0_4px_0_var(--edge)]",
     "transition-[transform,box-shadow] duration-100",
     "active:translate-y-1 active:shadow-none",

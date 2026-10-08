@@ -105,7 +105,7 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
       </Link>
       <h1 className="font-display text-3xl font-bold">Detalle</h1>
 
-      <Card size="sm" className="flex items-center gap-4" data-testid="mi-personaje">
+      <Card size="sm" className="flex items-center gap-4 max-[360px]:flex-col" data-testid="mi-personaje">
         <Personaje
           celebrar={festejos}
           className="h-28 w-28 shrink-0"

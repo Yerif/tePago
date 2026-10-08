@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { tiempoDesdeHoras, tiempoRelativo } from "./tiempo";
+import { tiempoCorto, tiempoDesdeHoras, tiempoRelativo } from "./tiempo";
 
 const ahora = new Date("2026-09-29T12:00:00Z");
 const hace = (h: number) => new Date(ahora.getTime() - h * 3_600_000).toISOString();
@@ -23,5 +23,14 @@ describe("tiempoDesdeHoras", () => {
     expect(tiempoDesdeHoras(5.9)).toBe("hace 5 h");
     expect(tiempoDesdeHoras(24)).toBe("hace 1 día");
     expect(tiempoDesdeHoras(100)).toBe("hace 4 días");
+  });
+});
+
+describe("tiempoCorto", () => {
+  it("ahora, horas y días abreviados", () => {
+    expect(tiempoCorto(0.4)).toBe("ahora");
+    expect(tiempoCorto(5.9)).toBe("hace 5 h");
+    expect(tiempoCorto(24)).toBe("hace 1 d");
+    expect(tiempoCorto(100)).toBe("hace 4 d");
   });
 });

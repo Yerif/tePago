@@ -189,6 +189,13 @@ textarea::placeholder {
   opacity: 1;
 }
 
+/* Zoom 200 % o pantallas muy angostas (≤ 360 px CSS): menos margen lateral para que todo quepa sin scroll horizontal (UX2-22). */
+@media (max-width: 360px) {
+  main {
+    padding-inline: 0.75rem;
+  }
+}
+
 /* Plegables (<details>): la flechita gira al abrir. Con movimiento reducido gira de golpe. */
 .chevron-plegable {
   display: inline-block;

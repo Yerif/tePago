@@ -50,7 +50,7 @@ export function NavInferior({ yoPorDefecto, bases }: NavInferiorProps) {
               {/* Pestaña activa: barra arriba + fondo detrás del ícono + etiqueta en negritas (no depende solo del color).
                   Todas las pestañas, Dividir incluida, se ven igual: ninguna parece "siempre seleccionada". */}
               {d.activo && <span aria-hidden data-testid="nav-activa" className="absolute top-0 h-1 w-10 rounded-b-full bg-grass" />}
-              <span aria-hidden className={cn("flex h-8 min-w-14 items-center justify-center rounded-full", d.activo && "bg-grass-soft")}>
+              <span aria-hidden className={cn("flex h-8 w-full max-w-14 items-center justify-center rounded-full", d.activo && "bg-grass-soft")}>
                 {d.id === "yo" && miBase ? (
                   <Avatar base={miBase} estado="clean" neutro compacto size="sm" className="size-8 border-2" />
                 ) : d.id === "dividir" ? (

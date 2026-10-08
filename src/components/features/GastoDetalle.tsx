@@ -39,7 +39,7 @@ export function GastoDetalle({ gasto, nombres, ahora, pendientes }: GastoDetalle
       </summary>
       <ul className="mt-3 flex flex-col gap-2 border-t-2 border-border pt-3">
         {gasto.partes.map((p) => (
-          <li key={p.userId} className="flex items-center justify-between gap-2" data-testid={`parte-${gasto.id}-${p.userId}`}>
+          <li key={p.userId} className="flex flex-wrap items-center justify-between gap-2" data-testid={`parte-${gasto.id}-${p.userId}`}>
             <span>{nombre(p.userId)}</span>
             <span className="flex items-center gap-2">
               <span className="font-display font-bold">{formatoMXN(p.centavos)}</span>

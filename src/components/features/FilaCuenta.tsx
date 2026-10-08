@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/Card";
 import type { EstadoAvatar } from "@/lib/game/avatar";
 import { formatoMXN } from "@/lib/splits/formato";
 import type { CuentaConPersona, ReservaDeCuenta } from "@/lib/splits/resumen";
-import { tiempoDesdeHoras } from "@/lib/tiempo";
+import { tiempoCorto } from "@/lib/tiempo";
 import { Chevron } from "@/components/ui/Chevron";
 
 export interface FilaCuentaProps {
@@ -31,17 +31,25 @@ export function FilaCuenta({ cuenta, nombre, base, estado, accesorio, reserva, o
   return (
     <li data-testid={`cuenta-${id}`}>
       <Card size="sm" className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Avatar base={base} estado={estado} accesorio={accesorio} size="sm" compacto />
-          <div className="min-w-0 flex-1">
+          <div className="min-w-24 flex-1">
             <p className="break-words font-semibold">{nombre}</p>
             <p className="text-sm text-muted-foreground">
-              {tiempoDesdeHoras(cuenta.masViejaHoras)} · {cuenta.porGrupo.length === 1 ? cuenta.porGrupo[0]?.nombre : `${cuenta.porGrupo.length} grupos`}
+              {tiempoCorto(cuenta.masViejaHoras)} · {cuenta.porGrupo.length === 1 ? cuenta.porGrupo[0]?.nombre : `${cuenta.porGrupo.length} grupos`}
             </p>
           </div>
-          <p data-testid={`cuenta-monto-${id}`} className={reserva ? "font-display text-lg font-bold text-rose-text" : "font-display text-lg font-bold text-grass-text"}>
-            {formatoMXN(cuenta.centavos)}
-          </p>
+          {/* Una sola cifra: el monto a la derecha y, debajo, "Pagar". Solo si ya hay un pago en camino el botón dice cuánto queda. */}
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <p data-testid={`cuenta-monto-${id}`} className={reserva ? "font-display text-lg font-bold text-rose-text" : "font-display text-lg font-bold text-grass-text"}>
+              {formatoMXN(cuenta.centavos)}
+            </p>
+            {reserva && reserva.disponibleCentavos > 0 && (
+              <Button size="sm" data-testid={`cuenta-pagar-${id}`} aria-label={`Pagarle ${formatoMXN(reserva.disponibleCentavos)} a ${nombre}`} onClick={onPagar}>
+                {reserva.disponibleCentavos === cuenta.centavos ? "Pagar" : `Pagar ${formatoMXN(reserva.disponibleCentavos)}`}
+              </Button>
+            )}
+          </div>
         </div>
 
         {reserva && reserva.pendienteCentavos > 0 && (
@@ -55,18 +63,11 @@ export function FilaCuenta({ cuenta, nombre, base, estado, accesorio, reserva, o
           </Pill>
         )}
 
-        {reserva && (
+        {reserva && reserva.pendienteCentavos + reserva.disputaCentavos > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            {reserva.disponibleCentavos > 0 && (
-              <Button size="md" data-testid={`cuenta-pagar-${id}`} onClick={onPagar}>
-                Pagar {formatoMXN(reserva.disponibleCentavos)}
-              </Button>
-            )}
-            {reserva.pendienteCentavos + reserva.disputaCentavos > 0 && (
-              <Button size="md" variant="outline" data-testid={`cuenta-cancelar-${id}`} onClick={onCancelar}>
-                Cancelar pago
-              </Button>
-            )}
+            <Button size="md" variant="outline" data-testid={`cuenta-cancelar-${id}`} onClick={onCancelar}>
+              Cancelar pago
+            </Button>
           </div>
         )}
 
