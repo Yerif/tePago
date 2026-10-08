@@ -188,3 +188,16 @@ textarea::placeholder {
   color: var(--placeholder);
   opacity: 1;
 }
+
+/* Plegables (<details>): la flechita gira al abrir. Con movimiento reducido gira de golpe. */
+.chevron-plegable {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chevron-plegable {
+    transition: transform 0.15s ease;
+  }
+}
+details[open] > summary .chevron-plegable {
+  transform: rotate(180deg);
+}

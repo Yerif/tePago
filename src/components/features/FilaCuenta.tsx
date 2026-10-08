@@ -8,6 +8,7 @@ import type { EstadoAvatar } from "@/lib/game/avatar";
 import { formatoMXN } from "@/lib/splits/formato";
 import type { CuentaConPersona, ReservaDeCuenta } from "@/lib/splits/resumen";
 import { tiempoDesdeHoras } from "@/lib/tiempo";
+import { Chevron } from "@/components/ui/Chevron";
 
 export interface FilaCuentaProps {
   cuenta: CuentaConPersona;
@@ -71,7 +72,10 @@ export function FilaCuenta({ cuenta, nombre, base, estado, accesorio, reserva, o
 
         {!ocultarDesglose && cuenta.porGrupo.length > 1 && (
           <details className="text-sm">
-            <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground underline">Ver desglose</summary>
+            <summary className="flex min-h-11 cursor-pointer items-center text-muted-foreground">
+              <span className="underline">Ver desglose</span>
+              <Chevron className="ml-1 pl-0 text-base" />
+            </summary>
             <ul className="flex flex-col gap-1 pb-1">
               {cuenta.porGrupo.map((g) => (
                 <li key={g.grupoId} className="flex justify-between">
