@@ -31,6 +31,18 @@ test.describe("Yo reordenada: el personaje primero (PX-05)", () => {
     await expect(page.getByTestId(ids.perfil.base("gato")).locator("img")).toHaveAttribute("src", /gato-clean\.png/); // neutro: sin lluvia ni aro de estado
   });
 
+  test("la skin que eliges se guarda, avisa y la ve el grupo (UX2-05)", async ({ page }) => {
+    await page.goto("/dev/demo/yo?u=ferni"); // Ferni llega con Explorador y también tiene Jardinero
+    await expect(page.getByTestId(ids.yo.skinActiva)).toHaveText("Explorador");
+    await page.getByTestId("skin-jardinero").click();
+    await expect(page.getByTestId(ids.yo.skinActiva)).toHaveText("Jardinero");
+    await expect(page.getByTestId(ids.perfil.guardado)).toContainText("Ahora llevas Jardinero");
+    await page.reload();
+    await expect(page.getByTestId(ids.yo.skinActiva)).toHaveText("Jardinero"); // se guarda
+    await page.goto("/dev/demo/g/oaxaca?u=ana");
+    await expect(page.getByTestId("friend-ferni").getByTestId("avatar-skin")).toHaveText("👒"); // y se ve en el grupo
+  });
+
   test("una skin bloqueada se puede probar 3 s sin activarla ni guardarla", async ({ page }) => {
     await page.goto("/dev/demo/yo?u=ana"); // Ana tiene Jardinero; Explorador pide nivel 5
     await expect(page.getByTestId(ids.yo.skinActiva)).toHaveText("Jardinero");
