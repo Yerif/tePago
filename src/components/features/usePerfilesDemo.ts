@@ -2,10 +2,11 @@
 
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { BaseSlug } from "@/lib/game/apariencia";
+import type { SkinSlug } from "@/lib/game/skins";
 import { aplicarPerfiles, limpiarPerfiles, type PerfilesEditados } from "@/lib/mock/perfiles";
 
 /**
- * Nombre y personaje que cada persona eligió en el demo, compartidos entre pantallas con `localStorage` (solo
+ * Nombre, personaje y skin que cada persona eligió en el demo, compartidos entre pantallas con `localStorage` (solo
  * dev/preview). Con Supabase será un `update` de la fila de `profiles` de la propia persona.
  */
 const LLAVE = "cc_demo_perfiles_v1";
@@ -56,7 +57,7 @@ function suscribir(avisar: () => void) {
 
 export function usePerfilesDemo() {
   const perfiles = useSyncExternalStore(suscribir, leer, () => VACIO);
-  const cambiar = useCallback((id: string, cambio: { nombre?: string; base?: BaseSlug }) => escribir({ ...leer(), [id]: { ...leer()[id], ...cambio } }), []);
+  const cambiar = useCallback((id: string, cambio: { nombre?: string; base?: BaseSlug; skin?: SkinSlug }) => escribir({ ...leer(), [id]: { ...leer()[id], ...cambio } }), []);
   const reiniciar = useCallback(() => escribir({}), []);
   return { perfiles, cambiar, reiniciar };
 }

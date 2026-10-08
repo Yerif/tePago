@@ -46,7 +46,8 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
   const badgesGanados = badgesValidos(badges.map((b) => b.slug));
   const skins: SkinOpcion[] = skinsBase.map((s) => ({ ...s, desbloqueada: estaDesbloqueada(s.slug as SkinSlug, { nivel, badges: badgesGanados }) }));
 
-  const [skinActiva, setSkinActiva] = useState<string>(yo?.skinActivo ?? "clasico");
+  // La skin activa vive en el perfil compartido (se ve en Inicio, Home del grupo y La banda), no en estado local.
+  const skinActiva: string = yo?.skinActivo ?? "clasico";
   const [probando, setProbando] = useState<string | null>(null);
   const [texto, setTexto] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -75,6 +76,14 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
     cambiar(id, { nombre: r.nombre });
     setTexto(null);
     setGuardado(`¡Listo! Ahora te ven como «${r.nombre}» 🌻`);
+  }
+
+  function elegirSkin(slug: string) {
+    const skin = skinSlug(slug);
+    cambiar(id, { skin });
+    setSalto((n) => n + 1);
+    setGuardado(`¡Listo! Ahora llevas ${SKINS[skin].nombre}${SKINS[skin].accesorio ? ` ${SKINS[skin].accesorio}` : ""}`);
+    setError(null);
   }
 
   function elegirBase(b: BaseSlug) {
@@ -171,7 +180,7 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
 
       <Card className="flex flex-col gap-3">
         <h2 className="font-display text-xl font-bold">Skins</h2>
-        <SkinSelector skins={skins} activa={skinActiva} probando={probando} onElegir={setSkinActiva} onProbar={setProbando} />
+        <SkinSelector skins={skins} activa={skinActiva} probando={probando} onElegir={elegirSkin} onProbar={setProbando} />
       </Card>
 
       <Card className="flex flex-col gap-2">

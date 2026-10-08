@@ -23,6 +23,16 @@ describe("aplicarPerfiles", () => {
   });
 });
 
+describe("skin elegida", () => {
+  it("se aplica como skinActivo sin tocar lo demás", () => {
+    const r = aplicarPerfiles(grupos, { ana: { skin: "jardinero" } });
+    expect(r[0]?.miembros[0]).toEqual({ id: "ana", nombre: "Ana", base: "oso", emoji: "🐻", skinActivo: "jardinero" });
+  });
+  it("limpiarPerfiles solo acepta skins que existen", () => {
+    expect(limpiarPerfiles({ ana: { skin: "alcalde" }, beto: { skin: "dragon" } })).toEqual({ ana: { skin: "alcalde" } });
+  });
+});
+
 describe("limpiarPerfiles", () => {
   it("conserva lo válido y descarta basura", () => {
     expect(limpiarPerfiles({ ana: { nombre: "  Ana  ", base: "gato" }, beto: { nombre: "", base: "dragon" }, x: 5, y: null, z: { nombre: 3 } })).toEqual({ ana: { nombre: "Ana", base: "gato" } });
