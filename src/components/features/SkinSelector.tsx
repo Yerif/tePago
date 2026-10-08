@@ -48,7 +48,7 @@ export function SkinSelector({ skins, activa, probando, onElegir, onProbar }: Sk
                 {s.desbloqueada ? s.accesorio || "🙂" : "🔒"}
               </span>
               <span className="font-semibold">{s.nombre}</span>
-              <span className="text-xs text-muted-foreground">{s.requisito}</span>
+              <span className="text-sm text-muted-foreground">{s.requisito}</span>
               {!s.desbloqueada && <Pill variant="neutral">Bloqueada</Pill>}
             </button>
             {!s.desbloqueada && (
