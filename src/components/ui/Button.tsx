@@ -9,7 +9,8 @@ export const buttonVariants = cva(
     "border-[2.5px] border-[color:var(--edge)] shadow-[0_4px_0_var(--edge)]",
     "transition-[transform,box-shadow] duration-100",
     "active:translate-y-1 active:shadow-none",
-    "disabled:pointer-events-none disabled:opacity-60",
+    // Deshabilitado: colores sólidos y legibles (AA), no un botón "fantasma" al 60 %.
+    "disabled:pointer-events-none disabled:border-border disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none",
   ],
   {
     variants: {

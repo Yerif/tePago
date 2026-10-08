@@ -22,6 +22,16 @@ describe.each([
 ])("tokens %s: contraste AA (CLAUDE.md §13.7)", (_nombre, t) => {
   const c = (a: string, b: string) => contraste(t[a] as string, t[b] as string);
 
+  it("campos: borde ≥ 3:1 contra card, fondo y superficie suave; placeholder AA (UX2-17)", () => {
+    for (const fondo of ["card", "background", "muted"]) expect(c("input-border", fondo), `borde vs ${fondo}`).toBeGreaterThanOrEqual(3);
+    for (const fondo of ["card", "background"]) expect(c("placeholder", fondo), `placeholder vs ${fondo}`).toBeGreaterThanOrEqual(AA);
+  });
+
+  it("barra de XP: relleno (grass-text) ≥ 3:1 contra su pista; botón deshabilitado legible (AA)", () => {
+    expect(c("grass-text", "muted")).toBeGreaterThanOrEqual(3);
+    expect(c("muted-foreground", "muted")).toBeGreaterThanOrEqual(AA);
+  });
+
   it("carga todos los tokens que se usan", () => {
     for (const k of ["background", "foreground", "card", "muted-foreground", "on-accent"]) expect(t[k]).toMatch(/^#/);
     for (const a of ACENTOS) for (const k of [a, `${a}-soft`, `${a}-text`]) expect(t[k], k).toMatch(/^#/);

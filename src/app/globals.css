@@ -13,6 +13,8 @@
   --muted: #fff3d6; /* superficie suave */
   --muted-foreground: #7a5c44; /* texto secundario */
   --subtle: #b89880; /* SOLO decorativo: no alcanza AA ni 3:1 */
+  --input-border: #927a60; /* borde de campos: ≥ 3:1 contra card y fondo (WCAG 1.4.11) */
+  --placeholder: #8a6b52; /* texto de ayuda dentro de campos: AA */
   --ring: #3d2b1f;
   --on-accent: #1a1f2e; /* texto sobre rellenos de acento */
 
@@ -53,6 +55,8 @@
   --muted: #2c3448;
   --muted-foreground: #a0a8c8;
   --subtle: #606880;
+  --input-border: #7a84a8;
+  --placeholder: #8d96b8;
   --ring: #e8eaf2;
 
   --grass: #4a9e6a;
@@ -171,6 +175,18 @@
   .respirar {
     animation: respirar 3.4s ease-in-out infinite;
   }
+}
+
+/* Campos: borde visible (≥ 3:1) y placeholder legible (AA) en ambos temas (UX2-17). Sin layer: gana a las utilidades. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea {
+  border-color: var(--input-border);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
 }
 
 /* Plegables (<details>): la flechita gira al abrir. Con movimiento reducido gira de golpe. */

@@ -29,7 +29,7 @@ export function XPBar({ nivel, xp, xpSiguiente, className }: XPBarProps) {
         aria-valuenow={xp}
         className="h-4 overflow-hidden rounded-full border-2 border-border bg-muted"
       >
-        <div className="h-full rounded-full bg-grass" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-grass-text" style={{ width: `${pct}%` }} />
       </div>
     </div>
   );
