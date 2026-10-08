@@ -38,8 +38,8 @@ export function ListaGrupos({ grupos, yo, base }: ListaGruposProps) {
                   {g.icono}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{g.nombre}</p>
-                  <p className="truncate text-sm text-muted-foreground">
+                  <p className="break-words font-semibold">{g.nombre}</p>
+                  <p className="text-sm text-muted-foreground">
                     {g.miembros.length} personas · {g.gastos.length} gastos
                   </p>
                 </div>

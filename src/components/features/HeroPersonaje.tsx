@@ -73,7 +73,7 @@ export function HeroPersonaje({ nombre, apariencia, estado, nivel, xp, xpSiguien
           <Personaje className="h-32 w-32" apariencia={apariencia} estado={estado} celebrar={celebrar} saludar={saludos} />
         </button>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-2xl font-bold">Hola, {nombre} 👋</h1>
+          <h1 className="break-words font-display text-2xl font-bold">Hola, {nombre} 👋</h1>
           <Pill variant={VARIANTE[estado]} data-testid="inicio-estado">
             {ETIQUETA_ESTADO[estado]}
           </Pill>

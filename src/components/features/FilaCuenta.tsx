@@ -33,7 +33,7 @@ export function FilaCuenta({ cuenta, nombre, base, estado, accesorio, reserva, o
         <div className="flex items-center gap-3">
           <Avatar base={base} estado={estado} accesorio={accesorio} size="sm" compacto />
           <div className="min-w-0 flex-1">
-            <p className="truncate font-semibold">{nombre}</p>
+            <p className="break-words font-semibold">{nombre}</p>
             <p className="text-sm text-muted-foreground">
               {tiempoDesdeHoras(cuenta.masViejaHoras)} · {cuenta.porGrupo.length === 1 ? cuenta.porGrupo[0]?.nombre : `${cuenta.porGrupo.length} grupos`}
             </p>

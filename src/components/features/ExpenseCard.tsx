@@ -18,7 +18,7 @@ export function ExpenseCard({ gasto, pagador, ahora }: ExpenseCardProps) {
         {EMOJI_CATEGORIA[gasto.categoria]}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{gasto.descripcion}</p>
+        <p className="line-clamp-2 break-words font-semibold">{gasto.descripcion}</p>
         <p className="text-sm text-muted-foreground">
           Pagó {pagador} · {tiempoRelativo(gasto.fecha, ahora)}
         </p>
