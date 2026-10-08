@@ -57,7 +57,7 @@ export const ids = {
   perfil: { nombre: "perfil-nombre", guardar: "perfil-guardar", error: "perfil-error", guardado: "perfil-guardado", actual: "perfil-nombre-actual", base: (b: string) => `perfil-base-${b}` },
   inicio_hero: { raiz: "inicio-hero", globo: "inicio-globo", camino: "inicio-camino", toque: "inicio-personaje-toque" },
   revelacion: { raiz: "revelacion", xp: "revelacion-xp", nivel: "revelacion-nivel", estado: "revelacion-estado", ok: "revelacion-ok" },
-  yo: { heroe: "perfil-heroe", meta: "perfil-meta", skinActiva: "skin-activa", probar: (s: string) => `skin-probar-${s}`, grupo: "perfil-grupo" },
+  yo: { ajustes: "perfil-ajustes", heroe: "perfil-heroe", meta: "perfil-meta", skinActiva: "skin-activa", probar: (s: string) => `skin-probar-${s}`, grupo: "perfil-grupo" },
   confirmar: { total: "ia-total", confirmar: "ia-confirmar", guardado: "ia-guardado", resultado: "ia-resultado" },
   personaje: { raiz: "personaje", canvas: "personaje-canvas", respaldo: "personaje-respaldo", estado: (e: string) => `estado-${e}`, base: (b: string) => `base-${b}`, skin: (s: string) => `skin-${s}`, nivel: "nivel", festejar: "festejar", celebraciones: "data-celebraciones" },
   saldar: { estado: "mi-estado", error: "pagar-error" },

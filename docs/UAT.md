@@ -63,7 +63,7 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 | T9 | "Abre la app como Ana. ¿Cuánto debes y a quién le tienes que pagar? Págalo." (inicio del demo, `?u=ana`) | ¿Encuentra qué pagar sin navegar? | Sin ayuda y en ≤ 3 toques |
 | T11 | "Abre la app como Ana. ¿A quién le debes más y cuánto? Págale." (cronometrar: meta < 10 s y ≤ 2 toques) · Después: "Nico dice que no le llegó: ¿qué haces?" | ¿Encuentra la fila, la hoja y el Deshacer? ¿Entiende "en disputa"? | Sin ayuda; 0 dudas sobre la cantidad a pagar |
 | T10 | En dos celulares (o cambiando de persona con `?u=`): "Ana le paga a Luis y avisa en la app. Luis: confirma el pago." Después: "Ana, ¿qué pasó con tu deuda y tus puntos?" | ¿Entiende que el pago queda pendiente hasta que se confirma? ¿Encuentra la confirmación en el inicio? | Sin ayuda; Ana explica que los puntos llegaron al confirmarse |
-| T7 | "Cambia a modo claro." | Toggle | Sin ayuda |
+| T7 | "Cambia a modo claro." | ¿Va a Yo → Ajustes? (el botón ya no está en el Home del grupo) | Sin ayuda |
 
 ### Datos del demo para probar a fondo
 

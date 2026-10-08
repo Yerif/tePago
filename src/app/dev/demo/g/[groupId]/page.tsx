@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { GrassDivider } from "@/components/cozy/GrassDivider";
 import { Pill } from "@/components/cozy/Pill";
-import { ThemeToggle } from "@/components/cozy/ThemeToggle";
 import { DebugDatos } from "@/components/dev/DebugDatos";
 import { HomeGrupoVivo } from "@/components/features/HomeGrupoVivo";
 import { crearGrupos, YO } from "@/lib/mock/datos";
@@ -47,7 +46,6 @@ export default async function HomeGrupoDemoPage({ params, searchParams }: { para
               {grupo.icono} {grupo.nombre}
             </h1>
           </div>
-          <ThemeToggle />
         </div>
         <nav aria-label="Grupos" className="flex flex-wrap gap-2 px-6 pt-3 pb-4">
           {grupos.map((g) => (
