@@ -18,6 +18,7 @@ export default async function DividirDemoPage({ searchParams }: { searchParams: 
       <DividirRapido
         yo={yo}
         grupoInicial={inicial}
+        grupoPedido={grupos.some((x) => x.id === g)}
         grupos={grupos.map(({ id, nombre, icono, miembros }) => ({
           id,
           nombre,

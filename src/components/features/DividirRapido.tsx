@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar } from "@/components/cozy/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { guardarUltimoGrupo, leerUltimoGrupo } from "@/components/features/ultimoGrupoDemo";
 import { useGastosDemo } from "@/components/features/useGastosDemo";
 import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
 import { ModoPorPersona } from "@/components/features/ModoPorPersona";
@@ -54,12 +55,20 @@ export interface DividirRapidoProps {
   grupos: GrupoLite[];
   yo: string;
   grupoInicial: string;
+  /** `true` si la URL pidió un grupo (`?g=`): entonces no se usa el último recordado. */
+  grupoPedido?: boolean;
 }
 
 /** Modo rápido: abrir → monto → confirmar (≤ 3 interacciones). Todo local, sin backend. */
-export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirRapidoProps) {
+export function DividirRapido({ grupos: gruposBase, yo, grupoInicial, grupoPedido = false }: DividirRapidoProps) {
   const grupos = useGruposConPerfiles(gruposBase);
   const [grupoId, setGrupoId] = useState(grupoInicial);
+  // Sin `?g=`, Dividir arranca en el último grupo donde esta persona registró un gasto (UX2-11).
+  useEffect(() => {
+    if (grupoPedido) return;
+    const recordado = leerUltimoGrupo(yo);
+    if (recordado && recordado !== grupoInicial && gruposBase.some((g) => g.id === recordado)) setGrupoId(recordado);
+  }, [grupoPedido, yo, grupoInicial, gruposBase]);
   const [excluidos, setExcluidos] = useState<string[]>([]);
   const [pagador, setPagador] = useState(yo);
   const [texto, setTexto] = useState("");
@@ -141,6 +150,7 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
       },
       ...prev,
     ]);
+    guardarUltimoGrupo(yo, grupo.id);
     // Se guarda de verdad en el demo: aparece en el Home y el detalle del grupo y da la XP que marca D5 (≥ 2 personas, máx. 5 al día).
     const nuevo = agregar({ grupoId: grupo.id, descripcion, totalCentavos: centavos, pagadoPor: pagador, creadoPor: yo, partes, sinAsignarCentavos: sinAsignar, ahora: new Date() });
     setAviso({ texto: `¡Listo! Guardado en ${grupo.nombre}${nuevo.xp > 0 ? ` · +${nuevo.xp} XP 🌻` : ""}`, grupoId: grupo.id });
