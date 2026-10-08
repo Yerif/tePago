@@ -42,7 +42,6 @@ export function SkinSelector({ skins, activa, probando, onElegir, onProbar }: Sk
               className={cn(
                 "flex min-h-11 w-full flex-1 flex-col items-center gap-1 rounded-card-sm border-[2.5px] p-3 text-center",
                 s.slug === activa ? "border-grass bg-grass-soft" : "border-border bg-card",
-                !s.desbloqueada && "opacity-70",
               )}
             >
               <span aria-hidden className="text-3xl">

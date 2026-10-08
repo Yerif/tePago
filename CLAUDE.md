@@ -377,6 +377,8 @@ FONDOS SUAVES   light: pastel (rose-soft #FFD6E0) · dark: profundo (rose-soft #
                 son versiones oscuras para montos y estados (AA sobre card, fondo y su fondo suave); los demás usan el color del texto
 ```
 
+**Campos y estados (UX2-17):** `--input-border` (borde de campos, ≥ 3:1 contra card, fondo y superficie suave) y `--placeholder` (AA) en ambos temas; la barra de XP rellena con `grass-text`; un botón deshabilitado usa `muted`/`muted-foreground` (AA), no opacidad. Un test en `lib/contraste.test.ts` lo exige.
+
 `subtle` no llega ni a 3:1 (≈ 3.0:1 en dark y ≈ 2.6:1 en light): solo elementos decorativos, **nunca** texto con información, ni siquiera grande.
 
 ### Lenguaje visual
