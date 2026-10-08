@@ -31,12 +31,18 @@ export default async function ConfirmarDemoPage({ searchParams }: { searchParams
         {frase ? "← Dividir" : "← Demo"}
       </Link>
       <h1 className="font-display text-3xl font-bold">Confirmar gasto ✅</h1>
-      <Pill variant="lemon" className="self-start">
-        Ejemplos de prueba · sin llamadas a la API
-      </Pill>
-      <p className="text-sm text-muted-foreground">
-        {frase ? "Todavía no leo frases nuevas: te muestro el ejemplo más parecido a lo que escribiste. " : ""}Elige un mensaje: la pantalla muestra cómo se revisa lo que se entendió antes de guardar. Cada ejemplo sale de los casos de <code>evals/</code>.
-      </p>
+      {frase ? (
+        <p className="text-sm text-muted-foreground">Todavía no leo frases nuevas: este es el ejemplo más parecido a lo que escribiste. Revísalo y corrígelo antes de guardar; nada cuenta hasta que confirmes.</p>
+      ) : (
+        <>
+          <Pill variant="lemon" className="self-start">
+            Herramienta de prueba · ejemplos sin llamadas a la API
+          </Pill>
+          <p className="text-sm text-muted-foreground">
+            Elige un mensaje: la pantalla muestra cómo se revisa lo que se entendió antes de guardar. Cada ejemplo sale de los casos de <code>evals/</code>.
+          </p>
+        </>
+      )}
 
       <nav aria-label="Ejemplos" className="flex flex-wrap gap-2">
         {casos.map((x, i) => (
