@@ -92,7 +92,7 @@ export function ConfirmarGasto({ miembros, quienEscribeId, textoOriginal, borrad
 
   function confirmar() {
     if (!calculo.resultado) return;
-    setGuardado(`¡Listo! ${descripcion.trim() || "Gasto"} por ${formatoMXN(calculo.resultado.totalCentavos)} · +10 XP 🌻`);
+    setGuardado(`¡Listo! ${descripcion.trim() || "Gasto"} por ${formatoMXN(calculo.resultado.totalCentavos)}`);
   }
 
   const chip = (activo: boolean) =>

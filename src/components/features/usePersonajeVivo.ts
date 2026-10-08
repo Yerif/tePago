@@ -7,6 +7,8 @@ import type { GrupoDemo, MiembroDemo } from "@/lib/mock/tipos";
 import { paresConfirmados, xpPorPagosConfirmados } from "@/lib/splits/confirmacion";
 import { aplicarPagos } from "@/lib/splits/pagos";
 import { usePagosDemo } from "./usePagosDemo";
+import { xpDeGastosGuardados } from "@/lib/mock/gastosGuardados";
+import { useGastosDemo, useGruposConGastos } from "./useGastosDemo";
 import { useGruposConPerfiles } from "./usePerfilesDemo";
 
 /**
@@ -15,7 +17,8 @@ import { useGruposConPerfiles } from "./usePerfilesDemo";
  * para que cuenten la misma historia.
  */
 export function usePersonajeVivo(gruposBase: GrupoDemo[], yoId: string, ahoraIso: string) {
-  const grupos = useGruposConPerfiles(gruposBase);
+  const grupos = useGruposConGastos(useGruposConPerfiles(gruposBase));
+  const { guardados } = useGastosDemo();
   const { registros } = usePagosDemo();
   const ahora = useMemo(() => new Date(ahoraIso), [ahoraIso]);
 
@@ -27,7 +30,7 @@ export function usePersonajeVivo(gruposBase: GrupoDemo[], yoId: string, ahoraIso
   const miembro = (id: string): MiembroDemo | undefined => grupos.flatMap((g) => g.miembros).find((m) => m.id === id);
 
   const yo = miembro(yoId);
-  const xpGanada = xpPorPagosConfirmados(registros, yoId);
+  const xpGanada = xpPorPagosConfirmados(registros, yoId) + xpDeGastosGuardados(guardados, yoId);
   const xpTotal = yo ? xpAcumuladaParaNivel(yo.nivel) + yo.xp + xpGanada : xpGanada;
   const progreso = progresoNivel(xpTotal);
 
