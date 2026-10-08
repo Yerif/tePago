@@ -21,7 +21,7 @@ const ESTADOS: EstadoAvatar[] = ["clean", "mild", "rekt"];
 
 /**
  * "Conoce a tu personaje" (PX-11): 3 pasos, omitibles, una sola vez. Explica que el personaje cambia según cómo pagas, que
- * pagar rápido da XP y skins, y qué ve la banda de ti (CLAUDE.md §7, "Reputación pública"). Nunca estorba el camino de Dividir.
+ * pagar rápido da XP y skins, y qué ve el grupo de ti (CLAUDE.md §7, "Reputación pública"). Nunca estorba el camino de Dividir.
  */
 export function Bienvenida({ nombre, base, hrefYo, onCerrar }: BienvenidaProps) {
   const [paso, setPaso] = useState(0);
@@ -70,9 +70,9 @@ export function Bienvenida({ nombre, base, hrefYo, onCerrar }: BienvenidaProps) 
         {paso === 2 && (
           <>
             <h2 id="bienvenida-titulo" className="font-display text-2xl font-bold">
-              Tu banda te ve a ti, con cariño 🫶
+              Tu grupo te ve a ti, con cariño 🫶
             </h2>
-            <p>Tu banda ve tu personaje, tu nivel, tus badges y tu saldo del grupo. Nada más.</p>
+            <p>Tu grupo ve tu personaje, tu nivel, tus badges y tu saldo. Nada más.</p>
             <p className="text-sm text-muted-foreground">La broma es del personaje, nunca de ti: si está nublado, un pago lo arregla.</p>
           </>
         )}

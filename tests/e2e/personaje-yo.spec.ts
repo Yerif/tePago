@@ -41,10 +41,10 @@ test.describe("Yo reordenada: el personaje primero (PX-05)", () => {
     await expect(page.getByTestId(ids.yo.skinActiva)).toHaveText("Jardinero", { timeout: 6000 }); // vuelve sola
   });
 
-  test("«Así te ve tu banda» dice qué ven los demás", async ({ page }) => {
+  test("«Así te ve tu grupo» dice qué ven los demás", async ({ page }) => {
     await page.goto("/dev/demo/yo?u=ana");
-    const banda = page.getByTestId(ids.yo.banda);
-    await expect(banda).toContainText("Tu banda ve tu personaje, tu nivel, tus badges y tu saldo del grupo");
-    await expect(banda.getByTestId("mis-badges")).toContainText("Jardinero");
+    const grupo = page.getByTestId(ids.yo.grupo);
+    await expect(grupo).toContainText("Tu grupo ve tu personaje, tu nivel, tus badges y tu saldo");
+    await expect(grupo.getByTestId("mis-badges")).toContainText("Jardinero");
   });
 });

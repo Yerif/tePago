@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Cuentas Conmigo",
     short_name: "Cuentas",
-    description: "Divide gastos con tu banda y sube de nivel pagando a tiempo.",
+    description: "Divide gastos con tu grupo y sube de nivel pagando a tiempo.",
     lang: "es-MX",
     start_url: "/",
     display: "standalone",

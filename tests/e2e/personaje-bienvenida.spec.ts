@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Conoce a tu personaje (PX-11)", () => {
-  test("tres pasos: el personaje cambia según cómo pagas, se gana XP y qué ve tu banda", async ({ page }) => {
+  test("tres pasos: el personaje cambia según cómo pagas, se gana XP y qué ve tu grupo", async ({ page }) => {
     await page.goto("/dev/demo?u=ana&bienvenida=1");
     const dialogo = page.getByTestId("bienvenida");
     await expect(dialogo).toContainText("Hola, Ana");
@@ -11,7 +11,7 @@ test.describe("Conoce a tu personaje (PX-11)", () => {
     await dialogo.getByTestId("bienvenida-siguiente").click();
     await expect(dialogo).toContainText("XP cada vez que saldas una deuda");
     await dialogo.getByTestId("bienvenida-siguiente").click();
-    await expect(dialogo).toContainText("Tu banda ve tu personaje, tu nivel, tus badges y tu saldo del grupo");
+    await expect(dialogo).toContainText("Tu grupo ve tu personaje, tu nivel, tus badges y tu saldo");
     await dialogo.getByTestId("bienvenida-empezar").click();
     await expect(dialogo).toHaveCount(0);
   });

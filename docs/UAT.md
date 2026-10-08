@@ -1,4 +1,4 @@
-# UAT — Pruebas de aceptación con la banda
+# UAT — Pruebas de aceptación con el grupo
 
 > Cómo y cuándo probamos Cuentas Conmigo con personas reales. Contexto de por qué existe: [`docs/AUDITORIA.md`](./AUDITORIA.md).
 > El feedback que salga se registra en [`docs/FEEDBACK.md`](./FEEDBACK.md); los bugs y mejoras se convierten en tickets el viernes.
@@ -9,7 +9,7 @@
 |---|---|---|
 | Qué se prueba | Sensaciones: velocidad, claridad, tono, personaje, reputación | Todo el MVP de punta a punta |
 | Entorno | Preview estable de `develop`, datos de ejemplo, sin Supabase | Producción (`main`) con Supabase y Anthropic reales |
-| Gente | 3–5 personas de confianza, en su celular | La banda (≤ 15) en un plan real (tacos, viaje) |
+| Gente | 3–5 personas de confianza, en su celular | El grupo (≤ 15) en un plan real (tacos, viaje) |
 | Se guarda algo | No: al recargar vuelve todo a como estaba | Sí |
 | Cuándo | En cuanto estén UAT-01 y UAT-02 del backlog | Tras la auditoría L8 y los tickets de Supabase |
 | Duración | 1 semana | 2 semanas (el juego necesita días: pagar, deber, que pase el tiempo) |
@@ -18,7 +18,7 @@ UAT-1 **no** valida: login, grupos reales, invitaciones, persistencia, IA real, 
 
 ## 2. Entorno de UAT-1
 
-1. Vercel → proyecto → **Settings → Deployment Protection**: si "Vercel Authentication" aplica a previews, la banda tendría que iniciar sesión con Vercel. Como el demo no tiene datos sensibles, se puede desactivar **solo para previews**. Si no se quiere, UAT-1 se hace con cuentas de Vercel invitadas (peor).
+1. Vercel → proyecto → **Settings → Deployment Protection**: si "Vercel Authentication" aplica a previews, el grupo tendría que iniciar sesión con Vercel. Como el demo no tiene datos sensibles, se puede desactivar **solo para previews**. Si no se quiere, UAT-1 se hace con cuentas de Vercel invitadas (peor).
 2. **Ninguna llave real en el scope Preview** (`ANTHROPIC_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`). Las llaves reales viven solo en Production (CLAUDE.md §9).
 3. La URL estable es la de la rama: Vercel → Deployments → rama `develop` → "Domains". Mandar esa, no la de un commit.
 4. Entrar por `/dev/demo`: abre directo en el inicio de pagos de Ana. Pedir que lo abran en **Chrome o Safari**, no en el visor integrado de WhatsApp o Instagram (puede cambiar WebGL y `localStorage`, donde el demo guarda los pagos).
@@ -101,7 +101,7 @@ Mismas que `docs/FEEDBACK.md`, más:
 | Voluntad de uso | Pregunta 4 | Mediana ≥ 7 |
 | Errores | Reportes de "copiar reporte" y observación | 0 pantallas rotas; 0 textos cortados en 375 px |
 
-UAT-2 añade: semana 2 con ≥ 60 % de la banda activa (≥ 1 gasto o pago por semana), tiempo mediano a saldar y 0 incidentes de datos entre grupos.
+UAT-2 añade: semana 2 con ≥ 60 % del grupo activo (≥ 1 gasto o pago por semana), tiempo mediano a saldar y 0 incidentes de datos entre grupos.
 
 **Regla:** durante UAT no se agregan features. Solo bugs y feedback con ticket (triage del viernes). Todo lo demás espera al cierre.
 

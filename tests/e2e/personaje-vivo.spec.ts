@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { ids } from "./selectors";
 
 test.describe("una sola historia del personaje (PX-01)", () => {
-  test("lo que editas en Yo se ve en el Home del grupo, en La banda y en la barra inferior", async ({ page }) => {
+  test("lo que editas en Yo se ve en el Home del grupo, en El grupo y en la barra inferior", async ({ page }) => {
     await page.goto("/dev/demo/yo?u=ana");
     await page.getByTestId(ids.perfil.nombre).fill("Anita");
     await page.getByTestId(ids.perfil.guardar).click();

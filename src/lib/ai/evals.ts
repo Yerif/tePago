@@ -22,7 +22,7 @@ export type CriterioT = z.infer<typeof Criterio>;
 
 const comunes = {
   id: z.string(),
-  /** "real" = viene de la banda; "sintetico" = escrito para cubrir un caso. */
+  /** "real" = viene del grupo; "sintetico" = escrito para cubrir un caso. */
   origen: z.enum(["sintetico", "real"]),
   tipo: z.enum(["normal", "adversarial"]),
   tags: z.array(z.string()),

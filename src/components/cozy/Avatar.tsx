@@ -59,7 +59,7 @@ export function Avatar({ base, emoji, accesorio, estado, size, compacto = false,
         </span>
       ) : null}
       {accesorio && base ? (
-        // La skin ganada se ve también en las miniaturas (overlay 2D del accesorio): "mi skin" la ve la banda.
+        // La skin ganada se ve también en las miniaturas (overlay 2D del accesorio): "mi skin" la ve el grupo.
         <span aria-hidden data-testid="avatar-skin" className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-border bg-card text-[0.7rem] leading-none">
           {accesorio}
         </span>

@@ -19,9 +19,9 @@ export default function HomePage() {
       {dev ? (
         <>
           <p className="text-muted-foreground">Prototipo con datos de ejemplo: nada se guarda y al recargar todo vuelve a empezar.</p>
-          <section aria-labelledby="titulo-banda" className="flex flex-col gap-3">
-            <h2 id="titulo-banda" className="font-display text-xl font-bold">
-              Elige tu banda
+          <section aria-labelledby="titulo-grupo" className="flex flex-col gap-3">
+            <h2 id="titulo-grupo" className="font-display text-xl font-bold">
+              Elige tu grupo
             </h2>
             <ListaGrupos grupos={crearGrupos(new Date())} yo={YO} base="/dev/demo/g" />
           </section>
@@ -38,7 +38,7 @@ export default function HomePage() {
           </div>
         </>
       ) : (
-        <p className="text-muted-foreground">Muy pronto: divide gastos con tu banda y sube de nivel pagando a tiempo.</p>
+        <p className="text-muted-foreground">Muy pronto: divide gastos con tu grupo y sube de nivel pagando a tiempo.</p>
       )}
     </main>
   );
