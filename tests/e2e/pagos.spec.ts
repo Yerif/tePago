@@ -152,18 +152,24 @@ test.describe("detalle del grupo", () => {
     await expect(page.getByTestId(ids.pagos.todasLasDeudas)).not.toHaveAttribute("open", "");
   });
 
-  test("pagar menos veces es opcional, explica el camino y lo confirma quien recibe", async ({ page }) => {
-    await page.goto("/dev/demo/g/roomies/detalle?u=ana");
-    await expect(page.getByTestId(ids.cuenta.monto("luis"))).toHaveText("$400.00"); // lo que le debes directo
+  test("pagar menos veces solo se ofrece cuando te ahorra pagos, explica el camino y lo confirma quien recibe", async ({ page }) => {
+    // Mari debe a 2 personas en Roomies; el plan se lo pasa todo a Luis en un solo pago.
+    await page.goto("/dev/demo/g/roomies/detalle?u=mari");
     await page.getByTestId(ids.modos.comoPagarse).locator("summary").click();
-    await expect(page.getByTestId(ids.pagos.plan("ana", "luis"))).toContainText("$218.04"); // saldo neto del grupo
-    await page.getByTestId(ids.pagos.planPagar("ana", "luis")).click();
-    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("218.04");
+    await expect(page.getByTestId(ids.pagos.plan("mari", "luis"))).toContainText("$3,381.96");
+    await page.getByTestId(ids.pagos.planPagar("mari", "luis")).click();
+    await expect(page.getByTestId(ids.hoja.monto)).toHaveValue("3381.96");
     await page.getByTestId(ids.hoja.confirmar).click();
     await expect(page.getByTestId(ids.toast.raiz)).toContainText("Avisamos");
 
     await inicio(page, "luis");
-    await expect(page.getByTestId(ids.pagos.porConfirmar)).toContainText("Ana dice que ya te pagó $218.04");
+    await expect(page.getByTestId(ids.pagos.porConfirmar)).toContainText("Mari dice que ya te pagó");
+  });
+
+  test("si el plan no te ahorra pagos no se ofrece (Ana en Roomies: un solo pago directo)", async ({ page }) => {
+    await page.goto("/dev/demo/g/roomies/detalle?u=ana");
+    await expect(page.getByTestId(ids.cuenta.monto("luis"))).toHaveText("$400.00");
+    await expect(page.getByTestId(ids.modos.comoPagarse)).toHaveCount(0);
   });
 
   test("el detalle de Beto: abono pendiente, Ferni confirma, XP solo al saldar por completo", async ({ page }) => {

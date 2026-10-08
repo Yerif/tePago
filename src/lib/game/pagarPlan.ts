@@ -1,6 +1,7 @@
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import type { PagoRegistrado } from "@/lib/splits/confirmacion";
 import { aplicarPagos, partesQueSeSaldan, type Pago } from "@/lib/splits/pagos";
+import { planDePagos, type Transferencia } from "@/lib/splits/plan";
 import { rutaDePago } from "@/lib/splits/ruta";
 import type { GastoCalculable } from "@/lib/splits/tipos";
 import { xpPorPago } from "./xp";
@@ -58,4 +59,22 @@ export function xpAlConfirmar<T extends GastoCalculable & { fecha: string }>(
     acumulados = [...acumulados, par];
   }
   return xp;
+}
+
+/**
+ * "Pagar menos veces" para `yo` en un grupo: las transferencias del plan más sencillo SOLO si de verdad le ahorran pagos
+ * (menos transferencias que sus deudas directas) y todas se pueden hacer como cadena de deudas. Si no ahorra, o alguna no
+ * se puede hacer, no se ofrece nada: un botón que promete simplificar y no lo hace (o falla) destruye la confianza (UX2-04).
+ * `balances` = saldos netos del grupo con los pagos confirmados; `vigentes` = confirmados + pendientes + en disputa.
+ */
+export function planQueAhorra<T extends GastoCalculable & { fecha: string }>(
+  gastos: readonly T[],
+  vigentes: readonly Pago[],
+  yo: string,
+  balances: Readonly<Record<string, number>>,
+): Transferencia[] {
+  const directas = deudasEntrePersonas(aplicarPagos(gastos, vigentes)).filter((d) => d.deudorId === yo);
+  const mias = planDePagos(balances).filter((t) => t.deId === yo);
+  if (mias.length === 0 || mias.length >= directas.length) return [];
+  return mias.every((t) => declararPagoPlan(gastos, vigentes, yo, t.aId, t.centavos).ok) ? mias : [];
 }
