@@ -16,14 +16,13 @@ import { Personaje } from "@/components/personaje/Personaje";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { apariencia } from "@/lib/game/apariencia";
-import { declararPagoPlan } from "@/lib/game/pagarPlan";
+import { declararPagoPlan, planQueAhorra } from "@/lib/game/pagarPlan";
 import type { GrupoDemo } from "@/lib/mock/tipos";
 import { balancesNetos } from "@/lib/splits/balances";
 import { avisosParaPagador, centavosEnDisputa, centavosPendientes, paresVigentes } from "@/lib/splits/confirmacion";
 import { deudasEntrePersonas } from "@/lib/splits/deudas";
 import { formatoMXN } from "@/lib/splits/formato";
 import type { Pago } from "@/lib/splits/pagos";
-import { planDePagos } from "@/lib/splits/plan";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 
 export interface DetalleGrupoInteractivoProps {
@@ -69,7 +68,8 @@ export function DetalleGrupoInteractivo({ grupos: gruposBase, grupoId, yo, ahora
   const balances = balancesNetos(grupoVista.gastos);
   const deudas = deudasEntrePersonas(grupoVista.gastos);
   const resumen = resumenPorPersona([grupoVista], yo, ahora);
-  const planRutas = planDePagos(balances).filter((t) => t.deId === yo);
+  // "Pagar menos veces" solo si de verdad te ahorra pagos y todas sus transferencias se pueden hacer (UX2-04).
+  const planRutas = planQueAhorra(grupo.gastos, paresVigentes(registros, grupoId), yo, balances);
   const gastos = [...grupo.gastos].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const pendientesDe = (gastoId: string) =>
     Object.fromEntries(grupoVista.gastos.find((g) => g.id === gastoId)?.partes.map((p) => [p.userId, p.saldado ? 0 : p.centavos]) ?? []);

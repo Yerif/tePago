@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { declararPagoDirecto, declararPagoPlan, xpAlConfirmar } from "./pagarPlan";
+import { balancesNetos } from "@/lib/splits/balances";
+import { declararPagoDirecto, declararPagoPlan, planQueAhorra, xpAlConfirmar } from "./pagarPlan";
 
 const ahora = new Date("2026-10-06T12:00:00Z");
 const horas = (h: number) => new Date(ahora.getTime() - h * 3_600_000).toISOString();
@@ -77,5 +78,31 @@ describe("xpAlConfirmar", () => {
       { deudorId: "b", acreedorId: "c", centavos: 100 },
     ];
     expect(xpAlConfirmar(gastos, [], registro(pares, 1))).toBe(50);
+  });
+});
+
+describe("planQueAhorra (UX2-04)", () => {
+  // a le debe 100 a b y b le debe 100 a c: a tiene 1 deuda directa; el plan "a→c 100" también es 1 → no ahorra.
+  const cadena = [gasto("1", "b", "a", 100, 5), gasto("2", "c", "b", 100, 5)];
+  it("si no reduce los pagos de quien mira, no ofrece nada", () => {
+    expect(planQueAhorra(cadena, [], "a", balancesNetos(cadena))).toEqual([]);
+  });
+  // a le debe 100 a b y 100 a d; b le debe 100 a c... a: directas = 2 (b y d). Con d = c, el plan puede dar a→c 200?
+  const triangulo = [gasto("1", "b", "a", 100, 5), gasto("2", "c", "b", 100, 5), gasto("3", "c", "a", 100, 5)];
+  it("ofrece el plan cuando a quien mira le toca pagar menos veces", () => {
+    // a debe 100 a b y 100 a c (2 directas); saldos: a −200, b 0, c +200 → el plan es a→c 200 (1 pago, cadena posible)
+    expect(planQueAhorra(triangulo, [], "a", balancesNetos(triangulo))).toEqual([{ deId: "a", aId: "c", centavos: 200 }]);
+  });
+  it("quien no debe nada no tiene oferta", () => {
+    expect(planQueAhorra(triangulo, [], "c", balancesNetos(triangulo))).toEqual([]);
+  });
+  it("si alguna transferencia del plan no se puede hacer como cadena, no se ofrece nada (nunca un botón que falla)", () => {
+    // El plan dice a→c 200 (1 pago contra 2 directas), pero b→c ya va en camino: a→b→c no alcanza para los 200.
+    const vigentes = [{ deudorId: "b", acreedorId: "c", centavos: 100 }];
+    expect(planQueAhorra(triangulo, vigentes, "a", balancesNetos(triangulo))).toEqual([]);
+  });
+  it("si a quien mira ya le salió más barato pagar directo, tampoco se ofrece", () => {
+    const vigentes = [{ deudorId: "a", acreedorId: "c", centavos: 100 }];
+    expect(planQueAhorra(triangulo, vigentes, "a", balancesNetos(triangulo))).toEqual([]);
   });
 });
