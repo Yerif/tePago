@@ -23,7 +23,7 @@ export function GastoDetalle({ gasto, nombres, ahora, pendientes }: GastoDetalle
           {EMOJI_CATEGORIA[gasto.categoria]}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{gasto.descripcion}</span>
+          <span className="line-clamp-2 break-words font-semibold">{gasto.descripcion}</span>
           <span className="block text-sm text-muted-foreground">
             Pagó {nombre(gasto.pagadoPor)} · {tiempoRelativo(gasto.fecha, ahora)}
           </span>
