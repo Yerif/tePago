@@ -11,6 +11,7 @@ import { ModoProducto, type RenglonProducto } from "@/components/features/ModoPr
 import { calcularBorrador } from "@/lib/splits/borrador";
 import { calcularModo, type ModoDividir } from "@/lib/splits/entradaModo";
 import { formatoMXN, parsearMonto } from "@/lib/splits/formato";
+import { queFaltaParaConfirmar, resumenReparto } from "@/lib/splits/resumenReparto";
 import { repartirIgual } from "@/lib/splits/igual";
 import { cn } from "@/lib/utils";
 
@@ -323,9 +324,16 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
         )}
       </Card>
 
-      <div className="sticky bottom-20 z-30 -mx-2 bg-background/90 px-2 py-2 backdrop-blur">
+      <div className="sticky bottom-20 z-30 -mx-2 flex flex-col gap-1 bg-background px-2 py-2">
+        {/* El reparto vive pegado al botón: se confirma viendo cuánto le toca a cada quien, sin scroll. */}
+        {partes && (
+          <p data-testid="dividir-resumen" aria-live="polite" className="text-center font-semibold">
+            {resumenReparto(partes)}
+            {sinAsignar > 0 ? ` · ${formatoMXN(sinAsignar)} sin asignar` : ""}
+          </p>
+        )}
         <Button size="lg" className="w-full" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
-          Confirmar gasto
+          {partes ? "Confirmar gasto" : queFaltaParaConfirmar(centavos, participantes.length)}
         </Button>
       </div>
 
