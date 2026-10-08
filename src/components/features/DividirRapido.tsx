@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Avatar } from "@/components/cozy/Avatar";
-import { Pill } from "@/components/cozy/Pill";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { useGastosDemo } from "@/components/features/useGastosDemo";
 import { useGruposConPerfiles } from "@/components/features/usePerfilesDemo";
 import { ModoPorPersona } from "@/components/features/ModoPorPersona";
 import { ModoProducto, type RenglonProducto } from "@/components/features/ModoProducto";
@@ -64,7 +65,8 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
   const [texto, setTexto] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [guardados, setGuardados] = useState<GuardadoDemo[]>([]);
-  const [aviso, setAviso] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<{ texto: string; grupoId: string } | null>(null);
+  const { agregar } = useGastosDemo();
   const [modo, setModo] = useState<Modo>("igual");
   const [otrasFormas, setOtrasFormas] = useState(false);
   // Lo capturado por modo: al cambiar de modo y volver no se pierde nada.
@@ -139,7 +141,9 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
       },
       ...prev,
     ]);
-    setAviso(`¡Listo! Guardado en ${grupo.nombre} · +10 XP 🌻`);
+    // Se guarda de verdad en el demo: aparece en el Home y el detalle del grupo y da la XP que marca D5 (≥ 2 personas, máx. 5 al día).
+    const nuevo = agregar({ grupoId: grupo.id, descripcion, totalCentavos: centavos, pagadoPor: pagador, creadoPor: yo, partes, sinAsignarCentavos: sinAsignar, ahora: new Date() });
+    setAviso({ texto: `¡Listo! Guardado en ${grupo.nombre}${nuevo.xp > 0 ? ` · +${nuevo.xp} XP 🌻` : ""}`, grupoId: grupo.id });
     setTexto("");
     setDescripcion("");
     setValores({});
@@ -332,16 +336,18 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
             {sinAsignar > 0 ? ` · ${formatoMXN(sinAsignar)} sin asignar` : ""}
           </p>
         )}
+        {aviso && (
+          <div role="status" data-testid="dividir-aviso" className="flex items-center justify-between gap-2 rounded-2xl border-2 border-grass bg-grass-soft px-3 py-2 text-grass-text">
+            <span className="font-semibold">{aviso.texto}</span>
+            <Link href={`/dev/demo/g/${aviso.grupoId}?u=${yo}`} data-testid="dividir-ver-grupo" className="inline-flex min-h-11 shrink-0 items-center font-bold underline">
+              Ver en el grupo
+            </Link>
+          </div>
+        )}
         <Button size="lg" className="w-full" disabled={!partes} onClick={confirmar} data-testid="dividir-confirmar">
           {partes ? "Confirmar gasto" : queFaltaParaConfirmar(centavos, participantes.length)}
         </Button>
       </div>
-
-      {aviso && (
-        <Pill variant="grass" data-testid="dividir-aviso" className="self-start">
-          {aviso}
-        </Pill>
-      )}
 
       {guardados.length > 0 && (
         <div className="flex flex-col gap-3" data-testid="dividir-guardados">
