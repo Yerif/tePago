@@ -1,7 +1,7 @@
 /** Todos los `data-testid` que usan los E2E, en un solo lugar (CLAUDE.md §11). */
 export const ids = {
   inicio: { dividir: "ir-dividir", grupo: (id: string) => `demo-grupo-${id}` },
-  dividir: { frase: "frase-gasto", enviarFrase: "frase-gasto-enviar", monto: "dividir-monto", confirmar: "dividir-confirmar", aviso: "dividir-aviso", guardados: "dividir-guardados" },
+  dividir: { resumen: "dividir-resumen", frase: "frase-gasto", enviarFrase: "frase-gasto-enviar", monto: "dividir-monto", confirmar: "dividir-confirmar", aviso: "dividir-aviso", guardados: "dividir-guardados" },
   modos: {
     otras: "otras-formas",
     modo: (m: string) => `modo-${m}`,
