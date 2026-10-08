@@ -49,3 +49,13 @@ export function revelacion(visto: InstantaneaPersonaje, actual: InstantaneaPerso
     festejar: xpGanada > 0 || mejoro || subioNivel,
   };
 }
+
+/**
+ * Quita de la revelación la XP que ya se avisó en otra tarjeta (p. ej. "X confirmó tu pago · +80 XP"): un evento, un solo
+ * aviso. Devuelve null si, sin esa XP, la revelación ya no cuenta nada (ni cambio de estado ni nivel nuevo).
+ */
+export function sinDuplicarXp(r: Revelacion, xpYaAvisada: number): Revelacion | null {
+  const xpGanada = Math.max(0, r.xpGanada - Math.max(0, xpYaAvisada));
+  if (xpGanada === 0 && r.estadoAntes === r.estadoDespues && !r.subioNivel) return null;
+  return { ...r, xpGanada };
+}

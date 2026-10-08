@@ -18,9 +18,10 @@ import { apariencia } from "@/lib/game/apariencia";
 import { caminoDeEstado, textoDelCamino } from "@/lib/game/camino";
 import { xpAcumuladaParaNivel } from "@/lib/game/levels";
 import { fraseDelPersonaje } from "@/lib/game/microcopy";
-import { revelacion, type Revelacion } from "@/lib/game/revelacion";
+import { revelacion, sinDuplicarXp, type Revelacion } from "@/lib/game/revelacion";
 import { SKIN_SLUGS, SKINS, type SkinSlug } from "@/lib/game/skins";
 import type { GrupoDemo } from "@/lib/mock/tipos";
+import { avisosParaPagador } from "@/lib/splits/confirmacion";
 import { formatoMXN } from "@/lib/splits/formato";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 import { tiempoDesdeHoras } from "@/lib/tiempo";
@@ -69,7 +70,9 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso, forzarBienveni
     const referencia = visto[yo] ?? { estado: yoMiembro.estado, xpTotal: xpAcumuladaParaNivel(yoMiembro.nivel) + yoMiembro.xp };
     const r = revelacion(referencia, { estado: estadoYo, xpTotal });
     if (r) {
-      setRevelada(r);
+      // Un evento, un aviso: la XP que ya dice "X confirmó tu pago" no se repite en la revelación (el festejo sí ocurre).
+      const xpAvisada = avisosParaPagador(registros, yo).filter((a) => a.estado === "confirmado").reduce((suma, a) => suma + a.xp, 0);
+      setRevelada(sinDuplicarXp(r, xpAvisada));
       if (r.festejar) setFestejos((n) => n + 1);
     }
     marcar(yo, { estado: estadoYo, xpTotal });
