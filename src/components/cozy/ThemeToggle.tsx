@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/Button";
 
 /** Los íconos se alternan con CSS (`dark:`), así no hay desajuste de hidratación. */
-export function ThemeToggle() {
+export function ThemeToggle({ conTexto = false }: { conTexto?: boolean }) {
   const { resolvedTheme, setTheme } = useTheme();
   return (
     <Button
@@ -20,6 +20,12 @@ export function ThemeToggle() {
       <span aria-hidden className="hidden dark:inline">
         ☀️
       </span>
+      {conTexto && (
+        <>
+          <span className="dark:hidden">Pasar a tema oscuro</span>
+          <span className="hidden dark:inline">Pasar a tema claro</span>
+        </>
+      )}
     </Button>
   );
 }

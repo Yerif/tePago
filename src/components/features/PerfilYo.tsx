@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Avatar, ETIQUETA_ESTADO } from "@/components/cozy/Avatar";
 import { Pill } from "@/components/cozy/Pill";
+import { ThemeToggle } from "@/components/cozy/ThemeToggle";
 import { XPBar } from "@/components/cozy/XPBar";
 import { SkinSelector, type SkinOpcion } from "@/components/features/SkinSelector";
 import { usePerfilesDemo } from "@/components/features/usePerfilesDemo";
@@ -230,6 +231,14 @@ export function PerfilYo({ id, grupos, ahoraIso, skins: skinsBase, badges }: Per
           ))}
         </div>
         <p className="text-sm text-muted-foreground">Tu grupo ve tu personaje, tu nivel, tus badges y tu saldo. Nada más.</p>
+      </Card>
+
+      <Card className="flex flex-col gap-3" data-testid="perfil-ajustes">
+        <h2 className="font-display text-xl font-bold">Ajustes</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-sm text-muted-foreground">Apariencia de la app</span>
+          <ThemeToggle conTexto />
+        </div>
       </Card>
     </div>
   );
