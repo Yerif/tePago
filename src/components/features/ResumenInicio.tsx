@@ -26,7 +26,6 @@ import { formatoMXN } from "@/lib/splits/formato";
 import { reservaDeCuenta, resumenPorPersona } from "@/lib/splits/resumen";
 import { tiempoDesdeHoras } from "@/lib/tiempo";
 import { cn } from "@/lib/utils";
-import { Chevron } from "@/components/ui/Chevron";
 
 export interface ResumenInicioProps {
   grupos: GrupoDemo[];
@@ -51,6 +50,7 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso, forzarBienveni
   const { registros, toast, error, reaccion, pagar, deshacer, cancelarA, cerrarToast } = usePagarPersona(grupos, yo, nombres);
   const [hoja, setHoja] = useState<string | null>(null);
   const [verTodas, setVerTodas] = useState(false);
+  const [verTeDeben, setVerTeDeben] = useState(false);
 
   const resumen = resumenPorPersona(vista, yo, ahora);
 
@@ -168,24 +168,35 @@ export function ResumenInicio({ grupos: gruposBase, yo, ahoraIso, forzarBienveni
         </div>
       )}
 
+      {/* Lo que te deben: un cuadro igual al de «Debes», abajo, y un botón que despliega las filas (decisión de Yerif, 2026-10-08). */}
+      <Card className="flex flex-col gap-1" data-testid="inicio-te-deben-card">
+        <p className="text-sm text-muted-foreground">Te deben</p>
+        <p data-testid="inicio-te-deben" className={cn("font-display text-4xl font-bold", resumen.teDebenCentavos > 0 ? "text-grass-text" : "text-foreground")}>
+          {formatoMXN(resumen.teDebenCentavos)}
+        </p>
+        {resumen.teDeben.length > 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid="inicio-te-deben-texto">
+            de {resumen.teDeben.length === 1 ? "1 persona" : `${resumen.teDeben.length} personas`} · la más vieja {tiempoDesdeHoras(Math.max(...resumen.teDeben.map((c) => c.masViejaHoras)))}
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">Nadie te debe por ahora 🌱</p>
+        )}
+      </Card>
       {resumen.teDeben.length > 0 && (
-        <details className="flex flex-col gap-2" data-testid="inicio-te-deben-lista">
-          <summary className="flex min-h-11 cursor-pointer items-center justify-between font-display text-xl font-bold">
-            <span>Te van a pagar</span>
-            <span data-testid="inicio-te-deben" className="text-grass-text">
-              {formatoMXN(resumen.teDebenCentavos)}
-            </span>
-            <Chevron className="ml-0" />
-          </summary>
-          <ul className="mt-2 flex flex-col gap-2">
-            {resumen.teDeben.map((c) => {
-              const m = miembro(c.personaId);
-              return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={estadoDe(c.personaId)} accesorio={SKINS[skinDe(m?.skinActivo)].accesorio} reserva={null} />;
-            })}
-          </ul>
-        </details>
+        <div className="flex flex-col gap-2" data-testid="inicio-te-deben-lista">
+          <Button variant="outline" size="md" className="self-start" aria-expanded={verTeDeben} data-testid="inicio-ver-te-deben" onClick={() => setVerTeDeben((v) => !v)}>
+            {verTeDeben ? "Ver menos ▴" : resumen.teDeben.length === 1 ? "Ver quién te debe ▾" : `Ver las ${resumen.teDeben.length} personas que te deben ▾`}
+          </Button>
+          {verTeDeben && (
+            <ul className="flex flex-col gap-2" data-testid="inicio-te-deben-filas">
+              {resumen.teDeben.map((c) => {
+                const m = miembro(c.personaId);
+                return <FilaCuenta key={c.personaId} cuenta={c} nombre={m?.nombre ?? c.personaId} base={m?.base ?? "persona-sol"} estado={estadoDe(c.personaId)} accesorio={SKINS[skinDe(m?.skinActivo)].accesorio} reserva={null} />;
+              })}
+            </ul>
+          )}
+        </div>
       )}
-      {resumen.teDeben.length === 0 && <span className="sr-only" data-testid="inicio-te-deben">{formatoMXN(0)}</span>}
 
       {cuentaHoja && reservaHoja && reservaHoja.disponibleCentavos > 0 && (
         <HojaPago

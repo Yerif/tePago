@@ -23,7 +23,7 @@ test.describe("plegables con indicador visible", () => {
 
   test("la flechita gira al abrir", async ({ page }) => {
     await page.goto("/dev/demo?u=ferni");
-    const resumen = page.getByTestId("inicio-te-deben-lista").locator("summary");
+    const resumen = page.getByTestId("herramientas-demo").locator("summary");
     const flecha = resumen.getByTestId("chevron");
     const girado = () => flecha.evaluate((e) => getComputedStyle(e).transform);
     expect(await girado()).toBe("none");
