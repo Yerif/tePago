@@ -97,7 +97,11 @@ describe("planQueAhorra (UX2-04)", () => {
     expect(planQueAhorra(triangulo, [], "c", balancesNetos(triangulo))).toEqual([]);
   });
   it("si alguna transferencia del plan no se puede hacer como cadena, no se ofrece nada (nunca un botón que falla)", () => {
-    // El saldo neto dice que a le paga a c 200, pero con la deuda de a→c ya en camino no hay cadena que cubra los 200.
+    // El plan dice a→c 200 (1 pago contra 2 directas), pero b→c ya va en camino: a→b→c no alcanza para los 200.
+    const vigentes = [{ deudorId: "b", acreedorId: "c", centavos: 100 }];
+    expect(planQueAhorra(triangulo, vigentes, "a", balancesNetos(triangulo))).toEqual([]);
+  });
+  it("si a quien mira ya le salió más barato pagar directo, tampoco se ofrece", () => {
     const vigentes = [{ deudorId: "a", acreedorId: "c", centavos: 100 }];
     expect(planQueAhorra(triangulo, vigentes, "a", balancesNetos(triangulo))).toEqual([]);
   });
