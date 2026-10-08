@@ -41,10 +41,6 @@ export function HomeGrupoVivo({ grupos: gruposBase, grupoId, yo, ahoraIso }: Hom
 
   return (
     <div data-component="HomeGrupoVivo" className="flex flex-col gap-5 px-6">
-      <Pill variant="lemon" className="self-start">
-        Datos de ejemplo · sin Supabase
-      </Pill>
-
       <Card className="flex flex-col items-center gap-4 text-center" data-testid="mi-personaje">
         <Personaje apariencia={apariencia({ base: yoMiembro.base, estado: estadoYo, skin: yoMiembro.skinActivo, nivel: progreso.nivel })} estado={estadoYo} />
         <div>

@@ -10,7 +10,7 @@
 | Qué se prueba | Sensaciones: velocidad, claridad, tono, personaje, reputación | Todo el MVP de punta a punta |
 | Entorno | Preview estable de `develop`, datos de ejemplo, sin Supabase | Producción (`main`) con Supabase y Anthropic reales |
 | Gente | 3–5 personas de confianza, en su celular | El grupo (≤ 15) en un plan real (tacos, viaje) |
-| Se guarda algo | No: al recargar vuelve todo a como estaba | Sí |
+| Se guarda algo | Solo en el navegador de cada persona (pagos de prueba, perfil, bienvenida); «Reiniciar», en «Herramientas de prueba», empieza de cero | Sí, en la base de datos |
 | Cuándo | En cuanto estén UAT-01 y UAT-02 del backlog | Tras la auditoría L8 y los tickets de Supabase |
 | Duración | 1 semana | 2 semanas (el juego necesita días: pagar, deber, que pase el tiempo) |
 
@@ -55,7 +55,7 @@ Se le da a cada persona **solo la tarea**, sin explicar la pantalla. Se cronomet
 |---|---|---|---|
 | T1 | "Estás en un viaje a Oaxaca. Pagaste $850 de tacos entre los 4. Regístralo." | Interacciones y segundos desde abrir | ≤ 3 interacciones y < 15 s |
 | T2 | "Ahora, un gasto donde Ferni no participó." | ¿Encuentra cómo quitar a alguien? | Sin ayuda |
-| T3 | "Imagina que escribiste *cena 1,240 + 10% de propina, pagué yo*; elige ese mensaje en la pantalla Confirmar y revisa lo que entendió la app. Corrígelo si algo no cuadra." (en UAT-1 se eligen mensajes de ejemplo; en UAT-2 se escribe libre) | ¿Entiende lo que se "entendió"? ¿Corrige sin miedo? | Corrige monto o persona sin ayuda |
+| T3 | "Imagina que escribiste *cena 1,240 + 10% de propina, pagué yo*; en Dividir, abajo, usa «O cuéntalo con tus palabras» y revisa lo que entendió la app. Corrígelo si algo no cuadra." (en UAT-1 la app responde con el ejemplo más parecido; en UAT-2 entenderá la frase libre) | ¿Entiende lo que se "entendió"? ¿Corrige sin miedo? | Corrige monto o persona sin ayuda |
 | T4 | "Ferni te debe dinero. ¿Cuánto? Y tú, ¿le debes a alguien?" | ¿Lee el detalle del grupo? | Responde bien sin tocar la calculadora |
 | T5 | "Eres Beto y le debes a tres amigos. Paga lo que debes: primero un abono y luego el resto." (en el detalle del grupo Oaxaca, `?u=beto` o la pill de Beto) | ¿Entiende qué cambió en su personaje? | Dice con sus palabras qué ganó o recuperó |
 | T6 | "Mira tu perfil. ¿Qué te falta para la siguiente skin?" | Claridad de nivel, badges y skins | Responde bien |

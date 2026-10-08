@@ -18,7 +18,7 @@ export default function HomePage() {
       </div>
       {dev ? (
         <>
-          <p className="text-muted-foreground">Prototipo con datos de ejemplo: nada se guarda y al recargar todo vuelve a empezar.</p>
+          <p className="text-muted-foreground">Prototipo con datos de ejemplo. Tus pagos de prueba se guardan en este navegador; «Reiniciar» empieza de cero.</p>
           <section aria-labelledby="titulo-grupo" className="flex flex-col gap-3">
             <h2 id="titulo-grupo" className="font-display text-xl font-bold">
               Elige tu grupo

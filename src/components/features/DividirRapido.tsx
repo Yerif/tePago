@@ -139,7 +139,7 @@ export function DividirRapido({ grupos: gruposBase, yo, grupoInicial }: DividirR
       },
       ...prev,
     ]);
-    setAviso(`¡Listo! Guardado en ${grupo.nombre} · +10 XP 🌻 (demo)`);
+    setAviso(`¡Listo! Guardado en ${grupo.nombre} · +10 XP 🌻`);
     setTexto("");
     setDescripcion("");
     setValores({});
