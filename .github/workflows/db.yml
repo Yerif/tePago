@@ -1,0 +1,38 @@
+name: DB
+
+# Levanta el stack local de Supabase (Docker) y corre las pruebas pgTAP (RLS cruzado A/B).
+# Solo cuando cambia algo de la base; no consume minutos en PRs de UI.
+on:
+  pull_request:
+    branches: [develop, main]
+    paths: ["supabase/**", ".github/workflows/db.yml"]
+  push:
+    branches: [develop]
+    paths: ["supabase/**", ".github/workflows/db.yml"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pgtap:
+    name: migraciones · pgTAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Solo la base; sin Studio, storage, etc. para ahorrar tiempo.
+      - run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector,mailpit,storage-api,realtime,postgres-meta,supavisor
+
+      - run: supabase test db
+
+      - if: always()
+        run: supabase stop --no-backup

@@ -179,7 +179,7 @@ item_assignments (group_id, item_id, user_id, partes int check (partes >= 1), cr
 expense_shares (group_id, expense_id, user_id, monto numeric(12,2), parametro int null, created_at)
                                                             -- lo que cada quien debe del gasto; `parametro` guarda lo que se capturó
                                                             -- (puntos base, partes o ajuste en centavos) para poder re-editar
-settlements    (id, group_id, de_user, a_user, monto numeric(12,2) check (monto > 0),
+settlements    (id, group_id, lote_id, de_user, a_user, monto numeric(12,2) check (monto > 0),
                 estado check in ('pendiente','confirmado','rechazado','cancelado') not null default 'pendiente',
                 pares jsonb,                                -- pagos por pares en que se descompone (ver `rutaDePago`)
                 requeridos uuid[], respuestas jsonb,        -- quiénes deben confirmar y qué respondió cada quien
@@ -194,6 +194,7 @@ rate_limits    (key text, window_start timestamptz, count int)
 weekly_summaries (id, user_id, week_start date, contenido jsonb, created_at)   -- unique (user_id, week_start)
 ```
 
+- **Escrituras solo por funciones (RPC), en una transacción** (decisión del plan de BD, aprobado por Yerif 2026-10-09): `authenticated` solo tiene `select` (y `update` de columnas concretas de `profiles` y `groups`). Gastos, items, repartos, pagos, grupos, membresías, XP, badges y skins se escriben con funciones `security definer` (`crear_gasto`, `declarar_pago`, `responder_pago`, `cancelar_pago`, `crear_grupo`, `unirse_a_grupo`, `otorgar_xp`…). Así se cumple en una sola transacción el invariante **Σ `expense_shares.monto` + `sin_asignar` = `total`** (un trigger diferido lo exige) y el cliente no puede saltarse reglas. `settlements.lote_id` agrupa los pagos de un mismo gesto que abarcó varios grupos (un solo aviso por lote). Cada miembro se referencia con FK compuesta a `group_members(group_id, user_id)`: no se puede pagar, deber ni repartir a alguien que no es del grupo.
 - Los **catálogos** de badges y skins viven como constantes en `lib/game/` (versionados con el código); la DB solo guarda lo ganado.
 - `xp_events`, `user_badges` y `user_skins`: escritura SOLO vía funciones `security definer` (`otorgar_xp`, `evaluar_badges`).
 - **Saldado:** no hay `settled_at`. Lo pendiente de cada deuda se deriva aplicando los `settlements` **confirmados** a `expense_shares` (PEPS, `lib/splits/pagos.ts`), igual que en el demo.
